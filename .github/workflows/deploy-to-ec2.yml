@@ -7,7 +7,6 @@ on:
 env:
   AWS_DEFAULT_REGION: ap-northeast-2
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  EC2_IP: ${{ secrets.EC2_IP }}
 
 jobs:
   deploy:
@@ -21,4 +20,4 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" >> $HOME/key.pem
           chmod 400 $HOME/key.pem
-          ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@env.EC2_IP "cd /home/ubuntu/build && npm install"
+          ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@52.79.227.4 "cd /home/ubuntu/build && npm install"
