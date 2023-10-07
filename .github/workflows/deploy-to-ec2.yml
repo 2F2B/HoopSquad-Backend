@@ -6,7 +6,7 @@ on:
       - master
 env:
   AWS_DEFAULT_REGION: ap-northeast-2
-  SSH_PRIVATE_KEY: secrets.SSH_PRIVATE_KEY
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
 jobs:
   deploy:
