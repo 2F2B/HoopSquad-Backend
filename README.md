@@ -1,1 +1,1 @@
-Backend 배포 테스트
+HoopSquad 백엔드 서버
