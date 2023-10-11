@@ -19,5 +19,6 @@ jobs:
       - name: Install Dependencies
         run: |
           echo "$SSH_PRIVATE_KEY" >> $HOME/key.pem
+          ls
           chmod 400 $HOME/key.pem
           ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@52.79.227.4 "cd /home/ubuntu/build && npm install"
