@@ -1,24 +1,23 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import db from "./database/auth_db";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const app = express();
-db.connect();
 
 app.use(cors());
 app.use(bodyParser.json());
 
-app.get("/", (_req, res) => {
-  const sql = "SHOW TABLES";
-
-  db.query(sql, (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.json(rows);
-    }
+app.get("/", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SHOW TABLES`;
     res.json({ connect: "OK" });
-  });
+  } catch (err) {
+    res.json(err);
+    return console.error(err);
+  }
 });
 
 app.listen(3000, () => {
