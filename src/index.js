@@ -23,7 +23,11 @@ app.use(body_parser_1.default.json());
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$queryRaw `SHOW TABLES`;
+<<<<<<< HEAD
         res.send({ connect: "OK" });
+=======
+        res.json({ connect: "OK" });
+>>>>>>> 5fe39fb (Prisma 추가 (#11))
     }
     catch (err) {
         res.json(err);
