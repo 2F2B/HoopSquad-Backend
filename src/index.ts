@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
+import gMap from "./apiKey";
 
 const prisma = new PrismaClient();
 
