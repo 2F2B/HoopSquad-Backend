@@ -37,7 +37,7 @@ function LatLngToAddress(lat, lng) {
     return __awaiter(this, void 0, void 0, function* () {
         const fetchedData = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey_1.default}&language=ko`);
         const formattedAddress = fetchedData.data.results.map((result) => result.formatted_address);
-        return { results: formattedAddress };
+        return { result: formattedAddress };
     });
 }
 exports.LatLngToAddress = LatLngToAddress;
