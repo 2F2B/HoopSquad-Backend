@@ -29,9 +29,9 @@ async function LatLngToAddress(lat: number, lng: number) {
 
   const formattedAddress = fetchedData.data.results.map(
     (result: { formatted_address: any }) => result.formatted_address
-  );
+  ) as string[];
 
-  return { results: formattedAddress };
+  return { result: formattedAddress };
 }
 
 export { AddressToLatLng, LatLngToAddress };

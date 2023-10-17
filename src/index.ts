@@ -2,11 +2,9 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import { AddressToLatLng, LatLngToAddress } from "./google-maps/googleMaps";
-
-const prisma = new PrismaClient();
 
 const app = express();
+const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(bodyParser.json());
