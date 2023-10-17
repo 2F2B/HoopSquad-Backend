@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import axios from "axios";
-import gMap from "./apiKey";
+import { AddressToLatLng, LatLngToAddress } from "./google-maps/googleMaps";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +14,7 @@ app.use(bodyParser.json());
 app.get("/", async (_req, res) => {
   try {
     await prisma.$queryRaw`SHOW TABLES`;
-    res.json({ connect: "OK" });
+    res.send({ connect: "OK" });
   } catch (err) {
     res.json(err);
     return console.error(err);

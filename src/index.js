@@ -23,7 +23,7 @@ app.use(body_parser_1.default.json());
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$queryRaw `SHOW TABLES`;
-        res.json({ connect: "OK" });
+        res.send({ connect: "OK" });
     }
     catch (err) {
         res.json(err);
