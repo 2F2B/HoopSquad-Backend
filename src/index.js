@@ -18,16 +18,14 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
+const routes = require('./routes');
+app.use('/', routes);
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$queryRaw `SHOW TABLES`;
-<<<<<<< HEAD
-        res.send({ connect: "OK" });
-=======
         res.json({ connect: "OK" });
->>>>>>> 5fe39fb (Prisma 추가 (#11))
     }
     catch (err) {
         res.json(err);
