@@ -1,24 +1,27 @@
-import axios from "axios";
-import { kakaoAPIKey } from "../apiKey";
+import express from 'express';
+import axios from 'axios';
+import { gClientId, gSignup_Redirect_uri, gLoginRedirectUri, gToken_uri } from '../GAuthKeys';
 
-async function LoginKakao(code: any) {
-  const result = await axios.post(
-    "https://kauth.kakao.com/oauth/token",
-    {
-      grant_type: "authorization_code",
-      client_id: kakaoAPIKey,
-      redirect_uri:
-        "http://ec2-52-79-227-4.ap-northeast-2.compute.amazonaws.com/auth/register",
-      code: code,
-    },
-    {
-      headers: {
-        "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
-      },
-    }
-  );
+function AuthResponse() {
+  let url = 'https://accounts.google.com/o/oauth2/v2/auth';
 
-  return result.data;
+  url += `?client_id=${gClientId}`
+  url += `&redirect_uri=${gLoginRedirectUri}`
+  url += `&response_type=code`
+  url += `&scope=email profile`
+
+  return url
 }
 
-export { LoginKakao };
+function SignupResponse() {
+  let url = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+  url += `?client_id=${gClientId}`
+  url += `&redirect_uri=${gSignup_Redirect_uri}`
+  url += `&response_type=code`
+  url += `&scope=email profile`
+
+  return url
+}
+
+export {AuthResponse, SignupResponse};
