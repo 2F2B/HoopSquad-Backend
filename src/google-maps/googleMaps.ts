@@ -1,5 +1,5 @@
 import axios from "axios";
-import gMap from "../apiKey";
+import { gMap } from "../apiKey";
 
 /**
  * 주소를 위경도로 바꿔주는 함수
