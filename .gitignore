@@ -5,3 +5,5 @@ src/apiKey.*
 .env
 
 yarn-error.log
+
+src/GAuthKeys.*
