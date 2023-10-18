@@ -1,7 +1,7 @@
 node_modules
 
 src/apiKey.*
-
+src/GAuthKeys.*
 .env
 
 yarn-error.log
