@@ -1,7 +1,7 @@
 import express, { response } from "express";
 import {AuthResponse, SignupResponse} from "../auth/auth";
 import axios from 'axios';
-import { gClientId, gClientSecret, gSignup_Redirect_uri, gToken_uri, gUserInfoUri } from "../apiKey";
+import { gClientId, gClientSecret, gSignup_Redirect_uri, gToken_uri, gUserInfoUri } from "../GAuthKeys";
 
 
 const authRouter = express.Router();

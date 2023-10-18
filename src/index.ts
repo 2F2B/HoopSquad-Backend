@@ -4,9 +4,7 @@ import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
 import authRouter from "./routes/authRouter";
 import courtRouter from "./routes/courtRouter";
-import authRouter from "./routes/authRouter";
 
-const app = express();
 const app = express();
 const prisma = new PrismaClient();
 
