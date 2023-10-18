@@ -4,8 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-var router = express_1.default.Router();
-router.get('/', function (req, res) {
-    res.json({ connect: "O!K" });
+const auth_1 = __importDefault(require("../auth/auth"));
+const authRouter = express_1.default.Router();
+authRouter.use("/", (req, res) => {
+    res.send((0, auth_1.default)());
 });
-module.exports = router;
+exports.default = authRouter;
