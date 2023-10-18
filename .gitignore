@@ -1,7 +1,3 @@
 node_modules
-<<<<<<< HEAD
-src/apiKey.*
-=======
 
->>>>>>> 5fe39fb (Prisma 추가 (#11))
 .env
