@@ -13,11 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_1 = require("../auth/auth");
+const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
 authRouter.get("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield (0, auth_1.LoginKakao)(req.query.code);
+        const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
         res.send(data);
     }
     catch (err) {
