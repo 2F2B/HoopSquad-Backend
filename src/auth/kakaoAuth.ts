@@ -15,7 +15,7 @@ async function LoginKakao(code: any) {
       headers: {
         "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
       },
-    }
+    },
   );
 
   return result.data;
