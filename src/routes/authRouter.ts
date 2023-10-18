@@ -1,5 +1,5 @@
 import express from "express";
-import { LoginKakao } from "../auth/auth";
+import { LoginKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
 authRouter.get("/register", async (req, res) => {
