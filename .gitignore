@@ -3,3 +3,5 @@ node_modules
 src/apiKey.*
 
 .env
+
+yarn-error.log
