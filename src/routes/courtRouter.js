@@ -16,22 +16,29 @@ const express_1 = __importDefault(require("express"));
 const court_1 = require("../court/court");
 const courtRouter = express_1.default.Router();
 courtRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let result;
-    if (req.query.id) {
-        //쿼리 문자열 있음
-        if (typeof req.query.id === "string") {
-            result = yield (0, court_1.getCourt)(parseInt(req.query.id));
+    try {
+        let result;
+        if (req.query.id) {
+            //쿼리 문자열 있음
+            if (typeof req.query.id === "string") {
+                result = yield (0, court_1.getCourt)(parseInt(req.query.id));
+                res.json(result);
+            }
+        }
+        else {
+            //쿼리 문자열 없음
+            result = yield (0, court_1.getCourt)();
             res.json(result);
         }
     }
-    else {
-        //쿼리 문자열 없음
-        result = yield (0, court_1.getCourt)();
-        res.json(result);
+    catch (err) {
+        res.status(400);
+        res.json({ result: "error" });
     }
 }));
 courtRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield (0, court_1.addCourt)(req.body);
+    res.status(result.Code);
     res.json(result);
 }));
 exports.default = courtRouter;
