@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon --watch './src/**/*.ts' --exec 'yarn start'"
   },
   "keywords": [],
   "author": "MaiT-027",
@@ -16,10 +17,12 @@
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "nodemon": "^3.0.1",
     "prisma": "^5.4.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.14",
+    "@types/express": "^4.17.19",
     "@types/mysql": "^2.15.22"
   }
 }

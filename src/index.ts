@@ -6,13 +6,16 @@ import { PrismaClient } from "@prisma/client";
 const app = express();
 const prisma = new PrismaClient();
 
+const routes = require("./routes");
+
+app.use("/", routes);
 app.use(cors());
 app.use(bodyParser.json());
 
 app.get("/", async (_req, res) => {
   try {
     await prisma.$queryRaw`SHOW TABLES`;
-    res.send({ connect: "OK" });
+    res.json({ connect: "OK" });
   } catch (err) {
     res.json(err);
     return console.error(err);
