@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const auth_1 = require("../auth/auth");
 const axios_1 = __importDefault(require("axios"));
 const GAuthKeys_1 = require("../GAuthKeys");
+const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
 authRouter.get("/signup", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
@@ -49,4 +50,14 @@ authRouter.get("/login/redirect", (req, res) => {
     console.log(`code: /${code}`);
     res.send("ok");
 });
+authRouter.get("/register/kakao", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
+        res.send(data);
+    }
+    catch (err) {
+        res.status(400);
+        res.send({ result: "error" });
+    }
+}));
 exports.default = authRouter;

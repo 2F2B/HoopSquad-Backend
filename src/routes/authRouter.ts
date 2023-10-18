@@ -8,6 +8,7 @@ import {
   gToken_uri,
   gUserInfoUri,
 } from "../GAuthKeys";
+import { LoginKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
 
@@ -47,6 +48,16 @@ authRouter.get("/login/redirect", (req, res) => {
   const { code } = req.query;
   console.log(`code: /${code}`);
   res.send("ok");
+});
+
+authRouter.get("/register/kakao", async (req, res) => {
+  try {
+    const data = await LoginKakao(req.query.code);
+    res.send(data);
+  } catch (err) {
+    res.status(400);
+    res.send({ result: "error" });
+  }
 });
 
 export default authRouter;
