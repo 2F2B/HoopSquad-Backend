@@ -13,27 +13,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const body_parser_1 = __importDefault(require("body-parser"));
-const client_1 = require("@prisma/client");
-const authRouter_1 = __importDefault(require("./routes/authRouter"));
-const courtRouter_1 = __importDefault(require("./routes/courtRouter"));
-const app = (0, express_1.default)();
-const prisma = new client_1.PrismaClient();
-app.use("/auth", authRouter_1.default);
-app.use("/court", courtRouter_1.default);
-app.use((0, cors_1.default)());
-app.use(body_parser_1.default.json());
-app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield prisma.$queryRaw `SHOW TABLES`;
-        res.json({ connect: "OK" });
+const court_1 = require("../court/court");
+const courtRouter = express_1.default.Router();
+courtRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let result;
+    if (req.query.id) {
+        //쿼리 문자열 있음
+        if (typeof req.query.id === "string") {
+            result = yield (0, court_1.getCourt)(parseInt(req.query.id));
+            res.json(result);
+        }
     }
-    catch (err) {
-        res.json(err);
-        return console.error(err);
+    else {
+        //쿼리 문자열 없음
+        result = yield (0, court_1.getCourt)();
+        res.json(result);
     }
 }));
-app.listen(3000, () => {
-    console.log("Server started on Port 3000");
-});
+courtRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield (0, court_1.addCourt)(req.body);
+    res.json(result);
+}));
+exports.default = courtRouter;
