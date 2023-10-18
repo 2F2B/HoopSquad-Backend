@@ -3,13 +3,12 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
 import { getCourt, addCourt } from "./court/court";
+import authRouter from "./routes/authRouter";
 
 const app = express();
 const prisma = new PrismaClient();
 
-const routes = require("./routes");
-
-app.use("/", routes);
+app.use("/auth", authRouter);
 app.use(cors());
 app.use(bodyParser.json());
 
