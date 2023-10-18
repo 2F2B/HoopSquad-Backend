@@ -11,6 +11,7 @@ app.use("/auth", authRouter);
 app.use(cors());
 app.use(bodyParser.json());
 
+
 app.get("/", async (_req, res) => {
   try {
     await prisma.$queryRaw`SHOW TABLES`;
@@ -20,7 +21,6 @@ app.get("/", async (_req, res) => {
     return console.error(err);
   }
 });
-
 app.listen(3000, () => {
   console.log("Server started on Port 3000");
 });
