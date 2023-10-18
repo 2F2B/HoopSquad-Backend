@@ -3,13 +3,12 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
 
+const app = express();
 const prisma = new PrismaClient();
 
-const app = express();
+const routes = require("./routes");
 
-const routes = require('./routes');
-
-app.use('/', routes);
+app.use("/", routes);
 app.use(cors());
 app.use(bodyParser.json());
 
