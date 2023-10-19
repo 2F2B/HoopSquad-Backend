@@ -19,8 +19,7 @@
 <script>
   function loginWithKakao() {
     Kakao.Auth.authorize({
-      redirectUri:
-        "http://ec2-52-79-227-4.ap-northeast-2.compute.amazonaws.com/auth/register",
+      redirectUri: "http://localhost:3000/auth/register/kakao",
     });
   }
 

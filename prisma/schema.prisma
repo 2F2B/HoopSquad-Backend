@@ -87,7 +87,9 @@ model OAuthToken {
   User_id      Int
   AccessToken  String   @db.VarChar(255)
   RefreshToken String   @db.VarChar(255)
-  Expires      DateTime @db.DateTime(0)
+  AToken_Expires DateTime @db.DateTime(0)
+  RToken_Expires DateTime @db.DateTime(0)
+  Issurance_Date DateTime @db.DateTime(0)
   User         User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_OAuthToken_User")
 
   @@id([id, User_id])
