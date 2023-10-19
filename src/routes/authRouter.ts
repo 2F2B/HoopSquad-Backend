@@ -1,9 +1,10 @@
 import express, { response } from "express";
-import { AuthResponse, SignupResponse } from "../auth/auth";
+import { LoginResponse, SignupResponse } from "../auth/auth";
 import axios from "axios";
 import {
   gClientId,
   gClientSecret,
+  gLoginRedirectUri,
   gSignup_Redirect_uri,
   gToken_uri,
   gUserInfoUri,
@@ -12,21 +13,19 @@ import { LoginKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
 
-authRouter.get("/signup", (req, res) => {
+authRouter.get("/register/google", (req, res) => {
   var url = SignupResponse();
-  console.log(url);
   res.redirect(url);
 });
 
 authRouter.get("/login", (req, res) => {
-  var url = AuthResponse();
-  console.log(url);
+  var url = LoginResponse();
   res.redirect(url);
 });
 
 authRouter.get("/signup/redirect", async (req, res) => {
   const { code } = req.query;
-  console.log(`code: /${code}`);
+  console.log(`register code: /${code}`);
 
   const resp = await axios.post(gToken_uri, {
     code,
@@ -35,18 +34,28 @@ authRouter.get("/signup/redirect", async (req, res) => {
     redirect_uri: gSignup_Redirect_uri,
     grant_type: "authorization_code",
   });
-
+  console.log(resp.data);
   const resp2 = await axios.get(gUserInfoUri, {
     headers: {
       Authorization: `Bearer ${resp.data.access_token}`,
     },
   });
-  res.json(resp2.data);
+  res.json(resp2.data); //102218120274992740524
 });
 
-authRouter.get("/login/redirect", (req, res) => {
+authRouter.get("/login/redirect", async (req, res) => {
   const { code } = req.query;
-  console.log(`code: /${code}`);
+  console.log(`login code: /${code}`);
+
+  const resp = await axios.post(gToken_uri, {
+    code,
+    client_id: gClientId,
+    client_secret: gClientSecret,
+    redirect_uri: gLoginRedirectUri,
+    grant_type: "authorization_code",
+  });
+  console.log(resp.data);
+
   res.send("ok");
 });
 
