@@ -50,24 +50,21 @@ model Comments {
 }
 
 model Court {
-  Court_id Int      @default(autoincrement())
+  Court_id Int      @id @default(autoincrement())
   Name     String   @db.VarChar(45)
   Date     DateTime @default(now()) @db.Timestamp(0)
   Location String   @db.VarChar(100)
-  Map_id   Int
-  Map      Map      @relation(fields: [Map_id], references: [Map_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Court_Map")
-
-  @@id([Court_id, Map_id])
-  @@index([Map_id], map: "Map_idx")
+  Map_id   Int      @unique
+  Map      Map?     @relation("Map_Court")
 }
 
 model Map {
-  Map_id       Int       @id @default(autoincrement())
-  LocationName String    @db.VarChar(45)
-  Lat          Float     @db.Float
-  Lng          Float     @db.Float
-  Court        Court[]
-  Posting      Posting[]
+  Map_id       Int     @id @default(autoincrement())
+  LocationName String  @db.VarChar(45)
+  Lat          Float   @db.Float
+  Lng          Float   @db.Float
+  Court        Court   @relation("Map_Court", fields: [Map_id], references: [Map_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Map_Court")
+  Posting      Posting @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Map_Posting")
 }
 
 model Message {
@@ -108,9 +105,9 @@ model Posting {
   RecruitAmount String     @db.VarChar(45)
   CurrentAmount String     @db.VarChar(45)
   Introduce     String?    @db.VarChar(600)
-  Map_id        Int?
+  Map_id        Int        @unique
   Comments      Comments[]
-  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_Map")
+  Map           Map?       @relation()
   User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
   @@index([User_id], map: "Writer_idx")
@@ -146,14 +143,14 @@ model TeamProfile {
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?
-  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_User")
+  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
   TeamRelay  TeamRelay[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
 
 model TeamRelay {
-  Team_id     Int?
+  Team_id     Int
   IsAdmin     Boolean
   User_id     Int          @id
   User        User         @relation("TeamRelay_User", fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
