@@ -50,10 +50,10 @@ authRouter.get("/login/redirect", (req, res) => {
   res.send("ok");
 });
 
-authRouter.get("/register/kakao", async (req, res) => {
+authRouter.get("/kakao/register", async (req, res) => {
   try {
     const data = await LoginKakao(req.query.code);
-    res.send(data);
+    res.send({ token: data });
   } catch (err) {
     res.status(400);
     console.error(err);

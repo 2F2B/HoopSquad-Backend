@@ -22,7 +22,7 @@ function LoginKakao(code) {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
             grant_type: "authorization_code",
             client_id: apiKey_1.kakaoAPIKey,
-            redirect_uri: "http://localhost:3000/auth/register/kakao",
+            redirect_uri: "http://localhost:3000/auth/kakao/register",
             code: code,
         }, {
             headers: {
@@ -65,7 +65,7 @@ function LoginKakao(code) {
                     OAuthToken: true,
                 },
             });
-            return { token: result.OAuthToken[0].AccessToken };
+            return result.OAuthToken[0].AccessToken;
         }
         else {
             //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
@@ -84,7 +84,7 @@ function LoginKakao(code) {
             const result = yield prisma.oAuthToken.findFirst({
                 where: { Auth_id: user.data.id.toString() },
             });
-            return { token: result === null || result === void 0 ? void 0 : result.AccessToken };
+            return result === null || result === void 0 ? void 0 : result.AccessToken;
         }
     });
 }

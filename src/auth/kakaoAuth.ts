@@ -10,7 +10,7 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: kakaoAPIKey,
-      redirect_uri: "http://localhost:3000/auth/register/kakao",
+      redirect_uri: "http://localhost:3000/auth/kakao/register", //URL
       code: code,
     },
     {
@@ -60,7 +60,7 @@ async function LoginKakao(code: any) {
         OAuthToken: true,
       },
     });
-    return { token: result.OAuthToken[0].AccessToken };
+    return result.OAuthToken[0].AccessToken;
   } else {
     //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
     await prisma.oAuthToken.updateMany({
@@ -78,7 +78,7 @@ async function LoginKakao(code: any) {
     const result = await prisma.oAuthToken.findFirst({
       where: { Auth_id: user.data.id.toString() },
     });
-    return { token: result?.AccessToken };
+    return result?.AccessToken!!;
   }
 }
 
