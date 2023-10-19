@@ -83,7 +83,7 @@ model Message {
 }
 
 model OAuthToken {
-  id             Int    @default(autoincrement())
+  id             Int    @id @default(autoincrement())
   User_id        Int
   AccessToken    String @db.VarChar(255)
   RefreshToken   String @db.VarChar(255)
@@ -93,7 +93,6 @@ model OAuthToken {
   Auth_id        String @db.VarChar(40)
   User           User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_OAuthToken_User")
 
-  @@id([id, User_id])
   @@index([User_id], map: "Personal_idx")
 }
 

@@ -28,24 +28,24 @@ function LoginKakao(code) {
             headers: {
                 "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
             },
-        });
+        }); //발급된 인가 코드로 토큰 발급
         const user = yield axios_1.default.get("https://kapi.kakao.com/v2/user/me", {
             headers: {
                 Authorization: `Bearer ${token.data.access_token}`,
                 "Content-Type": "	Content-type: application/x-www-form-urlencoded;charset=utf-8",
             },
-        });
+        }); //발급된 토큰을 가진 유저의 정보 요청
         const isUserExist = yield prisma.oAuthToken.findFirst({
             where: {
                 Auth_id: user.data.id.toString(),
             },
         });
         const currentTimeInSecond = Math.floor(Date.now() / 1000);
+        const expires_in = token.data.expires_in;
+        const refresh_token_expires_in = token.data
+            .refresh_token_expires_in;
         if (!isUserExist) {
             //유저 정보가 DB에 없음
-            const expires_in = token.data.expires_in;
-            const refresh_token_expires_in = token.data
-                .refresh_token_expires_in;
             const result = yield prisma.user.create({
                 //유저 정보를 DB에 추가
                 data: {
@@ -65,18 +65,26 @@ function LoginKakao(code) {
                     OAuthToken: true,
                 },
             });
-            return result;
+            return { token: result.OAuthToken[0].AccessToken };
         }
         else {
-            //유저 정보가 DB에 있음
-            if (isUserExist.AToken_Expires + parseInt(isUserExist.CreatedAt) <
-                currentTimeInSecond) {
-                //토큰 만료
-                return { token: "Expired" };
-                //TODO: 리프레시 토큰 발급
-            }
-            else
-                return isUserExist; //TODO: 로그인 승인
+            //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
+            yield prisma.oAuthToken.updateMany({
+                where: {
+                    Auth_id: user.data.id.toString(),
+                },
+                data: {
+                    AccessToken: token.data.access_token,
+                    RefreshToken: token.data.refresh_token,
+                    AToken_Expires: expires_in,
+                    RToken_Expires: refresh_token_expires_in,
+                    CreatedAt: currentTimeInSecond.toString(),
+                },
+            });
+            const result = yield prisma.oAuthToken.findFirst({
+                where: { Auth_id: user.data.id.toString() },
+            });
+            return { token: result === null || result === void 0 ? void 0 : result.AccessToken };
         }
     });
 }
