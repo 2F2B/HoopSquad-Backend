@@ -22,7 +22,7 @@ model Alarm {
 model ChatRelay {
   Room_id  Int      @id
   User_id  Int
-  ChatRoom ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_CharRoom")
+  ChatRoom ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_ChatRoom")
   User     User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_User")
 
   @@index([Room_id], map: "Room_idx")
