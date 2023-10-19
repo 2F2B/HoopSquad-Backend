@@ -83,14 +83,15 @@ model Message {
 }
 
 model OAuthToken {
-  id           Int      @default(autoincrement())
-  User_id      Int
-  AccessToken  String   @db.VarChar(255)
-  RefreshToken String   @db.VarChar(255)
-  AToken_Expires DateTime @db.DateTime(0)
-  RToken_Expires DateTime @db.DateTime(0)
-  Issurance_Date DateTime @db.DateTime(0)
-  User         User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_OAuthToken_User")
+  id             Int    @default(autoincrement())
+  User_id        Int
+  Auth_id        String @db.VarChar(40)
+  AccessToken    String @db.VarChar(255)
+  RefreshToken   String @db.VarChar(255)
+  AToken_Expires Int
+  RToken_Expires Int
+  CreatedAt      String @db.VarChar(20)
+  User           User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_OAuthToken_User")
 
   @@id([id, User_id])
   @@index([User_id], map: "Personal_idx")
@@ -126,7 +127,7 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
-  User      User?
+  User      User    @relation("Profile_User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Review {
@@ -152,11 +153,11 @@ model TeamProfile {
 }
 
 model TeamRelay {
-  user_id     Int          @id
+  User_id     Int          @id
   Team_id     Int?
   IsAdmin     Boolean
   TeamProfile TeamProfile? @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
-  User        User?
+  User        User         @relation("TeamRelay_User", fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
 }
@@ -170,6 +171,6 @@ model User {
   Posting     Posting[]
   Review      Review?
   TeamProfile TeamProfile[]
-  Profile     Profile       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_User_Profile")
-  TeamRelay   TeamRelay     @relation(fields: [User_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_User_TeamRelay")
+  Profile     Profile?      @relation("Profile_User")
+  TeamRelay   TeamRelay?    @relation("TeamRelay_User")
 }
