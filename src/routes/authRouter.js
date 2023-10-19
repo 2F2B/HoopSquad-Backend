@@ -57,6 +57,7 @@ authRouter.get("/register/kakao", (req, res) => __awaiter(void 0, void 0, void 0
     }
     catch (err) {
         res.status(400);
+        console.error(err);
         res.send({ result: "error" });
     }
 }));
