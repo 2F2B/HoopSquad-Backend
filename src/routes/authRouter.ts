@@ -23,7 +23,7 @@ authRouter.get("/login", (req, res) => {
   res.redirect(url);
 });
 
-authRouter.get("/signup/redirect", async (req, res) => {
+authRouter.get("/register/redirect", async (req, res) => {
   const { code } = req.query;
   console.log(`register code: /${code}`);
 
