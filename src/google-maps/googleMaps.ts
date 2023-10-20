@@ -7,10 +7,10 @@ import { gMap } from "../apiKey";
  * @returns 위도와 경도
  */
 async function AddressToLatLng(
-  address: string
+  address: string,
 ): Promise<{ lat: number; lng: number }> {
   const fetchedData = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${gMap}&language=ko`
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${gMap}&language=ko`,
   );
 
   return fetchedData.data.results[0].geometry.location;
@@ -24,11 +24,11 @@ async function AddressToLatLng(
  */
 async function LatLngToAddress(lat: number, lng: number) {
   const fetchedData = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${gMap}&language=ko`
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${gMap}&language=ko`,
   );
 
   const formattedAddress = fetchedData.data.results.map(
-    (result: { formatted_address: any }) => result.formatted_address
+    (result: { formatted_address: any }) => result.formatted_address,
   ) as string[];
 
   return { result: formattedAddress };
