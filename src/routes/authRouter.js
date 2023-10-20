@@ -18,19 +18,17 @@ const axios_1 = __importDefault(require("axios"));
 const GAuthKeys_1 = require("../GAuthKeys");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
-authRouter.get("/signup", (req, res) => {
+authRouter.get("/register/google", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
-    console.log(url);
     res.redirect(url);
 });
 authRouter.get("/login", (req, res) => {
-    var url = (0, auth_1.AuthResponse)();
-    console.log(url);
+    var url = (0, auth_1.LoginResponse)();
     res.redirect(url);
 });
-authRouter.get("/signup/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/register/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
-    console.log(`code: /${code}`);
+    console.log(`register code: /${code}`);
     const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {
         code,
         client_id: GAuthKeys_1.gClientId,
@@ -38,6 +36,7 @@ authRouter.get("/signup/redirect", (req, res) => __awaiter(void 0, void 0, void 
         redirect_uri: GAuthKeys_1.gSignup_Redirect_uri,
         grant_type: "authorization_code",
     });
+    console.log(resp.data);
     const resp2 = yield axios_1.default.get(GAuthKeys_1.gUserInfoUri, {
         headers: {
             Authorization: `Bearer ${resp.data.access_token}`,
@@ -45,9 +44,17 @@ authRouter.get("/signup/redirect", (req, res) => __awaiter(void 0, void 0, void 
     });
     res.json(resp2.data);
 }));
-authRouter.get("/login/redirect", (req, res) => {
+authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
-    console.log(`code: /${code}`);
+    console.log(`login code: /${code}`);
+    const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {
+        code,
+        client_id: GAuthKeys_1.gClientId,
+        client_secret: GAuthKeys_1.gClientSecret,
+        redirect_uri: GAuthKeys_1.gLoginRedirectUri,
+        grant_type: "authorization_code",
+    });
+    console.log(resp.data);
     res.send("ok");
 });
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
