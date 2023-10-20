@@ -44,7 +44,7 @@ authRouter.get("/google/reg_redirect", (req, res) => __awaiter(void 0, void 0, v
     });
     res.json(resp2.data);
 }));
-authRouter.get("/google/in_direct", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/in_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(`login code: /${code}`);
     const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {

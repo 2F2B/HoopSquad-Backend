@@ -43,7 +43,7 @@ authRouter.get("/google/reg_redirect", async (req, res) => {
   res.json(resp2.data);
 });
 
-authRouter.get("/google/in_direct", async (req, res) => {
+authRouter.get("/google/in_redirect", async (req, res) => {
   const { code } = req.query;
   console.log(`login code: /${code}`);
 
