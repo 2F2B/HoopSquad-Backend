@@ -23,7 +23,7 @@ function LoginKakao(code) {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
             grant_type: "authorization_code",
             client_id: apiKey_1.kakaoAPIKey,
-            redirect_uri: "http://ec2-52-79-227-4.ap-northeast-2.compute.amazonaws.com/auth/kakao/register",
+            redirect_uri: "https://hoopsquad.link/auth/kakao/register",
             code: code,
         }, {
             headers: {

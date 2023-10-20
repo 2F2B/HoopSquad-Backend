@@ -13,8 +13,7 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: kakaoAPIKey,
-      redirect_uri:
-        "http://ec2-52-79-227-4.ap-northeast-2.compute.amazonaws.com/auth/kakao/register", //URL
+      redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
       code: code,
     },
     {
