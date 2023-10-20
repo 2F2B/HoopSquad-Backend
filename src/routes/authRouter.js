@@ -56,15 +56,27 @@ authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0
     });
     console.log(resp.data);
     res.send("ok");
-}));
+});
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
-        res.send(data);
+        res.send({ token: data });
     }
     catch (err) {
         res.status(400);
-        res.send({ result: `error ${err}` });
+        console.error(err);
+        res.send({ result: "error" });
     }
 }));
-exports.default = authRouter;
+authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, kakaoAuth_1.ValidateKakao)(req);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400);
+        console.error(err);
+        res.send({ result: "error" });
+    }
+}));
+module.exports = authRouter;

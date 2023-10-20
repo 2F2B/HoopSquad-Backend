@@ -2,16 +2,17 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import authRouter from "./routes/authRouter";
-import courtRouter from "./routes/courtRouter";
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
 
 const app = express();
 const prisma = new PrismaClient();
 
-app.use("/auth", authRouter);
-app.use("/court", courtRouter);
 app.use(cors());
 app.use(bodyParser.json());
+
+app.use("/auth", authRouter);
+app.use("/court", courtRouter);
 
 app.get("/", async (_req, res) => {
   try {
