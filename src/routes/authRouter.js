@@ -18,7 +18,7 @@ const axios_1 = __importDefault(require("axios"));
 const GAuthKeys_1 = require("../GAuthKeys");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
-authRouter.get("/register/google", (req, res) => {
+authRouter.get("/google/register", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
     res.redirect(url);
 });

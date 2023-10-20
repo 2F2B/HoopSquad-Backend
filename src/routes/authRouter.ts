@@ -13,7 +13,7 @@ import { LoginKakao, ValidateKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
 
-authRouter.get("/register/google", (req, res) => {
+authRouter.get("/google/register", (req, res) => {
   var url = SignupResponse();
   res.redirect(url);
 });
