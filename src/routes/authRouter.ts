@@ -72,4 +72,4 @@ authRouter.post("/kakao/validation", async (req, res) => {
   }
 });
 
-export default authRouter;
+module.exports = authRouter;
