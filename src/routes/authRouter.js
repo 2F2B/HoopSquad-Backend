@@ -61,4 +61,15 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         res.send({ result: "error" });
     }
 }));
+authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, kakaoAuth_1.ValidateKakao)(req);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400);
+        console.error(err);
+        res.send({ result: "error" });
+    }
+}));
 exports.default = authRouter;

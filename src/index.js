@@ -20,10 +20,10 @@ const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const courtRouter_1 = __importDefault(require("./routes/courtRouter"));
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
-app.use("/auth", authRouter_1.default);
-app.use("/court", courtRouter_1.default);
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
+app.use("/auth", authRouter_1.default);
+app.use("/court", courtRouter_1.default);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$queryRaw `SHOW TABLES`;
