@@ -40,7 +40,7 @@ authRouter.get("/register/redirect", async (req, res) => {
       Authorization: `Bearer ${resp.data.access_token}`,
     },
   });
-  res.json(resp2.data); //102218120274992740524
+  res.json(resp2.data);
 });
 
 authRouter.get("/login/redirect", async (req, res) => {
@@ -59,13 +59,13 @@ authRouter.get("/login/redirect", async (req, res) => {
   res.send("ok");
 });
 
-authRouter.get("/register/kakao", async (req, res) => {
+authRouter.get("/kakao/register", async (req, res) => {
   try {
     const data = await LoginKakao(req.query.code);
     res.send(data);
   } catch (err) {
     res.status(400);
-    res.send({ result: "error" });
+    res.send({ result: `error ${err}` });
   }
 });
 

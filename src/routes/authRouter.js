@@ -42,7 +42,7 @@ authRouter.get("/register/redirect", (req, res) => __awaiter(void 0, void 0, voi
             Authorization: `Bearer ${resp.data.access_token}`,
         },
     });
-    res.json(resp2.data); //102218120274992740524
+    res.json(resp2.data);
 }));
 authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
@@ -57,14 +57,14 @@ authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0
     console.log(resp.data);
     res.send("ok");
 }));
-authRouter.get("/register/kakao", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
         res.send(data);
     }
     catch (err) {
         res.status(400);
-        res.send({ result: "error" });
+        res.send({ result: `error ${err}` });
     }
 }));
 exports.default = authRouter;
