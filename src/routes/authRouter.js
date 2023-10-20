@@ -56,7 +56,7 @@ authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0
     });
     console.log(resp.data);
     res.send("ok");
-});
+}));
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
