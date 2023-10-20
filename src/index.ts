@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { PrismaClient } from "@prisma/client";
-import authRouter from "./routes/authRouter";
-import courtRouter from "./routes/courtRouter";
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
 
 const app = express();
 const prisma = new PrismaClient();

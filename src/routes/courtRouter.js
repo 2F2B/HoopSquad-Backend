@@ -41,4 +41,4 @@ courtRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, functio
     res.status(result.Code);
     res.json(result);
 }));
-exports.default = courtRouter;
+module.exports = courtRouter;
