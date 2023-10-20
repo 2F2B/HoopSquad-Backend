@@ -28,4 +28,4 @@ courtRouter.post("/add", async (req, res) => {
   res.json(result);
 });
 
-export default courtRouter;
+module.exports = courtRouter;
