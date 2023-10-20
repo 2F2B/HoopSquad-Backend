@@ -18,15 +18,15 @@ const axios_1 = __importDefault(require("axios"));
 const GAuthKeys_1 = require("../GAuthKeys");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
-authRouter.get("/register/google", (req, res) => {
+authRouter.get("/google/register", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
     res.redirect(url);
 });
-authRouter.get("/login", (req, res) => {
+authRouter.get("/google/login", (req, res) => {
     var url = (0, auth_1.LoginResponse)();
     res.redirect(url);
 });
-authRouter.get("/register/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/reg_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(`register code: /${code}`);
     const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {
@@ -44,7 +44,7 @@ authRouter.get("/register/redirect", (req, res) => __awaiter(void 0, void 0, voi
     });
     res.json(resp2.data);
 }));
-authRouter.get("/login/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/in_direct", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(`login code: /${code}`);
     const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {

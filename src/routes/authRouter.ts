@@ -13,17 +13,17 @@ import { LoginKakao, ValidateKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
 
-authRouter.get("/register/google", (req, res) => {
+authRouter.get("/google/register", (req, res) => {
   var url = SignupResponse();
   res.redirect(url);
 });
 
-authRouter.get("/login", (req, res) => {
+authRouter.get("/google/login", (req, res) => {
   var url = LoginResponse();
   res.redirect(url);
 });
 
-authRouter.get("/register/redirect", async (req, res) => {
+authRouter.get("/google/reg_redirect", async (req, res) => {
   const { code } = req.query;
   console.log(`register code: /${code}`);
 
@@ -43,7 +43,7 @@ authRouter.get("/register/redirect", async (req, res) => {
   res.json(resp2.data);
 });
 
-authRouter.get("/login/redirect", async (req, res) => {
+authRouter.get("/google/in_direct", async (req, res) => {
   const { code } = req.query;
   console.log(`login code: /${code}`);
 
