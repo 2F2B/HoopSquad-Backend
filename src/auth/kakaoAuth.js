@@ -17,6 +17,9 @@ const axios_1 = __importDefault(require("axios"));
 const apiKey_1 = require("../apiKey");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
+function getCurrentTime() {
+    return Math.floor(Date.now() / 1000);
+}
 function LoginKakao(code) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
@@ -56,8 +59,8 @@ function LoginKakao(code) {
                             RefreshToken: token.data.refresh_token,
                             AToken_Expires: expires_in,
                             RToken_Expires: refresh_token_expires_in,
-                            AToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
-                            RToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
+                            AToken_CreatedAt: getCurrentTime().toString(),
+                            RToken_CreatedAt: getCurrentTime().toString(),
                         },
                     },
                 },
@@ -78,8 +81,8 @@ function LoginKakao(code) {
                     RefreshToken: token.data.refresh_token,
                     AToken_Expires: expires_in,
                     RToken_Expires: refresh_token_expires_in,
-                    AToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
-                    RToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
+                    AToken_CreatedAt: getCurrentTime().toString(),
+                    RToken_CreatedAt: getCurrentTime().toString(),
                 },
             });
             const result = yield prisma.oAuthToken.findFirst({
@@ -102,11 +105,11 @@ function ValidateKakao(request) {
             });
             if (tokenResult) {
                 if (tokenResult.AToken_Expires + parseInt(tokenResult.AToken_CreatedAt) >
-                    Math.floor(Date.now() / 1000) //액세스 토큰 유효
+                    getCurrentTime() //액세스 토큰 유효
                 )
                     return { result: "success" };
                 else if (tokenResult.RToken_Expires + parseInt(tokenResult.RToken_CreatedAt) >
-                    Math.floor(Date.now() / 1000) //액세스 토큰은 만료되었으나 리프레시 토큰이 유효
+                    getCurrentTime() //액세스 토큰은 만료되었으나 리프레시 토큰이 유효
                 ) {
                     console.log("Access Token Expired");
                     const newToken = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
@@ -127,8 +130,8 @@ function ValidateKakao(request) {
                             data: {
                                 RefreshToken: newToken.data.refresh_token,
                                 RToken_Expires: newToken.data.refresh_token_expires_in,
-                                RToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
-                                AToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
+                                RToken_CreatedAt: getCurrentTime().toString(),
+                                AToken_CreatedAt: getCurrentTime().toString(),
                             },
                         });
                     }
@@ -140,7 +143,7 @@ function ValidateKakao(request) {
                         data: {
                             AccessToken: newToken.data.access_token,
                             AToken_Expires: newToken.data.expires_in,
-                            AToken_CreatedAt: Math.floor(Date.now() / 1000).toString(),
+                            AToken_CreatedAt: getCurrentTime().toString(),
                         },
                     });
                     console.log(newToken.data);
