@@ -1,11 +1,11 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { RESTAPIKey, kakaoAPIKey } from "../apiKey";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
 const prisma = new PrismaClient();
-const currentTimeInSecond = Math.floor(Date.now() / 1000);
+let currentTimeInSecond = Math.floor(Date.now() / 1000);
 
 async function LoginKakao(code: any) {
   const token = await axios.post(
