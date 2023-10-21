@@ -17,7 +17,7 @@ const axios_1 = __importDefault(require("axios"));
 const apiKey_1 = require("../apiKey");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-const currentTimeInSecond = Math.floor(Date.now() / 1000);
+let currentTimeInSecond = Math.floor(Date.now() / 1000);
 function LoginKakao(code) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
