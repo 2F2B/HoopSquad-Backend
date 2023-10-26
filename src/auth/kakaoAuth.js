@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValidateKakao = exports.LoginKakao = void 0;
 const axios_1 = __importDefault(require("axios"));
-const apiKey_1 = require("../apiKey");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
@@ -24,7 +23,7 @@ function LoginKakao(code) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
             grant_type: "authorization_code",
-            client_id: apiKey_1.kakaoAPIKey,
+            client_id: `${process.env.kakaoAPIKey}`,
             redirect_uri: "https://hoopsquad.link/auth/kakao/register",
             code: code,
         }, {
@@ -114,7 +113,7 @@ function ValidateKakao(request) {
                     console.log("Access Token Expired");
                     const newToken = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
                         grant_type: "refresh_token",
-                        client_id: apiKey_1.RESTAPIKey,
+                        client_id: `${process.env.RESTAPIKey}`,
                         refresh_token: tokenResult.RefreshToken,
                     }, {
                         headers: {

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { RESTAPIKey, kakaoAPIKey } from "../apiKey";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express-serve-static-core";
 import { ParsedQs } from "qs";
@@ -14,7 +13,7 @@ async function LoginKakao(code: any) {
     "https://kauth.kakao.com/oauth/token",
     {
       grant_type: "authorization_code",
-      client_id: kakaoAPIKey,
+      client_id: `${process.env.kakaoAPIKey}`,
       redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
       code: code,
     },
@@ -115,7 +114,7 @@ async function ValidateKakao(
           "https://kauth.kakao.com/oauth/token",
           {
             grant_type: "refresh_token",
-            client_id: RESTAPIKey,
+            client_id: `${process.env.RESTAPIKey}`,
             refresh_token: tokenResult.RefreshToken,
           },
           {

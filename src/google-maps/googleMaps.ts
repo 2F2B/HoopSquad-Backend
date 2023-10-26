@@ -1,5 +1,4 @@
 import axios from "axios";
-import { gMap } from "../apiKey";
 
 /**
  * 주소를 위경도로 바꿔주는 함수
@@ -10,7 +9,7 @@ async function AddressToLatLng(
   address: string,
 ): Promise<{ lat: number; lng: number }> {
   const fetchedData = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${gMap}&language=ko`,
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.gMap}&language=ko`,
   );
 
   return fetchedData.data.results[0].geometry.location;
@@ -24,7 +23,7 @@ async function AddressToLatLng(
  */
 async function LatLngToAddress(lat: number, lng: number) {
   const fetchedData = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${gMap}&language=ko`,
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.gMap}&language=ko`,
   );
 
   const formattedAddress = fetchedData.data.results.map(

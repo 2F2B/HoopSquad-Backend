@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LatLngToAddress = exports.AddressToLatLng = void 0;
 const axios_1 = __importDefault(require("axios"));
-const apiKey_1 = require("../apiKey");
 /**
  * 주소를 위경도로 바꿔주는 함수
  * @param {string} address 주소
@@ -22,7 +21,7 @@ const apiKey_1 = require("../apiKey");
  */
 function AddressToLatLng(address) {
     return __awaiter(this, void 0, void 0, function* () {
-        const fetchedData = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey_1.gMap}&language=ko`);
+        const fetchedData = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.gMap}&language=ko`);
         return fetchedData.data.results[0].geometry.location;
     });
 }
@@ -35,7 +34,7 @@ exports.AddressToLatLng = AddressToLatLng;
  */
 function LatLngToAddress(lat, lng) {
     return __awaiter(this, void 0, void 0, function* () {
-        const fetchedData = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey_1.gMap}&language=ko`);
+        const fetchedData = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.gMap}&language=ko`);
         const formattedAddress = fetchedData.data.results.map((result) => result.formatted_address);
         return { result: formattedAddress };
     });

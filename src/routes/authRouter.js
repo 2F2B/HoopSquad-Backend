@@ -14,8 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const auth_1 = require("../auth/auth");
-const axios_1 = __importDefault(require("axios"));
-const GAuthKeys_1 = require("../GAuthKeys");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
 authRouter.get("/google/register", (req, res) => {
@@ -26,39 +24,33 @@ authRouter.get("/google/login", (req, res) => {
     var url = (0, auth_1.LoginResponse)();
     res.redirect(url);
 });
-authRouter.get("/google/reg_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
-    console.log(`register code: /${code}`);
-    const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {
-        code,
-        client_id: GAuthKeys_1.gClientId,
-        client_secret: GAuthKeys_1.gClientSecret,
-        redirect_uri: GAuthKeys_1.gSignup_Redirect_uri,
-        grant_type: "authorization_code",
-    });
-    console.log(resp.data);
-    const resp2 = yield axios_1.default.get(GAuthKeys_1.gUserInfoUri, {
-        headers: {
-            Authorization: `Bearer ${resp.data.access_token}`,
-        },
-    });
-    res.json(resp2.data);
+    console.log(`reg_redirect`);
+    try {
+        const Token = yield (0, auth_1.LoginGoogle)(code);
+        res.send(`Register Success \n ${Token}`);
+    }
+    catch (err) {
+        res.status(400);
+        console.error(err);
+        res.send({ result: "error" });
+    }
 }));
-authRouter.get("/google/in_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { code } = req.query;
-    console.log(`login code: /${code}`);
-    const resp = yield axios_1.default.post(GAuthKeys_1.gToken_uri, {
-        code,
-        client_id: GAuthKeys_1.gClientId,
-        client_secret: GAuthKeys_1.gClientSecret,
-        redirect_uri: GAuthKeys_1.gLoginRedirectUri,
-        grant_type: "authorization_code",
-    });
-    console.log(resp.data);
-    res.send("ok");
+authRouter.post("/google/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, auth_1.ValidateGoogle)(req);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400);
+        console.error(err);
+        res.send({ result: "error" });
+    }
 }));
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req.query.code);
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
         res.send({ token: data });
     }
