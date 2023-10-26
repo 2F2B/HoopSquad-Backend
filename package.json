@@ -12,8 +12,7 @@
   "author": "MaiT-027",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.4.2",
-    "@types/jsonwebtoken": "^9.0.4",
+    "@prisma/client": "^5.5.2",
     "axios": "^1.5.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
