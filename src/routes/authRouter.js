@@ -24,7 +24,7 @@ authRouter.get("/google/login", (req, res) => {
     var url = (0, auth_1.LoginResponse)();
     res.redirect(url);
 });
-authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/reg_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(`reg_redirect`);
     try {
