@@ -5,19 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccessRefresh = exports.AccessVerify = exports.GenerateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const client_1 = require("@prisma/client");
-const SECRET_KEY = "Eivr4WTNRfYmpnGxR9vkDoIyOo6XVepG";
-const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
     return Math.floor(Date.now() / 1000);
 }
 function GenerateToken(UserData) {
     const data = JSON.parse(UserData);
-    const Access_Token = jsonwebtoken_1.default.sign(data, SECRET_KEY, {
+    const Access_Token = jsonwebtoken_1.default.sign(data, process.env.SECRET_KEY, {
         expiresIn: "2h",
         algorithm: "HS256",
     });
-    const Refresh_Token = jsonwebtoken_1.default.sign(data, SECRET_KEY, {
+    const Refresh_Token = jsonwebtoken_1.default.sign(data, process.env.SECRET_KEY, {
         expiresIn: "14d",
         algorithm: "HS256",
     });
@@ -34,7 +31,7 @@ function GenerateToken(UserData) {
 exports.GenerateToken = GenerateToken;
 function AccessVerify(token) {
     try {
-        jsonwebtoken_1.default.verify(token, SECRET_KEY);
+        jsonwebtoken_1.default.verify(token, process.env.SECRET_KEY);
         return true;
     }
     catch (err) {
@@ -44,7 +41,7 @@ function AccessVerify(token) {
 exports.AccessVerify = AccessVerify;
 function AccessRefresh(UserData) {
     const data = JSON.parse(UserData);
-    const Access_Token = jsonwebtoken_1.default.sign(data, SECRET_KEY, {
+    const Access_Token = jsonwebtoken_1.default.sign(data, process.env.SECRET_KEY, {
         expiresIn: "2h",
     });
     const res = {

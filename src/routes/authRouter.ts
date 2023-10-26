@@ -20,7 +20,7 @@ authRouter.get("/google/login", (req, res) => {
   res.redirect(url);
 });
 
-authRouter.get("/google/redirect", async (req, res) => {
+authRouter.get("/google/reg_redirect", async (req, res) => {
   const { code } = req.query;
   console.log(`reg_redirect`);
   try {
@@ -43,6 +43,7 @@ authRouter.post("/google/validation", async (req, res) => {
     res.send({ result: "error" });
   }
 });
+
 authRouter.get("/kakao/register", async (req, res) => {
   try {
     console.log(req.query.code);
