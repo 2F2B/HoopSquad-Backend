@@ -68,7 +68,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
       Auth_id: user.data.id.toString(),
     },
   });
-  
+
   if (!isUserExist) {
     // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
     const result = await prisma.user.create({

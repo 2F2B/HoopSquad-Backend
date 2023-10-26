@@ -11,5 +11,4 @@ profileRouter.get("/info", async (req, res) => {
       AccessToken: req.body.access_token,
     },
   });
-
 });
