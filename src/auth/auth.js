@@ -51,7 +51,7 @@ code) {
             code,
             client_id: `${process.env.gClientId}`,
             client_secret: `${process.env.gClientSecret}`,
-            redirect_uri: `${process.env.gLoginRedirectUri}`,
+            redirect_uri: `${process.env.gSignup_Redirect_uri}`,
             // redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
             grant_type: "authorization_code",
         });
