@@ -10,11 +10,11 @@ function getCurrentTime() {
 }
 function GenerateToken(UserData) {
     const data = JSON.parse(UserData);
-    const Access_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRETKEY}`, {
+    const Access_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRETKey}`, {
         expiresIn: "2h",
         algorithm: "HS256",
     });
-    const Refresh_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRETKEY}`, {
+    const Refresh_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRETKey}`, {
         expiresIn: "14d",
         algorithm: "HS256",
     });
@@ -31,7 +31,7 @@ function GenerateToken(UserData) {
 exports.GenerateToken = GenerateToken;
 function AccessVerify(token) {
     try {
-        jsonwebtoken_1.default.verify(token, `${process.env.SECRETKEY}`);
+        jsonwebtoken_1.default.verify(token, `${process.env.SECRETKey}`);
         return true;
     }
     catch (err) {
@@ -41,7 +41,7 @@ function AccessVerify(token) {
 exports.AccessVerify = AccessVerify;
 function AccessRefresh(UserData) {
     const data = JSON.parse(UserData);
-    const Access_Token = jsonwebtoken_1.default.sign(data, process.env.SECRET_KEY, {
+    const Access_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRET_Key}`, {
         expiresIn: "2h",
     });
     const res = {
