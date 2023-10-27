@@ -18,15 +18,12 @@ const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
 authRouter.get("/google/register", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
+    console.log(url);
     res.redirect(url);
 });
-authRouter.get("/google/login", (req, res) => {
-    var url = (0, auth_1.LoginResponse)();
-    res.redirect(url);
-});
-authRouter.get("/google/reg_redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
-    console.log(`reg_redirect`);
+    console.log(code);
     try {
         const Token = yield (0, auth_1.LoginGoogle)(code);
         res.send(`Register Success \n ${Token}`);

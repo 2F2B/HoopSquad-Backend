@@ -12,25 +12,12 @@ function getCurrentTime() {
   return Math.floor(Date.now() / 1000);
 }
 
-function LoginResponse() {
-  let url = "https://accounts.google.com/o/oauth2/v2/auth";
-
-  url += `?client_id=${process.env.gClientId}`;
-  url += `&redirect_uri=${process.env.gLoginRedirectUri}`;
-  // url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
-  url += `&response_type=code`;
-  url += `&scope=profile`;
-  url += `&access_type=offline`;
-
-  return url;
-}
-
 function SignupResponse() {
   let url = "https://accounts.google.com/o/oauth2/v2/auth";
 
   url += `?client_id=${process.env.gClientId}`;
-  url += `&redirect_uri=${process.env.gSignup_Redirect_uri}`;
-  // url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
+  // url += `&redirect_uri=${process.env.gSignupRedirectUri}`;
+  url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
   url += `&response_type=code`;
   url += `&scope=profile`;
   url += `&access_type=offline`;
@@ -40,13 +27,13 @@ function SignupResponse() {
 async function LoginGoogle( // 유저 코드 넘어옴
   code: String | ParsedQs | String[] | ParsedQs[] | undefined,
 ) {
-  const res = await axios.post(`${process.env.gToken_uri}`, {
+  const res = await axios.post(`${process.env.gTokenUri}`, {
     // google 코드를 통해 access 토큰 발급
     code,
     client_id: `${process.env.gClientId}`,
     client_secret: `${process.env.gClientSecret}`,
-    redirect_uri: `${process.env.gSignup_Redirect_uri}`,
-    // redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
+    // redirect_uri: `${process.env.gSignupRedirectUri}`,
+    redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
     grant_type: "authorization_code",
   });
 
@@ -56,6 +43,8 @@ async function LoginGoogle( // 유저 코드 넘어옴
       Authorization: `Bearer ${res.data.access_token}`,
     },
   });
+
+  console.log(user);
 
   const UserData = {
     Auth_id: user.data.id,
@@ -184,4 +173,4 @@ async function ValidateGoogle( // 유저 토큰 넘어옴
   } else return { result: "None User Token" }; // 액세스 토큰이 전달되지 없음
 }
 
-export { LoginResponse, SignupResponse, LoginGoogle, ValidateGoogle };
+export { SignupResponse, LoginGoogle, ValidateGoogle };

@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
 
 function getCurrentTime() {
   return Math.floor(Date.now() / 1000);
@@ -8,12 +7,12 @@ function getCurrentTime() {
 function GenerateToken(UserData: any) {
   const data = JSON.parse(UserData);
 
-  const Access_Token = jwt.sign(data, process.env.SECRET_KEY!!, {
+  const Access_Token = jwt.sign(data, `${process.env.SECRETKEY}`, {
     expiresIn: "2h",
     algorithm: "HS256",
   });
 
-  const Refresh_Token = jwt.sign(data, process.env.SECRET_KEY!!, {
+  const Refresh_Token = jwt.sign(data, `${process.env.SECRETKEY}`, {
     expiresIn: "14d",
     algorithm: "HS256",
   });
@@ -32,7 +31,7 @@ function GenerateToken(UserData: any) {
 
 function AccessVerify(token: string) {
   try {
-    jwt.verify(token, process.env.SECRET_KEY!!);
+    jwt.verify(token, `${process.env.SECRETKEY}`);
     return true;
   } catch (err) {
     return false;
