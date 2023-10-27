@@ -28,7 +28,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
   code: String | ParsedQs | String[] | ParsedQs[] | undefined,
 ) {
   const res = await axios.post(`${process.env.gTokenUri}`, {
-    // google 코드를 통해 access 토큰 발급
+    // google에서 받은 코드를 통해 access 토큰 발급
     code,
     client_id: `${process.env.gClientId}`,
     client_secret: `${process.env.gClientSecret}`,
