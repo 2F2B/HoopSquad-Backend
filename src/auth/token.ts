@@ -7,12 +7,12 @@ function getCurrentTime() {
 function GenerateToken(UserData: any) {
   const data = JSON.parse(UserData);
 
-  const Access_Token = jwt.sign(data, `${process.env.SECRETKEY}`, {
+  const Access_Token = jwt.sign(data, `${process.env.SECRETKey}`, {
     expiresIn: "2h",
     algorithm: "HS256",
   });
 
-  const Refresh_Token = jwt.sign(data, `${process.env.SECRETKEY}`, {
+  const Refresh_Token = jwt.sign(data, `${process.env.SECRETKey}`, {
     expiresIn: "14d",
     algorithm: "HS256",
   });
@@ -31,7 +31,7 @@ function GenerateToken(UserData: any) {
 
 function AccessVerify(token: string) {
   try {
-    jwt.verify(token, `${process.env.SECRETKEY}`);
+    jwt.verify(token, `${process.env.SECRETKey}`);
     return true;
   } catch (err) {
     return false;
@@ -41,7 +41,7 @@ function AccessVerify(token: string) {
 function AccessRefresh(UserData: any) {
   const data = JSON.parse(UserData);
 
-  const Access_Token = jwt.sign(data, process.env.SECRET_KEY!!, {
+  const Access_Token = jwt.sign(data, `${process.env.SECRET_Key}`, {
     expiresIn: "2h",
   });
   const res = {
