@@ -40,8 +40,8 @@ code) {
             code,
             client_id: `${process.env.gClientId}`,
             client_secret: `${process.env.gClientSecret}`,
-            // redirect_uri: `${process.env.gSignupRedirectUri}`,
-            redirect_uri: "http://localhost:3000/auth/google/redirect",
+            redirect_uri: `${process.env.gSignupRedirectUri}`,
+            // redirect_uri: "http://localhost:3000/auth/google/redirect",
             grant_type: "authorization_code",
         });
         const user = yield axios_1.default.get(`${process.env.gUserInfoUri}`, {
