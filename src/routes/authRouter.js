@@ -18,7 +18,6 @@ const kakaoAuth_1 = require("../auth/kakaoAuth");
 const authRouter = express_1.default.Router();
 authRouter.get("/google/register", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
-    console.log(url);
     res.redirect(url);
 });
 authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -24,8 +24,8 @@ function getCurrentTime() {
 function SignupResponse() {
     let url = "https://accounts.google.com/o/oauth2/v2/auth";
     url += `?client_id=${process.env.gClientId}`;
-    // url += `&redirect_uri=${process.env.gSignupRedirectUri}`;
-    url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
+    url += `&redirect_uri=${process.env.gSignupRedirectUri}`;
+    // url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
     url += `&response_type=code`;
     url += `&scope=profile`;
     url += `&access_type=offline`;
@@ -36,12 +36,12 @@ function LoginGoogle(// 유저 코드 넘어옴
 code) {
     return __awaiter(this, void 0, void 0, function* () {
         const res = yield axios_1.default.post(`${process.env.gTokenUri}`, {
-            // google 코드를 통해 access 토큰 발급
+            // google에서 받은 코드를 통해 access 토큰 발급
             code,
             client_id: `${process.env.gClientId}`,
             client_secret: `${process.env.gClientSecret}`,
             redirect_uri: `${process.env.gSignupRedirectUri}`,
-            // redirect_uri: "http://localhost:3000/auth/google/redirect",
+            // redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
             grant_type: "authorization_code",
         });
         const user = yield axios_1.default.get(`${process.env.gUserInfoUri}`, {
