@@ -1,11 +1,5 @@
 import express, { response } from "express";
-import {
-  LoginResponse,
-  SignupResponse,
-  LoginGoogle,
-  ValidateGoogle,
-} from "../auth/auth";
-import axios from "axios";
+import { SignupResponse, LoginGoogle, ValidateGoogle } from "../auth/auth";
 import { LoginKakao, ValidateKakao } from "../auth/kakaoAuth";
 
 const authRouter = express.Router();
@@ -15,14 +9,9 @@ authRouter.get("/google/register", (req, res) => {
   res.redirect(url);
 });
 
-authRouter.get("/google/login", (req, res) => {
-  var url = LoginResponse();
-  res.redirect(url);
-});
-
-authRouter.get("/google/reg_redirect", async (req, res) => {
+authRouter.get("/google/redirect", async (req, res) => {
   const { code } = req.query;
-  console.log(`reg_redirect`);
+  console.log(code);
   try {
     const Token = await LoginGoogle(code);
     res.send(`Register Success \n ${Token}`);
