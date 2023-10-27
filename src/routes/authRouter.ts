@@ -6,7 +6,6 @@ const authRouter = express.Router();
 
 authRouter.get("/google/register", (req, res) => {
   var url = SignupResponse();
-  console.log(url);
   res.redirect(url);
 });
 
