@@ -60,6 +60,14 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
 authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, kakaoAuth_1.ValidateKakao)(req);
+        if (result.access_token)
+            res.status(201); //Created
+        else if (result.result == "expired")
+            res.status(401); //Unauthorized
+        else if (result.result == "no_token")
+            res.status(400); //Bad Request
+        else
+            res.status(200); //OK
         res.send(result);
     }
     catch (err) {
