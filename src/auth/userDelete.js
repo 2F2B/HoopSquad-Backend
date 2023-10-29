@@ -27,10 +27,10 @@ function UserDelete(req) {
                     User_id: isUserExist.User_id,
                 },
             });
-            return { result: "Delete Success" };
+            return { result: "success" };
         }
         else {
-            return { result: "User Not Exist" };
+            return { result: "expired" };
         }
     });
 }

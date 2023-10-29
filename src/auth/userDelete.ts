@@ -20,7 +20,7 @@ async function UserDelete(
         User_id: isUserExist.User_id,
       },
     });
-    return { result: "Success" };
+    return { result: "success" };
   } else {
     return { result: "expired" };
   }
