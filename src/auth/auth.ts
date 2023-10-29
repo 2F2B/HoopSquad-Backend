@@ -141,7 +141,7 @@ async function ValidateGoogle( // 유저 토큰 넘어옴
               AToken_Expires: NewToken.AToken_Expires,
             },
           });
-          return NewToken.Access_Token;
+          return { access_token: NewToken.Access_Token };
         } else if (
           //리프레시 토큰의 유효기간 1주일 이하
           TokenResult.RToken_Expires + parseInt(TokenResult.RToken_CreatedAt) <=
@@ -167,11 +167,11 @@ async function ValidateGoogle( // 유저 토큰 넘어옴
               RToken_CreatedAt: NewTokens.RToken_CreatedAt,
             },
           });
-          return NewTokens.Access_Token;
+          return { access_token: NewTokens.Access_Token };
         }
       }
-    } else return { result: "User denied" }; // DB에 액세스 토큰이 없음
-  } else return { result: "None User Token" }; // 액세스 토큰이 전달되지 없음
+    } else return { result: "expired" }; // DB에 액세스 토큰이 없음
+  } else return { result: "no_token" }; // 액세스 토큰이 전달되지 없음
 }
 
 export { SignupResponse, LoginGoogle, ValidateGoogle };
