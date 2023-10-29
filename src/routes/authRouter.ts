@@ -1,6 +1,7 @@
 import express, { response } from "express";
 import { SignupResponse, LoginGoogle, ValidateGoogle } from "../auth/auth";
 import { LoginKakao, ValidateKakao } from "../auth/kakaoAuth";
+import { UserDelete } from "../auth/userDelete";
 
 const authRouter = express.Router();
 
@@ -58,6 +59,13 @@ authRouter.post("/kakao/validation", async (req, res) => {
     console.error(err);
     res.send({ result: "error" });
   }
+});
+
+authRouter.get("/delete", async (req, res) => {
+  try {
+    const result = await UserDelete(req);
+    res.send(result);
+  } catch (err) {}
 });
 
 module.exports = authRouter;
