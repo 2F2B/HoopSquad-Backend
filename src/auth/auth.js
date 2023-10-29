@@ -100,7 +100,7 @@ code) {
                 },
             });
             console.log(Token.Access_Token, "\n");
-            return Token.Access_Token;
+            return Token === null || Token === void 0 ? void 0 : Token.Access_Token;
         }
     });
 }
