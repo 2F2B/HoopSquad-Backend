@@ -22,7 +22,7 @@ async function UserDelete(
     });
     return { result: "Delete Success" };
   } else {
-    return "User Not Exist";
+    return { result: "User Not Exist" };
   }
 }
 

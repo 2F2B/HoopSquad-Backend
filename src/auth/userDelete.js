@@ -30,7 +30,7 @@ function UserDelete(req) {
             return { result: "Delete Success" };
         }
         else {
-            return "User Not Exist";
+            return { result: "User Not Exist" };
         }
     });
 }
