@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const auth_1 = require("../auth/auth");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
+const userDelete_1 = require("../auth/userDelete");
 const authRouter = express_1.default.Router();
 authRouter.get("/google/register", (req, res) => {
     var url = (0, auth_1.SignupResponse)();
@@ -74,5 +75,12 @@ authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, voi
         console.error(err);
         res.send({ result: "error" });
     }
+}));
+authRouter.get("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, userDelete_1.UserDelete)(req);
+        res.send(result);
+    }
+    catch (err) { }
 }));
 module.exports = authRouter;
