@@ -1,32 +1,17 @@
 import express from "express";
 import getTeam from "../team/teamSearch";
-import { TeamNotFoundError } from "../team/error";
-import { handleErrors } from "../ErrorHandler";
 
 const teamRouter = express.Router();
 
-teamRouter.get("/", async (_req, res) => {
-  try {
+teamRouter.get("/list", async (req, res) => {
+  if (typeof req.query.team_id === "string") {
+    const result = await getTeam(parseInt(req.query.team_id));
+    res.status(200);
+    res.json(result);
+  } else {
     const result = await getTeam();
     res.status(200);
     res.json(result);
-  } catch (err) {
-    if (err instanceof Error) {
-      handleErrors<Error>(err, res);
-    }
-  }
-});
-
-teamRouter.get("/:id", async (req, res) => {
-  try {
-    const result = await getTeam(+req.params.id);
-    res.json(result);
-  } catch (err) {
-    if (err instanceof TeamNotFoundError) {
-      handleErrors<TeamNotFoundError>(err, res);
-    } else if (err instanceof Error) {
-      handleErrors<Error>(err, res);
-    }
   }
 });
 
