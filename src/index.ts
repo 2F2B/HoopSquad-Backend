@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
 import path from "path";
+const teamRouter = require("./routes/teamRouter");
 
 const app = express();
 app.use(cors());
@@ -35,6 +36,7 @@ try {
     console.error(err);
   }
 }
+app.use("/team", teamRouter);
 
 app.get("/", async (_req, res) => {
   try {
