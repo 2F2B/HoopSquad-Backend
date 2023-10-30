@@ -13,26 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const body_parser_1 = __importDefault(require("body-parser"));
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const teamRouter = require("./routes/teamRouter");
-const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
-app.use(body_parser_1.default.json());
-app.use("/auth", authRouter);
-app.use("/court", courtRouter);
-app.use("/team", teamRouter);
-app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        res.json({ connect: "OK" });
+const teamSearch_1 = __importDefault(require("../team/teamSearch"));
+const teamRouter = express_1.default.Router();
+teamRouter.get("/list", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (typeof req.query.team_id === "string") {
+        const result = yield (0, teamSearch_1.default)(parseInt(req.query.team_id));
+        res.status(200);
+        res.json(result);
     }
-    catch (err) {
-        res.json(err);
-        return console.error(err);
+    else {
+        const result = yield (0, teamSearch_1.default)();
+        res.status(200);
+        res.json(result);
     }
 }));
-app.listen(3000, () => {
-    console.log("Server started on Port 3000");
-});
+module.exports = teamRouter;
