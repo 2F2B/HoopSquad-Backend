@@ -17,11 +17,13 @@ const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
+const alarmRouter = require("./routes/alarmRouter");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
+app.use("/notification", alarmRouter);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json({ connect: "OK" });

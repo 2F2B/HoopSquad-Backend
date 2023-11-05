@@ -35,6 +35,10 @@ function getAlarm(id) {
     });
 }
 exports.getAlarm = getAlarm;
+/**
+ * 매치 수락/취소를 변경해주는 함수
+ * @param body
+ */
 function applyMatch(body) {
     return __awaiter(this, void 0, void 0, function* () {
         yield prisma.alarm.update({
