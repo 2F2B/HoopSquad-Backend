@@ -6,13 +6,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const socket_io_1 = __importDefault(require("socket.io"));
 const chatRouter = express_1.default.Router();
+class Socket extends socket_io_1.default.Socket {
+}
 const socketIOHandler = (server) => {
     const io = new socket_io_1.default.Server(server);
-    io.of("/chat").on("connection", (socket) => {
-        console.log("A user connected to the chat namespace");
-        socket.on("message", (data) => {
-            console.log(`Message from Frontend: ${data}`);
-            socket.emit("alert", data);
+    const chatNamespace = io.of("/chat");
+    chatNamespace.on("connection", (s) => {
+        const socket = s;
+        socket.on("setNickname", (nick) => {
+            socket["nickname"] = nick;
+        });
+        socket.join("test");
+        console.log(socket.rooms);
+        socket.on("send", (data, room) => {
+            console.log(data);
+            socket.to(room).emit("receive", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
         });
     });
 };

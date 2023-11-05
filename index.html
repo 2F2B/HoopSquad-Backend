@@ -9,10 +9,12 @@
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <body>
     <h1>Socket.io Backend Test</h1>
+    <h2 id="h2">현재 방: None</h2>
 
-    <input type="text" id="input" />
-    <button onclick="sendData()">보내기</button>
-
+    <form id="form">
+      <input type="text" id="input" placeholder="Text" />
+      <button>보내기</button>
+    </form>
     <script>
       const socket = io("http://localhost:3000/chat", {
         transports: ["websocket"],
@@ -20,19 +22,32 @@
 
       socket.on("connect", () => {
         console.log("Connected to the server");
+        socket.emit("setNickname", socket.id);
       });
 
-      socket.on("message", (data) => {
-        console.log("Message received from server:", data);
+      socket.on("receive", (data) => {
+        console.log(data);
       });
 
-      socket.on("alert", (data) => {
-        alert(data);
+      const form = document.getElementById("form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = document.getElementById("input");
+        socket.emit(
+          "send",
+          { payload: input.value },
+          "test",
+          displayMessage(input.value, Date.now()),
+        );
+        input.value = "";
       });
 
-      function sendData() {
-        const input = document.getElementById("input").value;
-        socket.emit("message", input);
+      function displayMessage(msg, timestamp) {
+        console.log({
+          nickname: socket.id,
+          payload: msg,
+          createdAt: timestamp,
+        });
       }
     </script>
   </body>

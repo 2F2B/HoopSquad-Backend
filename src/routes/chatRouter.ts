@@ -1,6 +1,7 @@
 import express from "express";
 import SocketIO from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import http from "http";
 const chatRouter = express.Router();
 
 type SocketIO = SocketIO.Server<
@@ -10,12 +11,36 @@ type SocketIO = SocketIO.Server<
   any
 >;
 
-const socketIOHandler = (server: any) => {
-  const io = new SocketIO.Server(server);
+class Socket extends SocketIO.Socket {
+  nickname!: string;
+}
 
-  io.of("/chat").on("connection", (socket) => {
-    socket.on("message", (data) => {
-      console.log(`Message from Frontend: ${data}`);
+const socketIOHandler = (
+  server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
+) => {
+  const io = new SocketIO.Server(server);
+  const chatNamespace = io.of("/chat");
+  chatNamespace.on("connection", (s) => {
+    const socket = s as Socket;
+    socket.on("setNickname", (nick) => {
+      socket["nickname"] = nick;
+    });
+
+    socket.on("join", (room, done) => {
+      socket.join(room);
+      done();
+    });
+
+    socket.join("test");
+    console.log(socket.rooms);
+
+    socket.on("send", (data, room) => {
+      console.log(data);
+      socket.to(room).emit("receive", {
+        nickname: socket["nickname"],
+        ...data,
+        createdAt: Date.now(),
+      });
     });
   });
 };
