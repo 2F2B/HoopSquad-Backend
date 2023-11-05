@@ -1,16 +1,23 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
+import http from "http";
 
 const app = express();
-
 app.use(cors());
 app.use(bodyParser.json());
 
+const httpServer = http.createServer(app);
+
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
+const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
+
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
+app.use("/chat", chatRouter);
+
+socketIOHandler(httpServer);
 
 app.get("/", async (_req, res) => {
   try {
@@ -20,6 +27,7 @@ app.get("/", async (_req, res) => {
     return console.error(err);
   }
 });
-app.listen(3000, () => {
+
+httpServer.listen(3000, () => {
   console.log("Server started on Port 3000");
 });
