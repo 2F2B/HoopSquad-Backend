@@ -20,4 +20,4 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" >> $HOME/key.pem
           chmod 400 $HOME/key.pem
-          ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@52.79.227.4 "cd /home/ubuntu/HoopSquad-Backend && git pull && yarn install && yarn prisma generate"
+          ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@52.79.227.4 "cd /home/ubuntu/HoopSquad-Backend && git pull && yarn install && yarn prisma db push && yarn prisma generate"

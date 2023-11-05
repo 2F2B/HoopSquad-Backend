@@ -15,15 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const alarmRouter = require("./routes/alarmRouter");
+const http_1 = __importDefault(require("http"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
+const httpServer = http_1.default.createServer(app);
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
+const alarmRouter = require("./routes/alarmRouter");
+const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/notification", alarmRouter);
+app.use("/chat", chatRouter);
+socketIOHandler(httpServer);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json({ connect: "OK" });
@@ -33,6 +38,6 @@ app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return console.error(err);
     }
 }));
-app.listen(3000, () => {
+httpServer.listen(3000, () => {
     console.log("Server started on Port 3000");
 });
