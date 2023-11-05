@@ -13,7 +13,7 @@ model Alarm {
   UserImage Bytes?   @db.Blob
   Text      String   @db.VarChar(200)
   IsRead    Boolean  @default(false)
-  IsApply   Boolean?
+  IsApply   Int?
   User      User     @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
 
   @@index([User_id], map: "User_idx")
@@ -127,7 +127,7 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
-  User      User    @relation("Profile_User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Review {
@@ -156,7 +156,7 @@ model TeamRelay {
   Team_id     Int
   IsAdmin     Boolean
   User_id     Int         @id
-  User        User        @relation("TeamRelay_User", fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
+  User        User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
@@ -169,8 +169,8 @@ model User {
   ChatRelay   ChatRelay[]
   OAuthToken  OAuthToken[]
   Posting     Posting[]
-  Profile     Profile?      @relation("Profile_User")
+  Profile     Profile?
   Review      Review?
   TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay?    @relation("TeamRelay_User")
+  TeamRelay   TeamRelay?
 }
