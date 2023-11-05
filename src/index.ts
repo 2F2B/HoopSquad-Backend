@@ -4,6 +4,9 @@ import bodyParser from "body-parser";
 import http from "http";
 import path from "path";
 const teamRouter = require("./routes/teamRouter");
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
+const alarmRouter = require("./routes/alarmRouter");
 
 const app = express();
 app.use(cors());
@@ -11,8 +14,6 @@ app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
 
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
 const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
 const profileRouter = require("./routes/profileRouter");
@@ -37,6 +38,7 @@ try {
   }
 }
 app.use("/team", teamRouter);
+app.use("/notification", alarmRouter);
 
 app.get("/", async (_req, res) => {
   try {
