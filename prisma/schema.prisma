@@ -7,82 +7,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Alarm {
-  Alarm_id  Int      @id @default(autoincrement())
+model alarm {
+  Alarm_id  Int     @id @default(autoincrement())
   User_id   Int
-  UserImage Bytes?   @db.Blob
-  Text      String   @db.VarChar(200)
-  IsRead    Boolean  @default(false)
-  IsApply   Boolean?
-  User      User     @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
+  UserImage Bytes?  @db.Blob
+  Text      String  @db.VarChar(200)
+  IsRead    Boolean @default(false)
+  IsApply   Int?
+  user      user    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
 
   @@index([User_id], map: "User_idx")
 }
 
-model ChatRelay {
+model chatrelay {
   Room_id  Int      @id
   User_id  Int
-  ChatRoom ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_ChatRoom")
-  User     User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_User")
+  chatroom chatroom @relation(fields: [Room_id], references: [Room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_ChatRoom")
+  user     user     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_User")
 
   @@index([Room_id], map: "Room_idx")
   @@index([User_id], map: "fk_ChatRelay_User")
 }
 
-model ChatRoom {
+model chatroom {
   Room_id   Int        @id
   Host_id   Int
   Guest_id  Int
   Time      DateTime   @default(now()) @db.Timestamp(0)
-  ChatRelay ChatRelay?
-  Message   Message[]
+  chatrelay chatrelay?
+  message   message[]
 }
 
-model Comments {
+model comments {
   Comment_id Int      @id @default(autoincrement())
   Post_id    Int
   WriteDate  DateTime @default(now()) @db.Timestamp(0)
   Contents   String   @db.VarChar(400)
   User_id    String   @db.VarChar(45)
-  Posting    Posting  @relation(fields: [Post_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Comments_Posting")
+  posting    posting  @relation(fields: [Post_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Comments_Posting")
 
   @@index([Post_id], map: "fk_Comments_Post1_idx")
 }
 
-model Court {
+model court {
   Court_id Int      @default(autoincrement())
   Name     String   @db.VarChar(45)
   Date     DateTime @default(now()) @db.Timestamp(0)
   Location String   @db.VarChar(100)
   Map_id   Int
-  Map      Map      @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Court_Map")
+  map      map      @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Court_Map")
 
   @@id([Court_id, Map_id])
   @@index([Map_id], map: "Map_idx")
 }
 
-model Map {
+model map {
   Map_id       Int       @id @default(autoincrement())
   LocationName String    @db.VarChar(45)
   Lat          Float     @db.Float
   Lng          Float     @db.Float
-  Court        Court[]
-  Posting      Posting[]
+  court        court[]
+  posting      posting[]
 }
 
-model Message {
+model message {
   Message_id  Int      @id
   Room_id     Int
   Msg         String   @db.LongText
   ChatTime    DateTime @default(now()) @db.Timestamp(0)
   Writer_id   String   @db.VarChar(45)
   Receiver_id String   @db.VarChar(45)
-  ChatRoom    ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
+  chatroom    chatroom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
 
   @@index([Room_id], map: "Room_idx")
 }
 
-model OAuthToken {
+model oauthtoken {
   id               Int    @id @default(autoincrement())
   User_id          Int
   AccessToken      String @db.VarChar(255)
@@ -92,12 +92,12 @@ model OAuthToken {
   AToken_Expires   Int
   RToken_Expires   Int
   Auth_id          String @db.VarChar(40)
-  User             User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_OAuthToken_User")
+  user             user   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_OAuthToken_User")
 
   @@index([User_id], map: "Personal_idx")
 }
 
-model Posting {
+model posting {
   Posting_id    Int        @id @default(autoincrement())
   User_id       Int
   IsTeam        Boolean    @default(false)
@@ -109,15 +109,15 @@ model Posting {
   CurrentAmount String     @db.VarChar(45)
   Introduce     String?    @db.VarChar(600)
   Map_id        Int?
-  Comments      Comments[]
-  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  comments      comments[]
+  map           map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  user          user       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
 }
 
-model Profile {
+model profile {
   User_id   Int     @id
   Image     Bytes?  @db.Blob
   Height    Float?  @db.Float
@@ -127,17 +127,17 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
-  User      User    @relation("Profile_User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  user      user    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "Profile_User_id_fkey")
 }
 
-model Review {
+model review {
   User_id Int     @id @default(autoincrement())
   Fouls   Boolean
   Review  String? @db.VarChar(100)
-  User    User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Review_User")
+  user    user    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Review_User")
 }
 
-model TeamProfile {
+model teamprofile {
   Team_id    Int         @id @default(autoincrement())
   Admin_id   Int
   Name       String      @db.VarChar(45)
@@ -146,31 +146,31 @@ model TeamProfile {
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?
-  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
-  TeamRelay  TeamRelay[]
+  user       user        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
+  teamrelay  teamrelay[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
 
-model TeamRelay {
+model teamrelay {
   Team_id     Int
   IsAdmin     Boolean
   User_id     Int         @id
-  User        User        @relation("TeamRelay_User", fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
-  TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
+  user        user        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "TeamRelay_User_id_fkey")
+  teamprofile teamprofile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
 }
 
-model User {
+model user {
   User_id     Int           @id @default(autoincrement())
   Name        String        @db.VarChar(45)
-  Alarm       Alarm[]
-  ChatRelay   ChatRelay[]
-  OAuthToken  OAuthToken[]
-  Posting     Posting[]
-  Profile     Profile?      @relation("Profile_User")
-  Review      Review?
-  TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay?    @relation("TeamRelay_User")
+  alarm       alarm[]
+  chatrelay   chatrelay[]
+  oauthtoken  oauthtoken[]
+  posting     posting[]
+  profile     profile?
+  review      review?
+  teamprofile teamprofile[]
+  teamrelay   teamrelay?
 }
