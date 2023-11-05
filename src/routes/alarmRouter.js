@@ -13,26 +13,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const body_parser_1 = __importDefault(require("body-parser"));
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const alarmRouter = require("./routes/alarmRouter");
-const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
-app.use(body_parser_1.default.json());
-app.use("/auth", authRouter);
-app.use("/court", courtRouter);
-app.use("/notification", alarmRouter);
-app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const alarm_1 = require("../alarm/alarm");
+const alarmRouter = express_1.default.Router();
+alarmRouter.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.json({ connect: "OK" });
+        const result = yield (0, alarm_1.getAlarm)(+req.params.id);
+        res.json(result);
     }
     catch (err) {
-        res.json(err);
-        return console.error(err);
+        console.error(err);
+        res.status(403);
+        res.json({ result: "error" });
     }
 }));
-app.listen(3000, () => {
-    console.log("Server started on Port 3000");
-});
+alarmRouter.post("/match", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield (0, alarm_1.applyMatch)(req.body);
+        res.json({ result: "success" });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(403);
+        res.json({ result: "error" });
+    }
+}));
+module.exports = alarmRouter;
