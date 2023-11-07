@@ -20,6 +20,7 @@ app.use("/chat", chatRouter);
 app.use("/match", matchRouter);
 
 socketIOHandler(httpServer);
+app.use("/match", matchRouter);
 
 app.get("/", async (_req, res) => {
   try {
