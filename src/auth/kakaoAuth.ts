@@ -15,8 +15,8 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: `${process.env.kakaoAPIKey}`,
-      redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
-      //redirect_uri: "http://localhost:3000/auth/kakao/register"
+      // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
+      redirect_uri: "http://localhost:3000/auth/kakao/register",
       code: code,
     },
     {
@@ -89,79 +89,4 @@ async function LoginKakao(code: any) {
   }
 }
 
-//TODO: 유효성 검사 구현
-
-async function ValidateKakao(
-  request: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
-  if (request.body.access_token) {
-    //토큰 있음 -> 액세스 토큰 유효성 검사
-    const tokenResult = await prisma.oAuthToken.findFirst({
-      where: {
-        AccessToken: request.body.access_token,
-      },
-    });
-    if (tokenResult) {
-      if (
-        tokenResult.AToken_Expires + parseInt(tokenResult.AToken_CreatedAt) >
-        getCurrentTime() //액세스 토큰 유효
-      )
-        return { result: "success" };
-      else if (
-        tokenResult.RToken_Expires + parseInt(tokenResult.RToken_CreatedAt) >
-        getCurrentTime() //액세스 토큰은 만료되었으나 리프레시 토큰이 유효
-      ) {
-        console.log("Access Token Expired");
-        const newToken = await axios.post(
-          "https://kauth.kakao.com/oauth/token",
-          {
-            grant_type: "refresh_token",
-            client_id: `${process.env.RESTAPIKey}`,
-            refresh_token: tokenResult.RefreshToken,
-          },
-          {
-            headers: {
-              "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
-            },
-          },
-        );
-
-        if (newToken.data.refresh_token) {
-          //리프레시 토큰의 유효기간이 얼마 남지 않아 리프레시 토큰이 발급됨
-          await prisma.oAuthToken.updateMany({
-            where: {
-              Auth_id: tokenResult.Auth_id,
-            },
-            data: {
-              RefreshToken: newToken.data.refresh_token,
-              RToken_Expires: newToken.data.refresh_token_expires_in,
-              RToken_CreatedAt: getCurrentTime().toString(),
-              AToken_CreatedAt: getCurrentTime().toString(),
-            },
-          });
-        }
-
-        await prisma.oAuthToken.updateMany({
-          //액세스 토큰 갱신
-          where: {
-            Auth_id: tokenResult.Auth_id,
-          },
-          data: {
-            AccessToken: newToken.data.access_token,
-            AToken_Expires: newToken.data.expires_in,
-            AToken_CreatedAt: getCurrentTime().toString(),
-          },
-        });
-        console.log(newToken.data);
-        return {
-          access_token: newToken.data.access_token as string,
-        };
-      } else {
-        //액세스 토큰과 리프레시 토큰 모두 만료
-        return { result: "expired" };
-      }
-    } else return { result: "no_token" };
-  } else return { result: "expired" }; //토큰이 없음
-}
-
-export { LoginKakao, ValidateKakao };
+export { LoginKakao };

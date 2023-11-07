@@ -38,6 +38,14 @@ authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 
 authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, validate_1.Validation)(req);
+        if (result === null || result === void 0 ? void 0 : result.access_token)
+            res.status(201); //Created
+        else if ((result === null || result === void 0 ? void 0 : result.result) == "expired")
+            res.status(401); //Unauthorized
+        else if ((result === null || result === void 0 ? void 0 : result.result) == "no_token")
+            res.status(400); //Bad Request
+        else
+            res.status(200); //OK
         res.send(result);
     }
     catch (err) {
@@ -51,25 +59,6 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         console.log(req.query.code);
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
         res.send({ token: data });
-    }
-    catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
-    }
-}));
-authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield (0, kakaoAuth_1.ValidateKakao)(req);
-        if (result.access_token)
-            res.status(201); //Created
-        else if (result.result == "expired")
-            res.status(401); //Unauthorized
-        else if (result.result == "no_token")
-            res.status(400); //Bad Request
-        else
-            res.status(200); //OK
-        res.send(result);
     }
     catch (err) {
         res.status(400);
