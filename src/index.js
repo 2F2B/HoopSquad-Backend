@@ -29,6 +29,7 @@ app.use("/court", courtRouter);
 app.use("/chat", chatRouter);
 app.use("/match", matchRouter);
 socketIOHandler(httpServer);
+app.use("/match", matchRouter);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json({ connect: "OK" });
