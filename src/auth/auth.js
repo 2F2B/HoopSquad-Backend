@@ -168,13 +168,17 @@ req) {
                         });
                         return { access_token: NewTokens.Access_Token };
                     }
+                    else {
+                        //액세스 토큰과 리프레시 토큰 모두 만료
+                        return { result: "expired" };
+                    }
                 }
             }
             else
-                return { result: "expired" }; // DB에 액세스 토큰이 없음
+                return { result: "no_token" }; // DB에 액세스 토큰이 없음
         }
         else
-            return { result: "no_token" }; // 액세스 토큰이 전달되지 없음
+            return { result: "expired" }; // 액세스 토큰이 전달되지 없음
     });
 }
 exports.ValidateGoogle = ValidateGoogle;

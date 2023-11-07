@@ -26,7 +26,7 @@ authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 
     console.log(code);
     try {
         const Token = yield (0, auth_1.LoginGoogle)(code);
-        res.send(`Register Success \n ${Token}`);
+        res.send({ token: Token });
     }
     catch (err) {
         res.status(400);
@@ -37,7 +37,14 @@ authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 
 authRouter.post("/google/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, auth_1.ValidateGoogle)(req);
-        res.send(result);
+        if (result.access_token)
+            res.status(201); //Created
+        else if (result.result == "expired")
+            res.status(401); //Unauthorized
+        else if (result.result == "no_token")
+            res.status(400); //Bad Request
+        else
+            res.status(200); //OK
     }
     catch (err) {
         res.status(400);

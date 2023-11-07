@@ -15,7 +15,7 @@ authRouter.get("/google/redirect", async (req, res) => {
   console.log(code);
   try {
     const Token = await LoginGoogle(code);
-    res.send(`Register Success \n ${Token}`);
+    res.send({ token: Token });
   } catch (err) {
     res.status(400);
     console.error(err);
@@ -26,7 +26,10 @@ authRouter.get("/google/redirect", async (req, res) => {
 authRouter.post("/google/validation", async (req, res) => {
   try {
     const result = await ValidateGoogle(req);
-    res.send(result);
+    if (result.access_token) res.status(201); //Created
+    else if (result.result == "expired") res.status(401); //Unauthorized
+    else if (result.result == "no_token") res.status(400); //Bad Request
+    else res.status(200); //OK
   } catch (err) {
     res.status(400);
     console.error(err);

@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
+const matchRouter = require("./routes/matchRouter");
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(bodyParser.json());
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
+app.use("/match", matchRouter);
 
 app.get("/", async (_req, res) => {
   try {
