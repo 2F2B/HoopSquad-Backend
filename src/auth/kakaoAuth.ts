@@ -2,6 +2,7 @@ import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express-serve-static-core";
 import { ParsedQs } from "qs";
+import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 
 const prisma = new PrismaClient();
 function getCurrentTime() {
@@ -32,15 +33,18 @@ async function LoginKakao(code: any) {
     },
   }); //발급된 토큰을 가진 유저의 정보 요청
 
+  const userData = {
+    Auth_id: user.data.id,
+  };
+
+  const newToken = GenerateToken(JSON.stringify(userData)); // JWT 토큰 발행
+
   const isUserExist = await prisma.oAuthToken.findFirst({
     where: {
       Auth_id: user.data.id.toString(),
     },
   });
 
-  const expires_in = token.data.expires_in as number;
-  const refresh_token_expires_in = token.data
-    .refresh_token_expires_in as number;
   if (!isUserExist) {
     //유저 정보가 DB에 없음
 
@@ -51,12 +55,12 @@ async function LoginKakao(code: any) {
         OAuthToken: {
           create: {
             Auth_id: user.data.id.toString(),
-            AccessToken: token.data.access_token,
-            RefreshToken: token.data.refresh_token,
-            AToken_Expires: expires_in,
-            RToken_Expires: refresh_token_expires_in,
-            AToken_CreatedAt: getCurrentTime().toString(),
-            RToken_CreatedAt: getCurrentTime().toString(),
+            AccessToken: newToken.Access_Token,
+            RefreshToken: newToken.Refresh_Token,
+            AToken_Expires: newToken.AToken_Expires,
+            RToken_Expires: newToken.RToken_Expires,
+            AToken_CreatedAt: newToken.AToken_CreatedAt,
+            RToken_CreatedAt: newToken.RToken_CreatedAt,
           },
         },
       },
@@ -64,7 +68,7 @@ async function LoginKakao(code: any) {
         OAuthToken: true,
       },
     });
-    return result.OAuthToken[0].AccessToken;
+    return newToken.Access_Token;
   } else {
     //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
     await prisma.oAuthToken.updateMany({
@@ -72,18 +76,15 @@ async function LoginKakao(code: any) {
         Auth_id: user.data.id.toString(),
       },
       data: {
-        AccessToken: token.data.access_token,
-        RefreshToken: token.data.refresh_token,
-        AToken_Expires: expires_in,
-        RToken_Expires: refresh_token_expires_in,
-        AToken_CreatedAt: getCurrentTime().toString(),
-        RToken_CreatedAt: getCurrentTime().toString(),
+        AccessToken: newToken.Access_Token,
+        RefreshToken: newToken.Refresh_Token,
+        AToken_Expires: newToken.AToken_Expires,
+        RToken_Expires: newToken.RToken_Expires,
+        AToken_CreatedAt: newToken.AToken_CreatedAt,
+        RToken_CreatedAt: newToken.RToken_CreatedAt,
       },
     });
-    const result = await prisma.oAuthToken.findFirst({
-      where: { Auth_id: user.data.id.toString() },
-    });
-    return result?.AccessToken!!;
+    return newToken?.Access_Token!!;
   }
 }
 

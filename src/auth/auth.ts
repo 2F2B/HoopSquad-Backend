@@ -45,8 +45,6 @@ async function LoginGoogle( // 유저 코드 넘어옴
     },
   });
 
-  console.log(user);
-
   const UserData = {
     Auth_id: user.data.id,
   };
@@ -80,7 +78,6 @@ async function LoginGoogle( // 유저 코드 넘어옴
         OAuthToken: true,
       },
     });
-    console.log(Token.Access_Token, "\n");
     return Token.Access_Token;
   } else {
     //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
@@ -97,81 +94,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
         RToken_CreatedAt: Token.RToken_CreatedAt,
       },
     });
-    console.log(Token.Access_Token, "\n");
     return Token?.Access_Token!!;
   }
 }
-
-async function ValidateGoogle( // 유저 토큰 넘어옴
-  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
-  if (req.body.access_token) {
-    const TokenResult = await prisma.oAuthToken.findFirst({
-      // 유저 토큰이 DB에 있는지 검사
-      where: {
-        AccessToken: req.body.access_token,
-      },
-    });
-    if (TokenResult) {
-      //유저 토큰이 DB에 있다
-      if (await AccessVerify(req.body.access_token)) {
-        //액세스 토큰이 유효
-        return { result: "success" };
-      } else {
-        //액세스 토큰 X
-        if (
-          // 리프레시 토큰의 유효기간 1주일 초과
-          TokenResult.RToken_Expires + parseInt(TokenResult.RToken_CreatedAt) >
-          604800
-        ) {
-          const user_data = {
-            Auth_id: TokenResult.Auth_id,
-          };
-
-          const NewToken = AccessRefresh(user_data);
-
-          await prisma.oAuthToken.updateMany({
-            //새 토큰 발급 받아서 DB 갱신 후 토큰 반환
-            where: {
-              Auth_id: TokenResult.Auth_id,
-            },
-            data: {
-              AccessToken: NewToken.Access_Token,
-              AToken_CreatedAt: NewToken.AToken_CreatedAt,
-              AToken_Expires: NewToken.AToken_Expires,
-            },
-          });
-          return { access_token: NewToken.Access_Token };
-        } else if (
-          //리프레시 토큰의 유효기간 1주일 이하
-          TokenResult.RToken_Expires + parseInt(TokenResult.RToken_CreatedAt) <=
-          604800
-        ) {
-          const user_data = {
-            Auth_id: TokenResult.Auth_id,
-          };
-
-          const NewTokens = GenerateToken(user_data);
-
-          await prisma.oAuthToken.updateMany({
-            //새로 발급받은 토큰들 DB 갱신, 반환
-            where: {
-              Auth_id: TokenResult.Auth_id.toString(),
-            },
-            data: {
-              AccessToken: NewTokens.Access_Token,
-              RefreshToken: NewTokens.Refresh_Token,
-              AToken_Expires: NewTokens.AToken_Expires,
-              RToken_Expires: NewTokens.RToken_Expires,
-              AToken_CreatedAt: NewTokens.AToken_CreatedAt,
-              RToken_CreatedAt: NewTokens.RToken_CreatedAt,
-            },
-          });
-          return { access_token: NewTokens.Access_Token };
-        }
-      }
-    } else return { result: "expired" }; // DB에 액세스 토큰이 없음
-  } else return { result: "no_token" }; // 액세스 토큰이 전달되지 없음
-}
-
-export { SignupResponse, LoginGoogle, ValidateGoogle };
+export { SignupResponse, LoginGoogle };

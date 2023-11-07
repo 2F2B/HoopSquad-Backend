@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValidateGoogle = exports.LoginGoogle = exports.SignupResponse = void 0;
+exports.LoginGoogle = exports.SignupResponse = void 0;
 const axios_1 = __importDefault(require("axios"));
 const client_1 = require("@prisma/client");
 const token_1 = require("./token");
@@ -50,7 +50,6 @@ code) {
                 Authorization: `Bearer ${res.data.access_token}`,
             },
         });
-        console.log(user);
         const UserData = {
             Auth_id: user.data.id,
         };
@@ -81,7 +80,6 @@ code) {
                     OAuthToken: true,
                 },
             });
-            console.log(Token.Access_Token, "\n");
             return Token.Access_Token;
         }
         else {
@@ -99,82 +97,8 @@ code) {
                     RToken_CreatedAt: Token.RToken_CreatedAt,
                 },
             });
-            console.log(Token.Access_Token, "\n");
             return Token === null || Token === void 0 ? void 0 : Token.Access_Token;
         }
     });
 }
 exports.LoginGoogle = LoginGoogle;
-function ValidateGoogle(// 유저 토큰 넘어옴
-req) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (req.body.access_token) {
-            const TokenResult = yield prisma.oAuthToken.findFirst({
-                // 유저 토큰이 DB에 있는지 검사
-                where: {
-                    AccessToken: req.body.access_token,
-                },
-            });
-            if (TokenResult) {
-                //유저 토큰이 DB에 있다
-                if (yield (0, token_1.AccessVerify)(req.body.access_token)) {
-                    //액세스 토큰이 유효
-                    return { result: "success" };
-                }
-                else {
-                    //액세스 토큰 X
-                    if (
-                    // 리프레시 토큰의 유효기간 1주일 초과
-                    TokenResult.RToken_Expires + parseInt(TokenResult.RToken_CreatedAt) >
-                        604800) {
-                        const user_data = {
-                            Auth_id: TokenResult.Auth_id,
-                        };
-                        const NewToken = (0, token_1.AccessRefresh)(user_data);
-                        yield prisma.oAuthToken.updateMany({
-                            //새 토큰 발급 받아서 DB 갱신 후 토큰 반환
-                            where: {
-                                Auth_id: TokenResult.Auth_id,
-                            },
-                            data: {
-                                AccessToken: NewToken.Access_Token,
-                                AToken_CreatedAt: NewToken.AToken_CreatedAt,
-                                AToken_Expires: NewToken.AToken_Expires,
-                            },
-                        });
-                        return { access_token: NewToken.Access_Token };
-                    }
-                    else if (
-                    //리프레시 토큰의 유효기간 1주일 이하
-                    TokenResult.RToken_Expires + parseInt(TokenResult.RToken_CreatedAt) <=
-                        604800) {
-                        const user_data = {
-                            Auth_id: TokenResult.Auth_id,
-                        };
-                        const NewTokens = (0, token_1.GenerateToken)(user_data);
-                        yield prisma.oAuthToken.updateMany({
-                            //새로 발급받은 토큰들 DB 갱신, 반환
-                            where: {
-                                Auth_id: TokenResult.Auth_id.toString(),
-                            },
-                            data: {
-                                AccessToken: NewTokens.Access_Token,
-                                RefreshToken: NewTokens.Refresh_Token,
-                                AToken_Expires: NewTokens.AToken_Expires,
-                                RToken_Expires: NewTokens.RToken_Expires,
-                                AToken_CreatedAt: NewTokens.AToken_CreatedAt,
-                                RToken_CreatedAt: NewTokens.RToken_CreatedAt,
-                            },
-                        });
-                        return { access_token: NewTokens.Access_Token };
-                    }
-                }
-            }
-            else
-                return { result: "expired" }; // DB에 액세스 토큰이 없음
-        }
-        else
-            return { result: "no_token" }; // 액세스 토큰이 전달되지 없음
-    });
-}
-exports.ValidateGoogle = ValidateGoogle;

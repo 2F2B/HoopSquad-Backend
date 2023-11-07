@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValidateKakao = exports.LoginKakao = void 0;
 const axios_1 = __importDefault(require("axios"));
 const client_1 = require("@prisma/client");
+const token_1 = require("./token");
 const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
     return Math.floor(Date.now() / 1000);
@@ -37,14 +38,15 @@ function LoginKakao(code) {
                 "Content-Type": "	Content-type: application/x-www-form-urlencoded;charset=utf-8",
             },
         }); //발급된 토큰을 가진 유저의 정보 요청
+        const userData = {
+            Auth_id: user.data.id,
+        };
+        const newToken = (0, token_1.GenerateToken)(JSON.stringify(userData)); // JWT 토큰 발행
         const isUserExist = yield prisma.oAuthToken.findFirst({
             where: {
                 Auth_id: user.data.id.toString(),
             },
         });
-        const expires_in = token.data.expires_in;
-        const refresh_token_expires_in = token.data
-            .refresh_token_expires_in;
         if (!isUserExist) {
             //유저 정보가 DB에 없음
             const result = yield prisma.user.create({
@@ -54,12 +56,12 @@ function LoginKakao(code) {
                     OAuthToken: {
                         create: {
                             Auth_id: user.data.id.toString(),
-                            AccessToken: token.data.access_token,
-                            RefreshToken: token.data.refresh_token,
-                            AToken_Expires: expires_in,
-                            RToken_Expires: refresh_token_expires_in,
-                            AToken_CreatedAt: getCurrentTime().toString(),
-                            RToken_CreatedAt: getCurrentTime().toString(),
+                            AccessToken: newToken.Access_Token,
+                            RefreshToken: newToken.Refresh_Token,
+                            AToken_Expires: newToken.AToken_Expires,
+                            RToken_Expires: newToken.RToken_Expires,
+                            AToken_CreatedAt: newToken.AToken_CreatedAt,
+                            RToken_CreatedAt: newToken.RToken_CreatedAt,
                         },
                     },
                 },
@@ -67,7 +69,7 @@ function LoginKakao(code) {
                     OAuthToken: true,
                 },
             });
-            return result.OAuthToken[0].AccessToken;
+            return newToken.Access_Token;
         }
         else {
             //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
@@ -76,18 +78,15 @@ function LoginKakao(code) {
                     Auth_id: user.data.id.toString(),
                 },
                 data: {
-                    AccessToken: token.data.access_token,
-                    RefreshToken: token.data.refresh_token,
-                    AToken_Expires: expires_in,
-                    RToken_Expires: refresh_token_expires_in,
-                    AToken_CreatedAt: getCurrentTime().toString(),
-                    RToken_CreatedAt: getCurrentTime().toString(),
+                    AccessToken: newToken.Access_Token,
+                    RefreshToken: newToken.Refresh_Token,
+                    AToken_Expires: newToken.AToken_Expires,
+                    RToken_Expires: newToken.RToken_Expires,
+                    AToken_CreatedAt: newToken.AToken_CreatedAt,
+                    RToken_CreatedAt: newToken.RToken_CreatedAt,
                 },
             });
-            const result = yield prisma.oAuthToken.findFirst({
-                where: { Auth_id: user.data.id.toString() },
-            });
-            return result === null || result === void 0 ? void 0 : result.AccessToken;
+            return newToken === null || newToken === void 0 ? void 0 : newToken.Access_Token;
         }
     });
 }

@@ -1,7 +1,8 @@
 import express, { response } from "express";
-import { SignupResponse, LoginGoogle, ValidateGoogle } from "../auth/auth";
+import { SignupResponse, LoginGoogle } from "../auth/auth";
 import { LoginKakao, ValidateKakao } from "../auth/kakaoAuth";
 import { UserDelete } from "../auth/userDelete";
+import { Validation } from "../auth/validate";
 
 const authRouter = express.Router();
 
@@ -23,9 +24,9 @@ authRouter.get("/google/redirect", async (req, res) => {
   }
 });
 
-authRouter.post("/google/validation", async (req, res) => {
+authRouter.post("/validation", async (req, res) => {
   try {
-    const result = await ValidateGoogle(req);
+    const result = await Validation(req);
     res.send(result);
   } catch (err) {
     res.status(400);
