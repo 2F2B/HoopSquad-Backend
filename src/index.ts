@@ -12,12 +12,14 @@ const httpServer = http.createServer(app);
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
 const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
+const matchRouter = require("./routes/matchRouter");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/chat", chatRouter);
 
 socketIOHandler(httpServer);
+app.use("/match", matchRouter);
 
 app.get("/", async (_req, res) => {
   try {
