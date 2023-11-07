@@ -28,14 +28,14 @@ async function AddMatch(
     },
   });
 
-  if (user?.User.User_id.valueOf undefined) {
+  if (!user) {
     return { result: "expired" };
   }
 
   const req = request.body.data;
   await prisma.posting.create({
     data: {
-      User_id: user?.User.User_id,
+      User_id: user.User.User_id,
       IsTeam: req.isTeam.parseInt(),
       Title: req.Title,
       WriteDate: Date.now().toString(),

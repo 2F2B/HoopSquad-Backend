@@ -33,10 +33,13 @@ function AddMatch(request) {
                 },
             },
         });
+        if (!user) {
+            return { result: "expired" };
+        }
         const req = request.body.data;
         yield prisma.posting.create({
             data: {
-                User_id: user === null || user === void 0 ? void 0 : user.User.User_id,
+                User_id: user.User.User_id,
                 IsTeam: req.isTeam.parseInt(),
                 Title: req.Title,
                 WriteDate: Date.now().toString(),
