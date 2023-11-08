@@ -7,11 +7,6 @@ import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 
 const prisma = new PrismaClient();
 
-function getCurrentTime() {
-  //현재시간
-  return Math.floor(Date.now() / 1000);
-}
-
 function SignupResponse() {
   let url = "https://accounts.google.com/o/oauth2/v2/auth";
 
@@ -45,11 +40,11 @@ async function LoginGoogle( // 유저 코드 넘어옴
     },
   });
 
-  const UserData = {
+  const userData = {
     Auth_id: user.data.id,
   };
 
-  const Token = GenerateToken(JSON.stringify(UserData)); // JWT 토큰 발행
+  const token = GenerateToken(JSON.stringify(userData)); // JWT 토큰 발행
 
   const isUserExist = await prisma.oAuthToken.findFirst({
     where: {
@@ -65,12 +60,12 @@ async function LoginGoogle( // 유저 코드 넘어옴
         OAuthToken: {
           create: {
             Auth_id: user.data.id.toString(),
-            AccessToken: Token.Access_Token,
-            RefreshToken: Token.Refresh_Token,
-            AToken_Expires: Token.AToken_Expires,
-            RToken_Expires: Token.RToken_Expires,
-            AToken_CreatedAt: Token.AToken_CreatedAt,
-            RToken_CreatedAt: Token.RToken_CreatedAt,
+            AccessToken: token.Access_Token,
+            RefreshToken: token.Refresh_Token,
+            AToken_Expires: token.AToken_Expires,
+            RToken_Expires: token.RToken_Expires,
+            AToken_CreatedAt: token.AToken_CreatedAt,
+            RToken_CreatedAt: token.RToken_CreatedAt,
           },
         },
       },
@@ -78,7 +73,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
         OAuthToken: true,
       },
     });
-    return Token.Access_Token;
+    return token.Access_Token;
   } else {
     //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
     await prisma.oAuthToken.updateMany({
@@ -86,15 +81,16 @@ async function LoginGoogle( // 유저 코드 넘어옴
         Auth_id: user.data.id.toString(),
       },
       data: {
-        AccessToken: Token.Access_Token,
-        RefreshToken: Token.Refresh_Token,
-        AToken_Expires: Token.AToken_Expires,
-        RToken_Expires: Token.RToken_Expires,
-        AToken_CreatedAt: Token.AToken_CreatedAt,
-        RToken_CreatedAt: Token.RToken_CreatedAt,
+        AccessToken: token.Access_Token,
+        RefreshToken: token.Refresh_Token,
+        AToken_Expires: token.AToken_Expires,
+        RToken_Expires: token.RToken_Expires,
+        AToken_CreatedAt: token.AToken_CreatedAt,
+        RToken_CreatedAt: token.RToken_CreatedAt,
       },
     });
-    return Token?.Access_Token!!;
+    return token?.Access_Token!!;
   }
 }
+
 export { SignupResponse, LoginGoogle };
