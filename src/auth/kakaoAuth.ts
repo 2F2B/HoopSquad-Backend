@@ -15,8 +15,8 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: `${process.env.kakaoAPIKey}`,
-      // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
-      redirect_uri: "http://localhost:3000/auth/kakao/register",
+      redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
+      // redirect_uri: "http://localhost:3000/auth/kakao/register",
       code: code,
     },
     {
