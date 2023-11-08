@@ -1,13 +1,8 @@
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
-import { Request } from "express-serve-static-core";
-import { ParsedQs } from "qs";
-import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
+import { GenerateToken } from "./token";
 
 const prisma = new PrismaClient();
-function getCurrentTime() {
-  return Math.floor(Date.now() / 1000);
-}
 
 async function LoginKakao(code: any) {
   const token = await axios.post(
@@ -47,10 +42,7 @@ async function LoginKakao(code: any) {
   });
 
   if (!isUserExist) {
-    //유저 정보가 DB에 없음
-
-    const result = await prisma.user.create({
-      //유저 정보를 DB에 추가
+    await prisma.user.create({
       data: {
         Name: user.data.properties.nickname,
         OAuthToken: {
@@ -70,23 +62,22 @@ async function LoginKakao(code: any) {
       },
     });
     return newToken.Access_Token;
-  } else {
-    //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
-    await prisma.oAuthToken.updateMany({
-      where: {
-        Auth_id: user.data.id.toString(),
-      },
-      data: {
-        AccessToken: newToken.Access_Token,
-        RefreshToken: newToken.Refresh_Token,
-        AToken_Expires: newToken.AToken_Expires,
-        RToken_Expires: newToken.RToken_Expires,
-        AToken_CreatedAt: newToken.AToken_CreatedAt,
-        RToken_CreatedAt: newToken.RToken_CreatedAt,
-      },
-    });
-    return newToken?.Access_Token!!;
   }
+
+  await prisma.oAuthToken.updateMany({
+    where: {
+      Auth_id: user.data.id.toString(),
+    },
+    data: {
+      AccessToken: newToken.Access_Token,
+      RefreshToken: newToken.Refresh_Token,
+      AToken_Expires: newToken.AToken_Expires,
+      RToken_Expires: newToken.RToken_Expires,
+      AToken_CreatedAt: newToken.AToken_CreatedAt,
+      RToken_CreatedAt: newToken.RToken_CreatedAt,
+    },
+  });
+  return newToken?.Access_Token!!;
 }
 
 export { LoginKakao };

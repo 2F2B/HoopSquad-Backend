@@ -17,9 +17,6 @@ const axios_1 = __importDefault(require("axios"));
 const client_1 = require("@prisma/client");
 const token_1 = require("./token");
 const prisma = new client_1.PrismaClient();
-function getCurrentTime() {
-    return Math.floor(Date.now() / 1000);
-}
 function LoginKakao(code) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
@@ -49,9 +46,7 @@ function LoginKakao(code) {
             },
         });
         if (!isUserExist) {
-            //유저 정보가 DB에 없음
-            const result = yield prisma.user.create({
-                //유저 정보를 DB에 추가
+            yield prisma.user.create({
                 data: {
                     Name: user.data.properties.nickname,
                     OAuthToken: {
@@ -72,23 +67,20 @@ function LoginKakao(code) {
             });
             return newToken.Access_Token;
         }
-        else {
-            //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
-            yield prisma.oAuthToken.updateMany({
-                where: {
-                    Auth_id: user.data.id.toString(),
-                },
-                data: {
-                    AccessToken: newToken.Access_Token,
-                    RefreshToken: newToken.Refresh_Token,
-                    AToken_Expires: newToken.AToken_Expires,
-                    RToken_Expires: newToken.RToken_Expires,
-                    AToken_CreatedAt: newToken.AToken_CreatedAt,
-                    RToken_CreatedAt: newToken.RToken_CreatedAt,
-                },
-            });
-            return newToken === null || newToken === void 0 ? void 0 : newToken.Access_Token;
-        }
+        yield prisma.oAuthToken.updateMany({
+            where: {
+                Auth_id: user.data.id.toString(),
+            },
+            data: {
+                AccessToken: newToken.Access_Token,
+                RefreshToken: newToken.Refresh_Token,
+                AToken_Expires: newToken.AToken_Expires,
+                RToken_Expires: newToken.RToken_Expires,
+                AToken_CreatedAt: newToken.AToken_CreatedAt,
+                RToken_CreatedAt: newToken.RToken_CreatedAt,
+            },
+        });
+        return newToken === null || newToken === void 0 ? void 0 : newToken.Access_Token;
     });
 }
 exports.LoginKakao = LoginKakao;
