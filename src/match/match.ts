@@ -33,25 +33,25 @@ async function AddMatch(
   }
 
   const req = request.body.data;
-  await prisma.posting.create({
-    data: {
-      User_id: user.User.User_id,
-      IsTeam: req.isTeam.parseInt(),
-      Title: req.Title,
-      WriteDate: Date.now().toString(),
-      PlayTime: req.PlayTime,
-      Location: req.Location,
-      RecruitAmount: req.RecruitAmount,
-      CurrentAmount: req.CurrentAmount,
-      Map: {
-        create: {
-          LocationName: req.Title,
-          Lat: req.lat,
-          Lng: req.Lng,
-        },
-      },
-    },
-  });
+  // await prisma.posting.create({
+  //   data: {
+  //     User_id: user.User.User_id,
+  //     IsTeam: req.isTeam.parseInt(),
+  //     Title: req.Title,
+  //     WriteDate: Date.now().toString(),
+  //     PlayTime: req.PlayTime,
+  //     Location: req.Location,
+  //     RecruitAmount: req.RecruitAmount,
+  //     CurrentAmount: req.CurrentAmount,
+  //     Map: {
+  //       create: {
+  //         LocationName: req.Title,
+  //         Lat: req.lat,
+  //         Lng: req.Lng,
+  //       },
+  //     },
+  //   },
+  // });
 }
 
 export { AllMatch, AddMatch };

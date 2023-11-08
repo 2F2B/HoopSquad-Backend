@@ -5,16 +5,13 @@ import http from "http";
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
 const matchRouter = require("./routes/matchRouter");
+const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
-
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
