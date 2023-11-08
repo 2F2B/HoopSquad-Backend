@@ -35,14 +35,16 @@ function AccessVerify(token) {
         return true;
     }
     catch (err) {
+        console.log(err);
         return false;
     }
 }
 exports.AccessVerify = AccessVerify;
 function AccessRefresh(UserData) {
-    const data = JSON.parse(UserData);
+    const data = { data: UserData };
     const Access_Token = jsonwebtoken_1.default.sign(data, `${process.env.SECRET_Key}`, {
         expiresIn: "2h",
+        algorithm: "HS256",
     });
     const res = {
         Access_Token: Access_Token,

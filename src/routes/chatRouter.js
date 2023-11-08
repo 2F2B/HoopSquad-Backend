@@ -16,6 +16,10 @@ const socketIOHandler = (server) => {
         socket.on("setNickname", (nick) => {
             socket["nickname"] = nick;
         });
+        socket.on("join", (room, done) => {
+            socket.join(room);
+            done();
+        });
         socket.join("test");
         console.log(socket.rooms);
         socket.on("send", (data, room) => {

@@ -19,7 +19,7 @@ function GenerateToken(UserData: any) {
 
   const res = {
     Access_Token: Access_Token,
-    AToken_Expires: 7199,
+    AToken_Expires: 7199, // 2일
     AToken_CreatedAt: getCurrentTime().toString(),
     Refresh_Token: Refresh_Token,
     RToken_Expires: 1209599, // 14일
@@ -34,15 +34,17 @@ function AccessVerify(token: string) {
     jwt.verify(token, `${process.env.SECRETKey}`);
     return true;
   } catch (err) {
+    console.log(err);
     return false;
   }
 }
 
-function AccessRefresh(UserData: any) {
-  const data = JSON.parse(UserData);
+function AccessRefresh(UserData: String) {
+  const data = { data: UserData };
 
   const Access_Token = jwt.sign(data, `${process.env.SECRET_Key}`, {
     expiresIn: "2h",
+    algorithm: "HS256",
   });
   const res = {
     Access_Token: Access_Token,
