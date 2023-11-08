@@ -153,9 +153,9 @@ model TeamProfile {
 }
 
 model TeamRelay {
-  Team_id     Int
+  Team_id     Int         @id
   IsAdmin     Boolean
-  User_id     Int         @id
+  User_id     Int
   User        User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
@@ -172,5 +172,5 @@ model User {
   Profile     Profile?
   Review      Review?
   TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay?
+  TeamRelay   TeamRelay[]
 }
