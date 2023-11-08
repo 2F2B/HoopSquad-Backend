@@ -10,9 +10,9 @@ class Socket extends socket_io_1.default.Socket {
 }
 const socketIOHandler = (server) => {
     const io = new socket_io_1.default.Server(server);
-    const chatNamespace = io.of("/chat");
-    chatNamespace.on("connection", (s) => {
+    io.on("connection", (s) => {
         const socket = s;
+        socket["nickname"] = "Anonymous";
         socket.on("setNickname", (nick) => {
             socket["nickname"] = nick;
         });
@@ -20,7 +20,6 @@ const socketIOHandler = (server) => {
             socket.join(room);
             done();
         });
-        socket.join("test");
         console.log(socket.rooms);
         socket.on("send", (data, room) => {
             console.log(data);
@@ -30,7 +29,6 @@ const socketIOHandler = (server) => {
 };
 chatRouter.get("/", (req, res) => {
     try {
-        const io = req.app.get("io");
         res.json({ result: "connected" });
     }
     catch (err) {
