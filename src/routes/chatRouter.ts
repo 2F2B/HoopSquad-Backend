@@ -19,9 +19,9 @@ const socketIOHandler = (
   server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
 ) => {
   const io = new SocketIO.Server(server);
-  const chatNamespace = io.of("/chat");
-  chatNamespace.on("connection", (s) => {
+  io.on("connection", (s) => {
     const socket = s as Socket;
+    socket["nickname"] = "Anonymous";
     socket.on("setNickname", (nick) => {
       socket["nickname"] = nick;
     });
@@ -31,7 +31,6 @@ const socketIOHandler = (
       done();
     });
 
-    socket.join("test");
     console.log(socket.rooms);
 
     socket.on("send", (data, room) => {
@@ -47,7 +46,6 @@ const socketIOHandler = (
 
 chatRouter.get("/", (req, res) => {
   try {
-    const io = req.app.get("io") as SocketIO;
     res.json({ result: "connected" });
   } catch (err) {
     console.error(err);
