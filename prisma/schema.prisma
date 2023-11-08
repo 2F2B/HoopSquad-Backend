@@ -30,7 +30,7 @@ model ChatRelay {
 }
 
 model ChatRoom {
-  Room_id   Int        @id
+  Room_id   Int        @id @default(autoincrement())
   Host_id   Int
   Guest_id  Int
   Time      DateTime   @default(now()) @db.Timestamp(0)
