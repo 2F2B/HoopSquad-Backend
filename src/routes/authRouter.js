@@ -16,12 +16,9 @@ const express_1 = __importDefault(require("express"));
 const auth_1 = require("../auth/auth");
 const kakaoAuth_1 = require("../auth/kakaoAuth");
 const userDelete_1 = require("../auth/userDelete");
+const validate_1 = require("../auth/validate");
 const authRouter = express_1.default.Router();
-authRouter.get("/google/register", (req, res) => {
-    var url = (0, auth_1.SignupResponse)();
-    res.redirect(url);
-});
-authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(code);
     try {
@@ -34,9 +31,17 @@ authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 
         res.send({ result: "error" });
     }
 }));
-authRouter.post("/google/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield (0, auth_1.ValidateGoogle)(req);
+        const result = yield (0, validate_1.Validation)(req);
+        if (result === null || result === void 0 ? void 0 : result.access_token)
+            res.status(201); //Created
+        else if ((result === null || result === void 0 ? void 0 : result.result) == "expired")
+            res.status(401); //Unauthorized
+        else if ((result === null || result === void 0 ? void 0 : result.result) == "no_token")
+            res.status(400); //Bad Request
+        else
+            res.status(200); //OK
         res.send(result);
     }
     catch (err) {
@@ -50,25 +55,6 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         console.log(req.query.code);
         const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
         res.send({ token: data });
-    }
-    catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
-    }
-}));
-authRouter.post("/kakao/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield (0, kakaoAuth_1.ValidateKakao)(req);
-        if (result.access_token)
-            res.status(201); //Created
-        else if (result.result == "expired")
-            res.status(401); //Unauthorized
-        else if (result.result == "no_token")
-            res.status(400); //Bad Request
-        else
-            res.status(200); //OK
-        res.send(result);
     }
     catch (err) {
         res.status(400);
