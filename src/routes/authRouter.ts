@@ -1,17 +1,12 @@
 import express, { response } from "express";
-import { SignupResponse, LoginGoogle } from "../auth/auth";
+import { LoginGoogle } from "../auth/auth";
 import { LoginKakao } from "../auth/kakaoAuth";
 import { UserDelete } from "../auth/userDelete";
 import { Validation } from "../auth/validate";
 
 const authRouter = express.Router();
 
-authRouter.get("/google/register", (req, res) => {
-  var url = SignupResponse();
-  res.redirect(url);
-});
-
-authRouter.get("/google/redirect", async (req, res) => {
+authRouter.get("/google/register", async (req, res) => {
   const { code } = req.query;
   console.log(code);
   try {

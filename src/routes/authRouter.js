@@ -18,11 +18,7 @@ const kakaoAuth_1 = require("../auth/kakaoAuth");
 const userDelete_1 = require("../auth/userDelete");
 const validate_1 = require("../auth/validate");
 const authRouter = express_1.default.Router();
-authRouter.get("/google/register", (req, res) => {
-    var url = (0, auth_1.SignupResponse)();
-    res.redirect(url);
-});
-authRouter.get("/google/redirect", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(code);
     try {

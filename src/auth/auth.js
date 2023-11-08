@@ -12,26 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoginGoogle = exports.SignupResponse = void 0;
+exports.LoginGoogle = void 0;
 const axios_1 = __importDefault(require("axios"));
 const client_1 = require("@prisma/client");
 const token_1 = require("./token");
 const prisma = new client_1.PrismaClient();
-function getCurrentTime() {
-    //현재시간
-    return Math.floor(Date.now() / 1000);
-}
-function SignupResponse() {
-    let url = "https://accounts.google.com/o/oauth2/v2/auth";
-    url += `?client_id=${process.env.gClientId}`;
-    url += `&redirect_uri=${process.env.gSignupRedirectUri}`;
-    // url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
-    url += `&response_type=code`;
-    url += `&scope=profile`;
-    url += `&access_type=offline`;
-    return url;
-}
-exports.SignupResponse = SignupResponse;
 function LoginGoogle(// 유저 코드 넘어옴
 code) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -41,7 +26,7 @@ code) {
             client_id: `${process.env.gClientId}`,
             client_secret: `${process.env.gClientSecret}`,
             redirect_uri: `${process.env.gSignupRedirectUri}`,
-            // redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
+            // redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
             grant_type: "authorization_code",
         });
         const user = yield axios_1.default.get(`${process.env.gUserInfoUri}`, {
@@ -50,10 +35,10 @@ code) {
                 Authorization: `Bearer ${res.data.access_token}`,
             },
         });
-        const UserData = {
+        const userData = {
             Auth_id: user.data.id,
         };
-        const Token = (0, token_1.GenerateToken)(JSON.stringify(UserData)); // JWT 토큰 발행
+        const token = (0, token_1.GenerateToken)(JSON.stringify(userData)); // JWT 토큰 발행
         const isUserExist = yield prisma.oAuthToken.findFirst({
             where: {
                 Auth_id: user.data.id.toString(),
@@ -67,12 +52,12 @@ code) {
                     OAuthToken: {
                         create: {
                             Auth_id: user.data.id.toString(),
-                            AccessToken: Token.Access_Token,
-                            RefreshToken: Token.Refresh_Token,
-                            AToken_Expires: Token.AToken_Expires,
-                            RToken_Expires: Token.RToken_Expires,
-                            AToken_CreatedAt: Token.AToken_CreatedAt,
-                            RToken_CreatedAt: Token.RToken_CreatedAt,
+                            AccessToken: token.Access_Token,
+                            RefreshToken: token.Refresh_Token,
+                            AToken_Expires: token.AToken_Expires,
+                            RToken_Expires: token.RToken_Expires,
+                            AToken_CreatedAt: token.AToken_CreatedAt,
+                            RToken_CreatedAt: token.RToken_CreatedAt,
                         },
                     },
                 },
@@ -80,7 +65,7 @@ code) {
                     OAuthToken: true,
                 },
             });
-            return Token.Access_Token;
+            return token.Access_Token;
         }
         else {
             //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
@@ -89,15 +74,15 @@ code) {
                     Auth_id: user.data.id.toString(),
                 },
                 data: {
-                    AccessToken: Token.Access_Token,
-                    RefreshToken: Token.Refresh_Token,
-                    AToken_Expires: Token.AToken_Expires,
-                    RToken_Expires: Token.RToken_Expires,
-                    AToken_CreatedAt: Token.AToken_CreatedAt,
-                    RToken_CreatedAt: Token.RToken_CreatedAt,
+                    AccessToken: token.Access_Token,
+                    RefreshToken: token.Refresh_Token,
+                    AToken_Expires: token.AToken_Expires,
+                    RToken_Expires: token.RToken_Expires,
+                    AToken_CreatedAt: token.AToken_CreatedAt,
+                    RToken_CreatedAt: token.RToken_CreatedAt,
                 },
             });
-            return Token === null || Token === void 0 ? void 0 : Token.Access_Token;
+            return token === null || token === void 0 ? void 0 : token.Access_Token;
         }
     });
 }

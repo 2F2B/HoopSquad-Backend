@@ -7,19 +7,6 @@ import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 
 const prisma = new PrismaClient();
 
-function SignupResponse() {
-  let url = "https://accounts.google.com/o/oauth2/v2/auth";
-
-  url += `?client_id=${process.env.gClientId}`;
-  url += `&redirect_uri=${process.env.gSignupRedirectUri}`;
-  // url += `&redirect_uri=http://localhost:3000/auth/google/redirect`; //테스트용 로컬 호스트
-  url += `&response_type=code`;
-  url += `&scope=profile`;
-  url += `&access_type=offline`;
-
-  return url;
-}
-
 async function LoginGoogle( // 유저 코드 넘어옴
   code: String | ParsedQs | String[] | ParsedQs[] | undefined,
 ) {
@@ -29,7 +16,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
     client_id: `${process.env.gClientId}`,
     client_secret: `${process.env.gClientSecret}`,
     redirect_uri: `${process.env.gSignupRedirectUri}`,
-    // redirect_uri: "http://localhost:3000/auth/google/redirect", //test용 로컬 호스트
+    // redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
     grant_type: "authorization_code",
   });
 
@@ -93,4 +80,4 @@ async function LoginGoogle( // 유저 코드 넘어옴
   }
 }
 
-export { SignupResponse, LoginGoogle };
+export { LoginGoogle };
