@@ -17,6 +17,26 @@ matchRouter.get("/", (req, res) => {
         res.send({ result: "error" });
     }
 });
+matchRouter.get("/filter", (req, res) => {
+    try {
+        const add = (0, match_1.MatchFilter)(req);
+        res.send(add);
+    }
+    catch (err) {
+        console.log(err);
+        res.send({ result: "error" });
+    }
+});
+matchRouter.get("/id", (req, res) => {
+    try {
+        const add = (0, match_1.MatchInfo)(req);
+        res.send(add);
+    }
+    catch (err) {
+        console.log(err);
+        res.send({ result: "error" });
+    }
+});
 matchRouter.get("/add", (req, res) => {
     try {
         const add = (0, match_1.AddMatch)(req);
