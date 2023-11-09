@@ -9,18 +9,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AddMatch = exports.AllMatch = void 0;
+exports.MatchInfo = exports.MatchFilter = exports.AddMatch = exports.AllMatch = void 0;
 const client_1 = require("@prisma/client");
+const googleMaps_1 = require("../google-maps/googleMaps");
 const prisma = new client_1.PrismaClient();
 function AllMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        const match = yield prisma.posting.findMany();
+        const match = yield prisma.posting.findMany({
+            select: {
+                Title: true,
+                WriteDate: true,
+                Location: true,
+                RecruitAmount: true,
+                CurrentAmount: true,
+            },
+        });
         console.log(match);
     });
 }
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
+        const Location = yield (0, googleMaps_1.LatLngToAddress)(request.body.Lat, request.body.Lng);
         const user = yield prisma.oAuthToken.findFirst({
             where: {
                 AccessToken: request.body.access_token,
@@ -37,25 +47,67 @@ function AddMatch(request) {
             return { result: "expired" };
         }
         const req = request.body.data;
-        // await prisma.posting.create({
-        //   data: {
-        //     User_id: user.User.User_id,
-        //     IsTeam: req.isTeam.parseInt(),
-        //     Title: req.Title,
-        //     WriteDate: Date.now().toString(),
-        //     PlayTime: req.PlayTime,
-        //     Location: req.Location,
-        //     RecruitAmount: req.RecruitAmount,
-        //     CurrentAmount: req.CurrentAmount,
-        //     Map: {
-        //       create: {
-        //         LocationName: req.Title,
-        //         Lat: req.lat,
-        //         Lng: req.Lng,
-        //       },
-        //     },
-        //   },
-        // });
+        yield prisma.map.create({
+            data: {
+                LocationName: req.LocationName,
+                Lat: req.Lat,
+                Lng: req.Lng,
+                Posting: {
+                    create: {
+                        User_id: user.User.User_id,
+                        IsTeam: req.IsTeam,
+                        Title: req.Title.toString(),
+                        WriteDate: Date.now().toString(),
+                        PlayTime: req.PlayTime,
+                        Location: Location.result[0],
+                        RecruitAmount: req.RecruitAmount,
+                        CurrentAmount: req.CurrentAmount,
+                        Introduce: req.Introduce,
+                    },
+                },
+            },
+        });
+        return {
+            TimeStamp: Date.now().toString(),
+        };
     });
 }
 exports.AddMatch = AddMatch;
+function MatchInfo(request) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const match = yield prisma.posting.findFirst({
+            where: {
+                Posting_id: request.body.id,
+            },
+        });
+        return match;
+    });
+}
+exports.MatchInfo = MatchInfo;
+function MatchFilter(request) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (request.body.Location) {
+            const location = request.body.Location;
+            const res = yield prisma.posting.findFirst({
+                where: {
+                    Location: location,
+                },
+            });
+            return res;
+        }
+        else if (request.body.Search) {
+            const search = request.body.Search;
+            const res = yield prisma.posting.findFirst({
+                where: {
+                    Title: {
+                        contains: search,
+                    },
+                },
+            });
+            return res;
+        }
+        else
+            return { result: "error" };
+    });
+}
+exports.MatchFilter = MatchFilter;

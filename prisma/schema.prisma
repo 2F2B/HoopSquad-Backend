@@ -108,9 +108,9 @@ model Posting {
   RecruitAmount String     @db.VarChar(45)
   CurrentAmount String     @db.VarChar(45)
   Introduce     String?    @db.VarChar(600)
-  Map_id        Int?
+  Map_id        Int        
   Comments      Comments[]
-  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  Map           Map       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
   @@index([User_id], map: "Writer_idx")

@@ -1,6 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { AllMatch, AddMatch } from "../match/match";
+import { AllMatch, AddMatch, MatchFilter, MatchInfo } from "../match/match";
 
 const matchRouter = express.Router();
 
@@ -9,6 +9,26 @@ matchRouter.get("/", (req, res) => {
   try {
     const result = AllMatch(req);
     res.send(result);
+  } catch (err) {
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+matchRouter.get("/filter", (req, res) => {
+  try {
+    const add = MatchFilter(req);
+    res.send(add);
+  } catch (err) {
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+matchRouter.get("/id", (req, res) => {
+  try {
+    const add = MatchInfo(req);
+    res.send(add);
   } catch (err) {
     console.log(err);
     res.send({ result: "error" });
