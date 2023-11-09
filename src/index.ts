@@ -11,11 +11,10 @@ const httpServer = http.createServer(app);
 
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
-const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
+const { socketIOHandler } = require("./routes/chatRouter");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
-app.use("/chat", chatRouter);
 
 socketIOHandler(httpServer);
 
