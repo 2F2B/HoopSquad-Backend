@@ -16,6 +16,35 @@ class Socket extends SocketIO.Socket {
   userId!: number;
 }
 
+async function createRoom(hostId: number, guestId: number) {
+  const isChatRoomExist = await prisma.chatRoom.findFirst({
+    where: {
+      AND: [{ Host_id: hostId }, { Guest_id: guestId }],
+    },
+  });
+  if (!isChatRoomExist) {
+    const chatRoom = await prisma.chatRoom.create({
+      data: {
+        Host_id: hostId,
+        Guest_id: guestId,
+        ChatRelay: {
+          create: {
+            User_id: hostId,
+          },
+        },
+      },
+    });
+    await prisma.chatRelay.create({
+      data: {
+        User_id: guestId,
+        Room_id: chatRoom.Room_id,
+      },
+    });
+
+    return chatRoom;
+  }
+}
+
 const socketIOHandler = (
   server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
 ) => {
@@ -23,12 +52,32 @@ const socketIOHandler = (
   io.on("connection", (s) => {
     const socket = s as Socket;
 
-    socket.on("setNickname", (nick) => {
+    socket.on("setNickname", (nick: string) => {
       socket["nickname"] = nick;
     });
 
-    socket.on("setUserId", (id) => {
-      socket["userId"] = id;
+    socket.on("setUserId", async (token: string) => {
+      const user = await prisma.oAuthToken.findFirst({
+        where: {
+          AccessToken: token,
+        },
+        select: {
+          User_id: true,
+        },
+      });
+      socket["userId"] = user?.User_id!;
+    });
+
+    socket.on("joinAllRooms", async () => {
+      const chatRoomList = await prisma.chatRoom.findMany({
+        where: {
+          OR: [{ Host_id: socket["userId"] }, { Guest_id: socket["userId"] }],
+        },
+      });
+
+      chatRoomList.forEach((room) => {
+        socket.join(`${room.Host_id}_${room.Guest_id}`);
+      });
     });
 
     socket.on("join", (room, done) => {
@@ -36,25 +85,22 @@ const socketIOHandler = (
       done();
     });
 
-    socket.on("init", async (hostId, guestId, hostSocketId) => {
-      const chatRoom = await prisma.chatRoom.create({
-        data: {
-          Host_id: hostId,
-          Guest_id: guestId,
-          ChatRelay: {
-            create: {
-              User_id: hostId,
-            },
-          },
-        },
-      });
-      await prisma.chatRelay.create({
-        data: {
-          User_id: guestId,
-          Room_id: chatRoom.Room_id,
-        },
-      });
-    }); //FIXME: Host 소켓 개인 방에 Guest 소켓 Join시키기
+    socket.on("makeRoom", async (guestId: number) => {
+      const hostId = socket["userId"];
+
+      const chatRoom = await createRoom(hostId, guestId);
+
+      if (chatRoom) {
+        socket.join(`${hostId}_${guestId}`);
+        io.sockets.sockets.forEach((sock) => {
+          const user = sock as Socket;
+          if (user["userId"] == guestId) {
+            const guest = user;
+            guest.join(`${hostId}_${guestId}`);
+          }
+        });
+      }
+    });
 
     socket.on("disconnect", () => {});
 
