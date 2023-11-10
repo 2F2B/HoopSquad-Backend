@@ -10,8 +10,8 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: `${process.env.kakaoAPIKey}`,
-      redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
-      // redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
+      // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
+      redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
       code: code,
     },
     {
@@ -28,7 +28,6 @@ async function LoginKakao(code: any) {
         "	Content-type: application/x-www-form-urlencoded;charset=utf-8",
     },
   }); //발급된 토큰을 가진 유저의 정보 요청
-
   const userData = {
     Auth_id: user.data.id,
   };
@@ -42,6 +41,7 @@ async function LoginKakao(code: any) {
   });
 
   if (!isUserExist) {
+    // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
     await prisma.user.create({
       data: {
         Name: user.data.properties.nickname,
@@ -55,6 +55,9 @@ async function LoginKakao(code: any) {
             AToken_CreatedAt: newToken.AToken_CreatedAt,
             RToken_CreatedAt: newToken.RToken_CreatedAt,
           },
+        },
+        Profile: {
+          create: {},
         },
       },
       include: {

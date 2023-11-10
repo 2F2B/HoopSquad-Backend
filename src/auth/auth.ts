@@ -41,7 +41,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
 
   if (!isUserExist) {
     // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
-    const result = await prisma.user.create({
+    await prisma.user.create({
       data: {
         Name: user.data.name,
         OAuthToken: {
@@ -54,6 +54,9 @@ async function LoginGoogle( // 유저 코드 넘어옴
             AToken_CreatedAt: token.AToken_CreatedAt,
             RToken_CreatedAt: token.RToken_CreatedAt,
           },
+        },
+        Profile: {
+          create: {},
         },
       },
       include: {

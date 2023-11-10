@@ -22,8 +22,8 @@ function LoginKakao(code) {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
             grant_type: "authorization_code",
             client_id: `${process.env.kakaoAPIKey}`,
-            redirect_uri: "https://hoopsquad.link/auth/kakao/register",
-            // redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
+            // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
+            redirect_uri: "http://localhost:3000/auth/kakao/register",
             code: code,
         }, {
             headers: {
@@ -46,6 +46,7 @@ function LoginKakao(code) {
             },
         });
         if (!isUserExist) {
+            // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
             yield prisma.user.create({
                 data: {
                     Name: user.data.properties.nickname,
@@ -59,6 +60,9 @@ function LoginKakao(code) {
                             AToken_CreatedAt: newToken.AToken_CreatedAt,
                             RToken_CreatedAt: newToken.RToken_CreatedAt,
                         },
+                    },
+                    Profile: {
+                        create: {},
                     },
                 },
                 include: {

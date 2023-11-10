@@ -46,7 +46,7 @@ code) {
         });
         if (!isUserExist) {
             // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
-            const result = yield prisma.user.create({
+            yield prisma.user.create({
                 data: {
                     Name: user.data.name,
                     OAuthToken: {
@@ -59,6 +59,9 @@ code) {
                             AToken_CreatedAt: token.AToken_CreatedAt,
                             RToken_CreatedAt: token.RToken_CreatedAt,
                         },
+                    },
+                    Profile: {
+                        create: {},
                     },
                 },
                 include: {
