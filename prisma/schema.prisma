@@ -30,7 +30,7 @@ model ChatRelay {
 }
 
 model ChatRoom {
-  Room_id   Int        @id
+  Room_id   Int        @id @default(autoincrement())
   Host_id   Int
   Guest_id  Int
   Time      DateTime   @default(now()) @db.Timestamp(0)
@@ -108,9 +108,9 @@ model Posting {
   RecruitAmount String     @db.VarChar(45)
   CurrentAmount String     @db.VarChar(45)
   Introduce     String?    @db.VarChar(600)
-  Map_id        Int        
+  Map_id        Int?
   Comments      Comments[]
-  Map           Map       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
   @@index([User_id], map: "Writer_idx")
@@ -138,28 +138,29 @@ model Review {
 }
 
 model TeamProfile {
-  Team_id    Int         @id @default(autoincrement())
+  Team_id    Int        @id @default(autoincrement())
   Admin_id   Int
-  Name       String      @db.VarChar(45)
-  TeamImage  Bytes?      @db.Blob
-  Location   String      @db.VarChar(45)
-  Introduce  String?     @db.VarChar(400)
-  LatestDate DateTime?   @db.DateTime(0)
+  Name       String     @db.VarChar(45)
+  TeamImage  Bytes?     @db.Blob
+  Location   String     @db.VarChar(45)
+  Introduce  String?    @db.VarChar(400)
+  LatestDate DateTime?  @db.DateTime(0)
   UserAmount Int?
-  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
-  TeamRelay  TeamRelay[]
+  User       User       @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
+  TeamRelay  TeamRelay?
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
 
 model TeamRelay {
-  Team_id     Int
+  Team_id     Int         @id
   IsAdmin     Boolean
-  User_id     Int         @id
+  User_id     Int
   User        User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
+  @@index([User_id], map: "TeamRelay_User_id_fkey")
 }
 
 model User {
@@ -172,5 +173,5 @@ model User {
   Profile     Profile?
   Review      Review?
   TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay?
+  TeamRelay   TeamRelay[]
 }

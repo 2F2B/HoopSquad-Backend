@@ -11,6 +11,7 @@ async function AllMatch(
 ) {
   const match = await prisma.posting.findMany({
     select: {
+      Posting_id: true,
       Title: true,
       WriteDate: true,
       Location: true,
@@ -19,12 +20,13 @@ async function AllMatch(
     },
   });
   console.log(match);
+  return match;
 }
 
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  const Location = await LatLngToAddress(request.body.Lat, request.body.Lng);
+  // console.log(request.body.access_token);
   const user = await prisma.oAuthToken.findFirst({
     where: {
       AccessToken: request.body.access_token,
@@ -37,23 +39,24 @@ async function AddMatch(
       },
     },
   });
-
   if (!user) {
     return { result: "expired" };
   }
 
   const req = request.body.data;
-  await prisma.map.create({
+  const Location = await LatLngToAddress(req.Lat, req.Lng);
+
+  const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName as string,
-      Lat: req.Lat as number,
-      Lng: req.Lng as number,
+      Lat: parseFloat(req.Lat),
+      Lng: parseFloat(req.Lng),
       Posting: {
         create: {
           User_id: user.User.User_id,
           IsTeam: req.IsTeam,
           Title: req.Title.toString(),
-          WriteDate: Date.now().toString(),
+          WriteDate: new Date(),
           PlayTime: req.PlayTime,
           Location: Location.result[0],
           RecruitAmount: req.RecruitAmount,
@@ -63,17 +66,24 @@ async function AddMatch(
       },
     },
   });
+  const newPosting = await prisma.posting.findFirst({
+    where: {
+      Map_id: newMap.Map_id,
+    },
+  });
   return {
     TimeStamp: Date.now().toString(),
+    Posting_id: newPosting?.Posting_id,
   };
 }
 
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
+  3;
   const match = await prisma.posting.findFirst({
     where: {
-      Posting_id: request.body.id,
+      Posting_id: request.body.Posting_id,
     },
   });
   return match;
@@ -84,19 +94,37 @@ async function MatchFilter(
 ) {
   if (request.body.Location) {
     const location = request.body.Location;
-    const res = await prisma.posting.findFirst({
+    const res = await prisma.posting.findMany({
       where: {
-        Location: location,
+        Location: {
+          contains: location,
+        },
+      },
+      select: {
+        Posting_id: true,
+        Title: true,
+        WriteDate: true,
+        Location: true,
+        RecruitAmount: true,
+        CurrentAmount: true,
       },
     });
     return res;
-  } else if (request.body.Search) {
-    const search = request.body.Search;
-    const res = await prisma.posting.findFirst({
+  } else if (request.body.Title) {
+    const search = request.body.Title;
+    const res = await prisma.posting.findMany({
       where: {
         Title: {
           contains: search,
         },
+      },
+      select: {
+        Posting_id: true,
+        Title: true,
+        WriteDate: true,
+        Location: true,
+        RecruitAmount: true,
+        CurrentAmount: true,
       },
     });
     return res;

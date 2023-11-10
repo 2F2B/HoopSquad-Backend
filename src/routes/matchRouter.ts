@@ -4,10 +4,11 @@ import { AllMatch, AddMatch, MatchFilter, MatchInfo } from "../match/match";
 
 const matchRouter = express.Router();
 
-matchRouter.get("/", (req, res) => {
+matchRouter.get("/", async (req, res) => {
   // 전체 게시글 조회
   try {
-    const result = AllMatch(req);
+    const result = await AllMatch(req);
+    res.status(200);
     res.send(result);
   } catch (err) {
     console.log(err);
@@ -15,9 +16,10 @@ matchRouter.get("/", (req, res) => {
   }
 });
 
-matchRouter.get("/filter", (req, res) => {
+matchRouter.get("/filter", async (req, res) => {
   try {
-    const add = MatchFilter(req);
+    const add = await MatchFilter(req);
+    res.status(200);
     res.send(add);
   } catch (err) {
     console.log(err);
@@ -25,9 +27,10 @@ matchRouter.get("/filter", (req, res) => {
   }
 });
 
-matchRouter.get("/id", (req, res) => {
+matchRouter.get("/info", async (req, res) => {
   try {
-    const add = MatchInfo(req);
+    const add = await MatchInfo(req);
+    res.status(200);
     res.send(add);
   } catch (err) {
     console.log(err);
@@ -35,9 +38,10 @@ matchRouter.get("/id", (req, res) => {
   }
 });
 
-matchRouter.get("/add", (req, res) => {
+matchRouter.get("/add", async (req, res) => {
   try {
-    const add = AddMatch(req);
+    const add = await AddMatch(req);
+    res.status(201);
     res.send(add);
   } catch (err) {
     console.log(err);

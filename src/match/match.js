@@ -17,6 +17,7 @@ function AllMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
         const match = yield prisma.posting.findMany({
             select: {
+                Posting_id: true,
                 Title: true,
                 WriteDate: true,
                 Location: true,
@@ -25,12 +26,13 @@ function AllMatch(request) {
             },
         });
         console.log(match);
+        return match;
     });
 }
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        const Location = yield (0, googleMaps_1.LatLngToAddress)(request.body.Lat, request.body.Lng);
+        // console.log(request.body.access_token);
         const user = yield prisma.oAuthToken.findFirst({
             where: {
                 AccessToken: request.body.access_token,
@@ -47,17 +49,18 @@ function AddMatch(request) {
             return { result: "expired" };
         }
         const req = request.body.data;
-        yield prisma.map.create({
+        const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
+        const newMap = yield prisma.map.create({
             data: {
                 LocationName: req.LocationName,
-                Lat: req.Lat,
-                Lng: req.Lng,
+                Lat: parseFloat(req.Lat),
+                Lng: parseFloat(req.Lng),
                 Posting: {
                     create: {
                         User_id: user.User.User_id,
                         IsTeam: req.IsTeam,
                         Title: req.Title.toString(),
-                        WriteDate: Date.now().toString(),
+                        WriteDate: new Date(),
                         PlayTime: req.PlayTime,
                         Location: Location.result[0],
                         RecruitAmount: req.RecruitAmount,
@@ -67,17 +70,24 @@ function AddMatch(request) {
                 },
             },
         });
+        const newPosting = yield prisma.posting.findFirst({
+            where: {
+                Map_id: newMap.Map_id,
+            },
+        });
         return {
             TimeStamp: Date.now().toString(),
+            Posting_id: newPosting === null || newPosting === void 0 ? void 0 : newPosting.Posting_id,
         };
     });
 }
 exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
+        3;
         const match = yield prisma.posting.findFirst({
             where: {
-                Posting_id: request.body.id,
+                Posting_id: request.body.Posting_id,
             },
         });
         return match;
@@ -88,20 +98,38 @@ function MatchFilter(request) {
     return __awaiter(this, void 0, void 0, function* () {
         if (request.body.Location) {
             const location = request.body.Location;
-            const res = yield prisma.posting.findFirst({
+            const res = yield prisma.posting.findMany({
                 where: {
-                    Location: location,
+                    Location: {
+                        contains: location,
+                    },
+                },
+                select: {
+                    Posting_id: true,
+                    Title: true,
+                    WriteDate: true,
+                    Location: true,
+                    RecruitAmount: true,
+                    CurrentAmount: true,
                 },
             });
             return res;
         }
-        else if (request.body.Search) {
-            const search = request.body.Search;
-            const res = yield prisma.posting.findFirst({
+        else if (request.body.Title) {
+            const search = request.body.Title;
+            const res = yield prisma.posting.findMany({
                 where: {
                     Title: {
                         contains: search,
                     },
+                },
+                select: {
+                    Posting_id: true,
+                    Title: true,
+                    WriteDate: true,
+                    Location: true,
+                    RecruitAmount: true,
+                    CurrentAmount: true,
                 },
             });
             return res;
