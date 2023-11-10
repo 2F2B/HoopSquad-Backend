@@ -60,7 +60,6 @@ async function AddMatch(
       },
     },
   });
-
   if (!user) {
     return { result: "expired" };
   }
