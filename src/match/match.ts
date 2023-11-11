@@ -58,6 +58,7 @@ async function AddMatch(
 
   const newMap = await prisma.map.create({
     data: {
+      LocationName: req.LocationName,
       Lat: parseFloat(req.Lat),
       Lng: parseFloat(req.Lng),
       Posting: {
