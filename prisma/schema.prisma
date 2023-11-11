@@ -52,7 +52,7 @@ model Court {
 
 model Map {
   Map_id       Int       @id @default(autoincrement())
-  LocationName String    @db.VarChar(45)
+  LocationName String?    @db.VarChar(45)
   Lat          Float     @db.Float
   Lng          Float     @db.Float
   Court        Court[]
@@ -63,7 +63,7 @@ model Message {
   Message_id  Int      @id @default(autoincrement())
   Room_id     Int
   Msg         String   @db.LongText
-  ChatTime    DateTime @default(now()) @db.Timestamp(0)
+  ChatTime    DateTime @default(now()) @db.Timestamp(0) 
   Writer_id   String   @db.VarChar(45)
   Receiver_id String   @db.VarChar(45)
   ChatRoom    ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
