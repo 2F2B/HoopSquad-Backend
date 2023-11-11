@@ -13,20 +13,26 @@ exports.MatchInfo = exports.MatchFilter = exports.AddMatch = exports.AllMatch = 
 const client_1 = require("@prisma/client");
 const googleMaps_1 = require("../google-maps/googleMaps");
 const prisma = new client_1.PrismaClient();
-function AllMatch(request) {
+function AllMatch(// 게시글 전체 조회
+request) {
     return __awaiter(this, void 0, void 0, function* () {
         const match = yield prisma.posting.findMany({
             select: {
                 Posting_id: true,
                 Title: true,
+                GameType: true,
                 WriteDate: true,
                 Location: true,
                 RecruitAmount: true,
                 CurrentAmount: true,
             },
         });
-        console.log(match);
-        return match;
+        const updatedMatch = match.map((posting) => {
+            // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
+            const gameTypeArray = posting.GameType.split(",").map(Number);
+            return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
+        });
+        return updatedMatch;
     });
 }
 exports.AllMatch = AllMatch;
@@ -34,6 +40,7 @@ function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
         // console.log(request.body.access_token);
         const user = yield prisma.oAuthToken.findFirst({
+            // 유저 있는지 확인 및 user_id 가져오기
             where: {
                 AccessToken: request.body.access_token,
             },
@@ -52,7 +59,6 @@ function AddMatch(request) {
         const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
         const newMap = yield prisma.map.create({
             data: {
-                LocationName: req.LocationName,
                 Lat: parseFloat(req.Lat),
                 Lng: parseFloat(req.Lng),
                 Posting: {
@@ -60,6 +66,7 @@ function AddMatch(request) {
                         User_id: user.User.User_id,
                         IsTeam: req.IsTeam,
                         Title: req.Title.toString(),
+                        GameType: req.Type.toString(),
                         WriteDate: new Date(),
                         PlayTime: req.PlayTime,
                         Location: Location.result[0],
@@ -85,18 +92,48 @@ exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
         3;
-        const match = yield prisma.posting.findFirst({
+        const map = yield prisma.posting.findFirst({
             where: {
                 Posting_id: request.body.Posting_id,
             },
+            select: {
+                Map_id: true,
+            },
         });
-        return match;
+        if (!map) {
+            return { result: "expired" };
+        }
+        if (map.Map_id === null) {
+            return { result: "expired" };
+        }
+        const match = yield prisma.map.findFirst({
+            where: {
+                Map_id: map.Map_id,
+            },
+            select: {
+                Lat: true,
+                Lng: true,
+                Posting: true,
+            },
+        });
+        if (!match) {
+            return { result: "expired" };
+        }
+        const updatedPosting = match.Posting.map((posting) => {
+            // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
+            const gameTypeArray = posting.GameType.split(",").map(Number);
+            return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
+        });
+        console.log(updatedPosting);
+        const updatedMatch = Object.assign(Object.assign({}, match), { Posting: updatedPosting });
+        return updatedMatch;
     });
 }
 exports.MatchInfo = MatchInfo;
 function MatchFilter(request) {
     return __awaiter(this, void 0, void 0, function* () {
         if (request.body.Location) {
+            // 주소로 필터링 하여 반환
             const location = request.body.Location;
             const res = yield prisma.posting.findMany({
                 where: {
@@ -107,15 +144,22 @@ function MatchFilter(request) {
                 select: {
                     Posting_id: true,
                     Title: true,
+                    GameType: true,
                     WriteDate: true,
                     Location: true,
                     RecruitAmount: true,
                     CurrentAmount: true,
                 },
             });
-            return res;
+            const updatedMatch = res.map((posting) => {
+                // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameType을 숫자 배열로 변경
+                const gameTypeArray = posting.GameType.split(",").map(Number);
+                return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
+            });
+            return updatedMatch;
         }
         else if (request.body.Title) {
+            // 제목으로 필터링
             const search = request.body.Title;
             const res = yield prisma.posting.findMany({
                 where: {
@@ -126,13 +170,43 @@ function MatchFilter(request) {
                 select: {
                     Posting_id: true,
                     Title: true,
+                    GameType: true,
                     WriteDate: true,
                     Location: true,
                     RecruitAmount: true,
                     CurrentAmount: true,
                 },
             });
-            return res;
+            const updatedMatch = res.map((posting) => {
+                // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameType을 숫자 배열로 변경
+                const gameTypeArray = posting.GameType.split(",").map(Number);
+                return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
+            });
+            return updatedMatch;
+        }
+        else if (request.body.Type) {
+            // 게임 타입으로 필터링
+            const gameType = request.body.Type;
+            const res = yield prisma.posting.findMany({
+                where: {
+                    GameType: { contains: gameType.toString() },
+                },
+                select: {
+                    Posting_id: true,
+                    Title: true,
+                    GameType: true,
+                    WriteDate: true,
+                    Location: true,
+                    RecruitAmount: true,
+                    CurrentAmount: true,
+                },
+            });
+            const updatedMatch = res.map((posting) => {
+                // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
+                const gameTypeArray = posting.GameType.split(",").map(Number);
+                return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
+            });
+            return updatedMatch;
         }
         else
             return { result: "error" };
