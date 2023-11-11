@@ -52,7 +52,7 @@ model Court {
 
 model Map {
   Map_id       Int       @id @default(autoincrement())
-  LocationName String?    @db.VarChar(45)
+  LocationName String    @db.VarChar(45)
   Lat          Float     @db.Float
   Lng          Float     @db.Float
   Court        Court[]
