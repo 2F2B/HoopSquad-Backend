@@ -170,7 +170,6 @@ model User {
   TeamProfile TeamProfile[]
   TeamRelay   TeamRelay[]
   UserData    UserData[]
-}
 
 model Image {
   Image_id  Int       @id @default(autoincrement())
