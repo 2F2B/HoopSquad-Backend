@@ -40,8 +40,6 @@ async function createRoom(hostId: number, guestId: number) {
         Room_id: chatRoom.Room_id,
       },
     });
-
-    return chatRoom;
   }
 }
 
@@ -88,18 +86,16 @@ const socketIOHandler = (
     socket.on("makeRoom", async (guestId: number) => {
       const hostId = socket["userId"];
 
-      const chatRoom = await createRoom(hostId, guestId);
+      await createRoom(hostId, guestId);
 
-      if (chatRoom) {
-        socket.join(`${hostId}_${guestId}`);
-        io.sockets.sockets.forEach((sock) => {
-          const user = sock as Socket;
-          if (user["userId"] == guestId) {
-            const guest = user;
-            guest.join(`${hostId}_${guestId}`);
-          }
-        });
-      }
+      socket.join(`${hostId}_${guestId}`);
+      io.sockets.sockets.forEach((sock) => {
+        const user = sock as Socket;
+        if (user["userId"] == guestId) {
+          const guest = user;
+          guest.join(`${hostId}_${guestId}`);
+        }
+      });
     });
 
     socket.on("disconnect", () => {});
