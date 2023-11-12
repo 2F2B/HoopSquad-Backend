@@ -32,6 +32,7 @@ async function Validation(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
   if (!request.body.access_token) {
+    // A/T 가 안넘어옴
     return { result: "no_token" };
   }
 
@@ -42,8 +43,8 @@ async function Validation(
   });
 
   if (token) {
-    if (AccessVerify(token.AccessToken)) return { result: "success" };
-    if (!AccessVerify(token.RefreshToken)) return { result: "expired" };
+    if (AccessVerify(token.AccessToken)) return { result: "success" }; // A/T O
+    if (!AccessVerify(token.RefreshToken)) return { result: "expired" }; // A/T X, R/T X
 
     if (isTokenValidMoreThanAWeek(token)) {
       const newToken = AccessRefresh(token.Auth_id);
@@ -79,7 +80,7 @@ async function Validation(
 
       return { access_token: newTokens.Access_Token };
     }
-  }
+  } else return { result: "expired" }; // A/T 가 없음
 }
 
 export { Validation };

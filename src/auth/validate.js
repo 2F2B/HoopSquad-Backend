@@ -24,6 +24,7 @@ function isTokenValidMoreThanAWeek(token) {
 function Validation(request) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!request.body.access_token) {
+            // A/T 가 안넘어옴
             return { result: "no_token" };
         }
         const token = yield prisma.oAuthToken.findFirst({
@@ -33,9 +34,9 @@ function Validation(request) {
         });
         if (token) {
             if ((0, token_1.AccessVerify)(token.AccessToken))
-                return { result: "success" };
+                return { result: "success" }; // A/T O
             if (!(0, token_1.AccessVerify)(token.RefreshToken))
-                return { result: "expired" };
+                return { result: "expired" }; // A/T X, R/T X
             if (isTokenValidMoreThanAWeek(token)) {
                 const newToken = (0, token_1.AccessRefresh)(token.Auth_id);
                 yield prisma.oAuthToken.updateMany({
@@ -68,6 +69,8 @@ function Validation(request) {
                 return { access_token: newTokens.Access_Token };
             }
         }
+        else
+            return { result: "expired" }; // A/T 가 없음
     });
 }
 exports.Validation = Validation;

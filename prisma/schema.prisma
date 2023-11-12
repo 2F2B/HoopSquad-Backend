@@ -169,6 +169,7 @@ model User {
   Review      Review?
   TeamProfile TeamProfile[]
   TeamRelay   TeamRelay[]
+  UserData    UserData[]
 }
 
 model Image {
@@ -176,4 +177,14 @@ model Image {
   ImageData Bytes     @db.Blob
   Posting   Posting[]
   Profile   Profile[]
+}
+
+model UserData {
+  Data_id Int @id @default(autoincrement())
+  Email String @db.VarChar(50)
+  Password String @db.VarChar(50)
+  User_id     Int
+  User             User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_UserData_User")
+  
+  @@index([User_id], map: "User_idx")
 }
