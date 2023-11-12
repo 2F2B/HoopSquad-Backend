@@ -38,7 +38,7 @@ matchRouter.get("/info", async (req, res) => {
   }
 });
 
-matchRouter.get("/add", async (req, res) => {
+matchRouter.post("/add", async (req, res) => {
   try {
     const add = await AddMatch(req);
     res.status(201);
