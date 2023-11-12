@@ -18,7 +18,7 @@ const auth_1 = require("../auth/auth");
 const userDelete_1 = require("../auth/userDelete");
 const validate_1 = require("../auth/validate");
 const authRouter = express_1.default.Router();
-authRouter.get("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, auth_1.Register)(req);
         res.send(result);
@@ -29,7 +29,7 @@ authRouter.get("/register", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, auth_1.Login)(req);
         res.send(result);
@@ -40,7 +40,7 @@ authRouter.get("/login", (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(code);
     try {
@@ -53,7 +53,7 @@ authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.query.code);
         const data = yield (0, oAuth_1.LoginKakao)(req.query.code);
@@ -65,7 +65,7 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, validate_1.Validation)(req);
         if (result === null || result === void 0 ? void 0 : result.access_token)
@@ -84,7 +84,7 @@ authRouter.get("/validation", (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, userDelete_1.UserDelete)(req);
         res.send(result);
