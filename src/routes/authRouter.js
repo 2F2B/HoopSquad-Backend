@@ -23,7 +23,7 @@ authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 
     console.log(code);
     try {
         const Token = yield (0, auth_1.LoginGoogle)(code);
-        res.send(`Register Success \n ${Token}`);
+        res.send({ token: Token });
     }
     catch (err) {
         res.status(400);
