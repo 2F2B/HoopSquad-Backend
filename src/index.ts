@@ -2,6 +2,10 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
+const matchRouter = require("./routes/matchRouter");
+const { chatRouter, socketIOHandler } = require("./routes/chatRouter");
 
 const app = express();
 app.use(cors());
@@ -9,12 +13,10 @@ app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
 
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const { socketIOHandler } = require("./routes/chatRouter");
-
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
+app.use("/chat", chatRouter);
+app.use("/match", matchRouter);
 
 socketIOHandler(httpServer);
 

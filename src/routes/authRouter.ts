@@ -11,7 +11,7 @@ authRouter.get("/google/register", async (req, res) => {
   console.log(code);
   try {
     const Token = await LoginGoogle(code);
-    res.send(`Register Success \n ${Token}`);
+    res.send({ token: Token });
   } catch (err) {
     res.status(400);
     console.error(err);

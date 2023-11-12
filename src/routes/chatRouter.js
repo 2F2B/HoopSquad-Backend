@@ -17,19 +17,38 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 class Socket extends socket_io_1.default.Socket {
 }
+function createRoom(hostId, guestId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const isChatRoomExist = yield prisma.chatRoom.findFirst({
+            where: {
+                AND: [{ Host_id: hostId }, { Guest_id: guestId }],
+            },
+        });
+        if (!isChatRoomExist) {
+            const chatRoom = yield prisma.chatRoom.create({
+                data: {
+                    Host_id: hostId,
+                    Guest_id: guestId,
+                    ChatRelay: {
+                        create: {
+                            User_id: hostId,
+                        },
+                    },
+                },
+            });
+            yield prisma.chatRelay.create({
+                data: {
+                    User_id: guestId,
+                    Room_id: chatRoom.Room_id,
+                },
+            });
+        }
+    });
+}
 const socketIOHandler = (server) => {
     const io = new socket_io_1.default.Server(server);
     io.on("connection", (s) => {
         const socket = s;
-        socket.on("getAllRooms", () => __awaiter(void 0, void 0, void 0, function* () {
-            const chatRoomList = yield prisma.chatRoom.findMany({
-                where: {
-                    OR: [{ Host_id: socket["userId"] }, { Guest_id: socket["userId"] }],
-                },
-            });
-        }));
-        console.clear();
-        console.log(io.sockets.adapter.rooms);
         socket.on("setNickname", (nick) => {
             socket["nickname"] = nick;
         });
@@ -43,7 +62,16 @@ const socketIOHandler = (server) => {
                 },
             });
             socket["userId"] = user === null || user === void 0 ? void 0 : user.User_id;
-            console.log(socket["userId"]);
+        }));
+        socket.on("joinAllRooms", () => __awaiter(void 0, void 0, void 0, function* () {
+            const chatRoomList = yield prisma.chatRoom.findMany({
+                where: {
+                    OR: [{ Host_id: socket["userId"] }, { Guest_id: socket["userId"] }],
+                },
+            });
+            chatRoomList.forEach((room) => {
+                socket.join(`${room.Host_id}_${room.Guest_id}`);
+            });
         }));
         socket.on("join", (room, done) => {
             socket.join(room);
@@ -51,36 +79,17 @@ const socketIOHandler = (server) => {
         });
         socket.on("makeRoom", (guestId) => __awaiter(void 0, void 0, void 0, function* () {
             const hostId = socket["userId"];
-            const isChatRoomExist = yield prisma.chatRoom.findFirst({
-                where: {
-                    AND: [{ Host_id: hostId }, { Guest_id: guestId }],
-                },
+            yield createRoom(hostId, guestId);
+            socket.join(`${hostId}_${guestId}`);
+            io.sockets.sockets.forEach((sock) => {
+                const user = sock;
+                if (user["userId"] == guestId) {
+                    const guest = user;
+                    guest.join(`${hostId}_${guestId}`);
+                }
             });
-            if (!isChatRoomExist) {
-                const chatRoom = yield prisma.chatRoom.create({
-                    data: {
-                        Host_id: hostId,
-                        Guest_id: guestId,
-                        ChatRelay: {
-                            create: {
-                                User_id: hostId,
-                            },
-                        },
-                    },
-                });
-                yield prisma.chatRelay.create({
-                    data: {
-                        User_id: guestId,
-                        Room_id: chatRoom.Room_id,
-                    },
-                });
-                socket.join(`${hostId}_${guestId}`);
-            }
-        })); //FIXME: Host 소켓 개인 방에 Guest 소켓 Join시키기
-        socket.on("disconnect", () => {
-            console.clear();
-            console.log(io.sockets.adapter.rooms);
-        });
+        }));
+        socket.on("disconnect", () => { });
         socket.on("send", (data, room) => {
             console.log(data);
             socket.to(room).emit("receive", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
