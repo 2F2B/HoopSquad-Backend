@@ -49,7 +49,7 @@ matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.send({ result: "error" });
     }
 }));
-matchRouter.get("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+matchRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);

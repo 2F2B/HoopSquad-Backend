@@ -13,17 +13,51 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const oAuth_1 = require("../auth/oAuth");
 const auth_1 = require("../auth/auth");
-const kakaoAuth_1 = require("../auth/kakaoAuth");
 const userDelete_1 = require("../auth/userDelete");
 const validate_1 = require("../auth/validate");
 const authRouter = express_1.default.Router();
-authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, auth_1.Register)(req);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400);
+        console.log(err);
+        res.send({ result: "error" });
+    }
+}));
+authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, auth_1.Login)(req);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400);
+        console.log(err);
+        res.send({ result: "error" });
+    }
+}));
+authRouter.post("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(code);
     try {
-        const Token = yield (0, auth_1.LoginGoogle)(code);
+        const Token = yield (0, oAuth_1.LoginGoogle)(code);
         res.send({ token: Token });
+    }
+    catch (err) {
+        res.status(400);
+        console.error(err);
+        res.send({ result: "error" });
+    }
+}));
+authRouter.post("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(req.query.code);
+        const data = yield (0, oAuth_1.LoginKakao)(req.query.code);
+        res.send({ token: data });
     }
     catch (err) {
         res.status(400);
@@ -50,19 +84,7 @@ authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.send({ result: "error" });
     }
 }));
-authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        console.log(req.query.code);
-        const data = yield (0, kakaoAuth_1.LoginKakao)(req.query.code);
-        res.send({ token: data });
-    }
-    catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
-    }
-}));
-authRouter.get("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.post("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, userDelete_1.UserDelete)(req);
         res.send(result);

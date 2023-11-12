@@ -1,17 +1,51 @@
 import express, { response } from "express";
-import { LoginGoogle } from "../auth/auth";
-import { LoginKakao } from "../auth/kakaoAuth";
+import { LoginKakao, LoginGoogle } from "../auth/oAuth";
+import { Login, Register } from "../auth/auth";
 import { UserDelete } from "../auth/userDelete";
 import { Validation } from "../auth/validate";
 
 const authRouter = express.Router();
 
-authRouter.get("/google/register", async (req, res) => {
+authRouter.post("/register", async (req, res) => {
+  try {
+    const result = await Register(req);
+    res.send(result);
+  } catch (err) {
+    res.status(400);
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+authRouter.post("/login", async (req, res) => {
+  try {
+    const result = await Login(req);
+    res.send(result);
+  } catch (err) {
+    res.status(400);
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+authRouter.post("/google/register", async (req, res) => {
   const { code } = req.query;
   console.log(code);
   try {
     const Token = await LoginGoogle(code);
     res.send({ token: Token });
+  } catch (err) {
+    res.status(400);
+    console.error(err);
+    res.send({ result: "error" });
+  }
+});
+
+authRouter.post("/kakao/register", async (req, res) => {
+  try {
+    console.log(req.query.code);
+    const data = await LoginKakao(req.query.code);
+    res.send({ token: data });
   } catch (err) {
     res.status(400);
     console.error(err);
@@ -34,19 +68,7 @@ authRouter.post("/validation", async (req, res) => {
   }
 });
 
-authRouter.get("/kakao/register", async (req, res) => {
-  try {
-    console.log(req.query.code);
-    const data = await LoginKakao(req.query.code);
-    res.send({ token: data });
-  } catch (err) {
-    res.status(400);
-    console.error(err);
-    res.send({ result: "error" });
-  }
-});
-
-authRouter.get("/delete", async (req, res) => {
+authRouter.post("/delete", async (req, res) => {
   try {
     const result = await UserDelete(req);
     res.send(result);
