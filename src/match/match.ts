@@ -25,6 +25,11 @@ async function AllMatch( // 게시글 전체 조회
       Location: true,
       RecruitAmount: true,
       CurrentAmount: true,
+      Image: {
+        select: {
+          ImageData: true,
+        },
+      },
     },
   });
   const updatedMatch = match.map((posting) => {
@@ -84,14 +89,30 @@ async function AddMatch(
       },
     },
   });
-  const newPosting = await prisma.posting.findFirst({
+
+  const Posting = await prisma.posting.findFirst({
     where: {
       Map_id: newMap.Map_id,
     },
   });
+
+  if (req.Image) {
+    // 이미지가 존재하면 Image 추가 후 반환
+    const image = await prisma.image.create({
+      data: {
+        ImageData: req.Image,
+      },
+    });
+    const newPosting = { ...Posting, Image_id: image.Image_id };
+    return {
+      TimeStamp: Date.now().toString(),
+      Posting_id: newPosting?.Posting_id,
+    };
+  }
+
   return {
     TimeStamp: Date.now().toString(),
-    Posting_id: newPosting?.Posting_id,
+    Posting_id: Posting?.Posting_id,
   };
 }
 
@@ -109,9 +130,6 @@ async function MatchInfo(
   if (!map) {
     return { result: "expired" };
   }
-  if (map.Map_id === null) {
-    return { result: "expired" };
-  }
   const match = await prisma.map.findFirst({
     where: {
       Map_id: map.Map_id,
@@ -126,6 +144,25 @@ async function MatchInfo(
   if (!match) {
     return { result: "expired" };
   }
+  if (match.Posting[0].Image_id) {
+    // 이미지가 있을 시
+    const image = await prisma.image.findFirst({
+      // 이미지 불러오기
+      where: { Image_id: match.Posting[0].Image_id },
+    });
+    const updatedPosting = match.Posting.map((posting) => {
+      // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
+      const gameTypeArray = posting.GameType.split(",").map(Number);
+      return {
+        ...posting,
+        GameType: gameTypeArray,
+        Image: image,
+      };
+    });
+    console.log(updatedPosting);
+    const updatedMatch = { ...match, Posting: updatedPosting[0] };
+    return updatedMatch;
+  }
   const updatedPosting = match.Posting.map((posting) => {
     // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
     const gameTypeArray = posting.GameType.split(",").map(Number);
@@ -135,7 +172,7 @@ async function MatchInfo(
     };
   });
   console.log(updatedPosting);
-  const updatedMatch = { ...match, Posting: updatedPosting };
+  const updatedMatch = { ...match, Posting: updatedPosting[0] };
   return updatedMatch;
 }
 

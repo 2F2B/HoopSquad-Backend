@@ -31,6 +31,11 @@ request) {
                 Location: true,
                 RecruitAmount: true,
                 CurrentAmount: true,
+                Image: {
+                    select: {
+                        ImageData: true,
+                    },
+                },
             },
         });
         const updatedMatch = match.map((posting) => {
@@ -84,14 +89,27 @@ function AddMatch(request) {
                 },
             },
         });
-        const newPosting = yield prisma.posting.findFirst({
+        const Posting = yield prisma.posting.findFirst({
             where: {
                 Map_id: newMap.Map_id,
             },
         });
+        if (req.Image) {
+            // 이미지가 존재하면 Image 추가 후 반환
+            const image = yield prisma.image.create({
+                data: {
+                    ImageData: req.Image,
+                },
+            });
+            const newPosting = Object.assign(Object.assign({}, Posting), { Image_id: image.Image_id });
+            return {
+                TimeStamp: Date.now().toString(),
+                Posting_id: newPosting === null || newPosting === void 0 ? void 0 : newPosting.Posting_id,
+            };
+        }
         return {
             TimeStamp: Date.now().toString(),
-            Posting_id: newPosting === null || newPosting === void 0 ? void 0 : newPosting.Posting_id,
+            Posting_id: Posting === null || Posting === void 0 ? void 0 : Posting.Posting_id,
         };
     });
 }
@@ -109,9 +127,6 @@ function MatchInfo(request) {
         if (!map) {
             return { result: "expired" };
         }
-        if (map.Map_id === null) {
-            return { result: "expired" };
-        }
         const match = yield prisma.map.findFirst({
             where: {
                 Map_id: map.Map_id,
@@ -126,13 +141,28 @@ function MatchInfo(request) {
         if (!match) {
             return { result: "expired" };
         }
+        if (match.Posting[0].Image_id) {
+            // 이미지가 있을 시
+            const image = yield prisma.image.findFirst({
+                // 이미지 불러오기
+                where: { Image_id: match.Posting[0].Image_id },
+            });
+            const updatedPosting = match.Posting.map((posting) => {
+                // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
+                const gameTypeArray = posting.GameType.split(",").map(Number);
+                return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray, Image: image });
+            });
+            console.log(updatedPosting);
+            const updatedMatch = Object.assign(Object.assign({}, match), { Posting: updatedPosting[0] });
+            return updatedMatch;
+        }
         const updatedPosting = match.Posting.map((posting) => {
             // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
             const gameTypeArray = posting.GameType.split(",").map(Number);
             return Object.assign(Object.assign({}, posting), { GameType: gameTypeArray });
         });
         console.log(updatedPosting);
-        const updatedMatch = Object.assign(Object.assign({}, match), { Posting: updatedPosting });
+        const updatedMatch = Object.assign(Object.assign({}, match), { Posting: updatedPosting[0] });
         return updatedMatch;
     });
 }
