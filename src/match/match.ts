@@ -4,12 +4,19 @@ import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress } from "../google-maps/googleMaps";
 
+//TODO: 사진 코드, AllMatch에 주소 필터링 마무리
+
 const prisma = new PrismaClient();
 
 async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
   const match = await prisma.posting.findMany({
+    where: {
+      Location: {
+        contains: request.body.Location,
+      },
+    },
     select: {
       Posting_id: true,
       Title: true,
@@ -91,7 +98,6 @@ async function AddMatch(
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  3;
   const map = await prisma.posting.findFirst({
     where: {
       Posting_id: request.body.Posting_id,
@@ -111,6 +117,7 @@ async function MatchInfo(
       Map_id: map.Map_id,
     },
     select: {
+      LocationName: true,
       Lat: true,
       Lng: true,
       Posting: true,

@@ -38,17 +38,6 @@ model ChatRoom {
   Message   Message[]
 }
 
-model Comments {
-  Comment_id Int      @id @default(autoincrement())
-  Post_id    Int
-  WriteDate  DateTime @default(now()) @db.Timestamp(0)
-  Contents   String   @db.VarChar(400)
-  User_id    String   @db.VarChar(45)
-  Posting    Posting  @relation(fields: [Post_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Comments_Posting")
-
-  @@index([Post_id], map: "fk_Comments_Post1_idx")
-}
-
 model Court {
   Court_id Int      @default(autoincrement())
   Name     String   @db.VarChar(45)
@@ -74,7 +63,7 @@ model Message {
   Message_id  Int      @id @default(autoincrement())
   Room_id     Int
   Msg         String   @db.LongText
-  ChatTime    DateTime @default(now()) @db.Timestamp(0) 
+  ChatTime    DateTime @default(now()) @db.Timestamp(0)
   Writer_id   String   @db.VarChar(45)
   Receiver_id String   @db.VarChar(45)
   ChatRoom    ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
@@ -98,29 +87,30 @@ model OAuthToken {
 }
 
 model Posting {
-  Posting_id    Int        @id @default(autoincrement())
+  Posting_id    Int      @id @default(autoincrement())
   User_id       Int
-  IsTeam        Boolean    @default(false)
-  Title         String     @db.VarChar(100)
-  WriteDate     DateTime   @default(now()) @db.Timestamp(0)
-  PlayTime      String     @db.VarChar(45)
-  Location      String     @db.VarChar(45)
-  RecruitAmount String     @db.VarChar(45)
-  CurrentAmount String     @db.VarChar(45)
-  Introduce     String?    @db.VarChar(600)
+  IsTeam        Boolean  @default(false)
+  Title         String   @db.VarChar(100)
+  WriteDate     DateTime @default(now()) @db.Timestamp(0)
+  PlayTime      String   @db.VarChar(45)
+  Location      String   @db.VarChar(45)
+  RecruitAmount String   @db.VarChar(45)
+  CurrentAmount String   @db.VarChar(45)
+  Introduce     String?  @db.VarChar(600)
   Map_id        Int?
-  GameType      String     @db.VarChar(10)
-  Comments      Comments[]
-  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  GameType      String   @db.VarChar(10)
+  Image_id      Int?
+  Map           Map?     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  User          User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  Image         Image?   @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_posting_image")
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
+  @@index([Image_id], map: "fk_posting_image")
 }
 
 model Profile {
   User_id   Int     @id
-  Image     Bytes?  @db.Blob
   Height    Float?  @db.Float
   Age       Int?
   Position  String? @db.VarChar(45)
@@ -128,7 +118,11 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
+  Image_id  Int?
   User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Image     Image?  @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_profile_image")
+
+  @@index([Image_id], map: "fk_profile_image")
 }
 
 model Review {
@@ -175,4 +169,11 @@ model User {
   Review      Review?
   TeamProfile TeamProfile[]
   TeamRelay   TeamRelay[]
+}
+
+model Image {
+  Image_id  Int       @id @default(autoincrement())
+  ImageData Bytes     @db.Blob
+  Posting   Posting[]
+  Profile   Profile[]
 }

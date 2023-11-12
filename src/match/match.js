@@ -12,11 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MatchInfo = exports.MatchFilter = exports.AddMatch = exports.AllMatch = void 0;
 const client_1 = require("@prisma/client");
 const googleMaps_1 = require("../google-maps/googleMaps");
+//TODO: 사진 코드, AllMatch에 주소 필터링 마무리
 const prisma = new client_1.PrismaClient();
 function AllMatch(// 게시글 전체 조회
 request) {
     return __awaiter(this, void 0, void 0, function* () {
         const match = yield prisma.posting.findMany({
+            where: {
+                Location: {
+                    contains: request.body.Location,
+                },
+            },
             select: {
                 Posting_id: true,
                 Title: true,
@@ -59,6 +65,7 @@ function AddMatch(request) {
         const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
         const newMap = yield prisma.map.create({
             data: {
+                LocationName: req.LocationName,
                 Lat: parseFloat(req.Lat),
                 Lng: parseFloat(req.Lng),
                 Posting: {
@@ -91,7 +98,6 @@ function AddMatch(request) {
 exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        3;
         const map = yield prisma.posting.findFirst({
             where: {
                 Posting_id: request.body.Posting_id,
@@ -111,6 +117,7 @@ function MatchInfo(request) {
                 Map_id: map.Map_id,
             },
             select: {
+                LocationName: true,
                 Lat: true,
                 Lng: true,
                 Posting: true,
