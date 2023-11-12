@@ -63,7 +63,7 @@ model Message {
   Message_id  Int      @id @default(autoincrement())
   Room_id     Int
   Msg         String   @db.LongText
-  ChatTime    DateTime @default(now()) @db.Timestamp(0) 
+  ChatTime    DateTime @default(now()) @db.Timestamp(0)
   Writer_id   String   @db.VarChar(45)
   Receiver_id String   @db.VarChar(45)
   ChatRoom    ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
