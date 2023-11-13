@@ -51,7 +51,6 @@ authRouter.get("/kakao/register", async (req, res) => {
   try {
     const result = await LoginKakao(req.query.code);
     res.header("Access-Token", result.Token);
-    res.header("User-Id", result.Id);
     res.end();
   } catch (err) {
     if (err instanceof Error) {
