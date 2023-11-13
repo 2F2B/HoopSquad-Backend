@@ -11,8 +11,8 @@ async function LoginKakao(code: any) {
     {
       grant_type: "authorization_code",
       client_id: `${process.env.kakaoAPIKey}`,
-      redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
-      // redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
+      // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
+      redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
       code: code,
     },
     {
@@ -134,8 +134,8 @@ async function LoginGoogle( // 유저 코드 넘어옴
     code,
     client_id: `${process.env.gClientId}`,
     client_secret: `${process.env.gClientSecret}`,
-    redirect_uri: `${process.env.gSignupRedirectUri}`,
-    // redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
+    // redirect_uri: `${process.env.gSignupRedirectUri}`,
+    redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
     grant_type: "authorization_code",
   });
 
