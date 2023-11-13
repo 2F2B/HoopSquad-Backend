@@ -22,8 +22,8 @@ function LoginKakao(code) {
         const token = yield axios_1.default.post("https://kauth.kakao.com/oauth/token", {
             grant_type: "authorization_code",
             client_id: `${process.env.kakaoAPIKey}`,
-            // redirect_uri: "https://hoopsquad.link/auth/kakao/register", //URL
-            redirect_uri: "http://localhost:3000/auth/kakao/register",
+            redirect_uri: "https://hoopsquad.link/auth/kakao/register",
+            // redirect_uri: "http://localhost:3000/auth/kakao/register", // 테스트용 localhost
             code: code,
         }, {
             headers: {
@@ -139,8 +139,8 @@ code) {
             code,
             client_id: `${process.env.gClientId}`,
             client_secret: `${process.env.gClientSecret}`,
-            // redirect_uri: `${process.env.gSignupRedirectUri}`,
-            redirect_uri: "http://localhost:3000/auth/google/register",
+            redirect_uri: `${process.env.gSignupRedirectUri}`,
+            // redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
             grant_type: "authorization_code",
         });
         const user = yield axios_1.default.get(`${process.env.gUserInfoUri}`, {
