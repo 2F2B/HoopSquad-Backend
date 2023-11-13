@@ -24,29 +24,7 @@ profileRouter.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.send(result);
     }
     catch (err) {
-        if (err instanceof Error) {
-            res.status(400);
-            console.log(err);
-            res.send({ error: err.message });
-        }
-    }
-}));
-profileRouter.post("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        if (!req.body)
-            throw new Error("Body Not Exists");
-        const result = yield (0, User_1.setUserProfile)(req);
-        if (!result)
-            throw new Error("Profile Not Found");
-        res.status(201);
-        res.send(result);
-    }
-    catch (err) {
-        if (err instanceof Error) {
-            res.status(401);
-            console.log(err);
-            res.send({ error: err.message });
-        }
+        res.send({ result: "error" });
     }
 }));
 module.exports = profileRouter;

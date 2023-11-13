@@ -23,4 +23,3 @@ function getUserProfile(userId) {
     });
 }
 exports.getUserProfile = getUserProfile;
-//# sourceMappingURL=User.js.map
