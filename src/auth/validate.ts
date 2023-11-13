@@ -43,7 +43,9 @@ async function Validation(
   });
 
   if (token) {
-    if (AccessVerify(token.AccessToken)) return { result: "success" }; // A/T O
+    if (AccessVerify(token.AccessToken)) {
+      return { result: "success", User_id: token.User_id };
+    } // A/T O
     if (!AccessVerify(token.RefreshToken)) return { result: "expired" }; // A/T X, R/T X
 
     if (isTokenValidMoreThanAWeek(token)) {
@@ -60,7 +62,7 @@ async function Validation(
         },
       });
 
-      return { access_token: newToken.Access_Token };
+      return { access_token: newToken.Access_Token, User_id: token.User_id };
     } else {
       const newTokens = GenerateToken(token.Auth_id);
 
@@ -78,7 +80,7 @@ async function Validation(
         },
       });
 
-      return { access_token: newTokens.Access_Token };
+      return { access_token: newTokens.Access_Token, User_id: token.User_id };
     }
   }
 }

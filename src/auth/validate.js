@@ -33,8 +33,9 @@ function Validation(request) {
             },
         });
         if (token) {
-            if ((0, token_1.AccessVerify)(token.AccessToken))
-                return { result: "success" }; // A/T O
+            if ((0, token_1.AccessVerify)(token.AccessToken)) {
+                return { result: "success", User_id: token.User_id };
+            } // A/T O
             if (!(0, token_1.AccessVerify)(token.RefreshToken))
                 return { result: "expired" }; // A/T X, R/T X
             if (isTokenValidMoreThanAWeek(token)) {
@@ -49,7 +50,7 @@ function Validation(request) {
                         AToken_Expires: newToken.AToken_Expires,
                     },
                 });
-                return { access_token: newToken.Access_Token };
+                return { access_token: newToken.Access_Token, User_id: token.User_id };
             }
             else {
                 const newTokens = (0, token_1.GenerateToken)(token.Auth_id);
@@ -66,7 +67,7 @@ function Validation(request) {
                         RToken_CreatedAt: newTokens.RToken_CreatedAt,
                     },
                 });
-                return { access_token: newTokens.Access_Token };
+                return { access_token: newTokens.Access_Token, User_id: token.User_id };
             }
         }
     });
