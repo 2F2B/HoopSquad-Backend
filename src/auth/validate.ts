@@ -46,17 +46,41 @@ async function Validation(
     if (AccessVerify(token.AccessToken)) {
       return { result: "success", User_id: token.User_id };
     } // A/T O
-    if (!AccessVerify(token.AccessToken)) throw new Error("Token Not Correct"); // A/T 틀림
-    if (!AccessVerify(token.RefreshToken)) throw new Error(""); // A/T X, R/T X
+    if (!AccessVerify(token.RefreshToken)) return { result: "expired" }; // A/T X, R/T X
 
     if (isTokenValidMoreThanAWeek(token)) {
       const newToken = AccessRefresh(token.Auth_id);
+
+      await prisma.oAuthToken.updateMany({
+        where: {
+          Auth_id: token.Auth_id,
+        },
+        data: {
+          AccessToken: newToken.Access_Token,
+          AToken_CreatedAt: newToken.AToken_CreatedAt,
+          AToken_Expires: newToken.AToken_Expires,
+        },
+      });
 
       return { access_token: newToken.Access_Token, User_id: token.User_id };
     } else {
       const newToken = GenerateToken(token.Auth_id);
 
-      return { access_token: newToken.Access_Token, User_id: token.User_id };
+      await prisma.oAuthToken.updateMany({
+        where: {
+          Auth_id: token.Auth_id,
+        },
+        data: {
+          AccessToken: newTokens.Access_Token,
+          RefreshToken: newTokens.Refresh_Token,
+          AToken_Expires: newTokens.AToken_Expires,
+          RToken_Expires: newTokens.RToken_Expires,
+          AToken_CreatedAt: newTokens.AToken_CreatedAt,
+          RToken_CreatedAt: newTokens.RToken_CreatedAt,
+        },
+      });
+
+      return { access_token: newTokens.Access_Token, User_id: token.User_id };
     }
   } else throw new Error("Token Not Exists");
 }
