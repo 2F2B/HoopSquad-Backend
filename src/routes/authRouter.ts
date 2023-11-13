@@ -29,11 +29,10 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.get("/google/register", async (req, res) => {
-  const { code } = req.query;
-  console.log(code);
   try {
-    const result = await LoginGoogle(code);
-    res.send(result);
+    const result = await LoginGoogle(req.query.code);
+    res.header("Access-Token", result.Token);
+    res.end();
   } catch (err) {
     res.status(400);
     console.error(err);
@@ -43,9 +42,9 @@ authRouter.get("/google/register", async (req, res) => {
 
 authRouter.get("/kakao/register", async (req, res) => {
   try {
-    console.log(req.query.code);
-    const data = await LoginKakao(req.query.code);
-    res.send(data);
+    const result = await LoginKakao(req.query.code);
+    res.header("Access-Token", result.Token);
+    res.end();
   } catch (err) {
     res.status(400);
     console.error(err);
