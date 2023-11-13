@@ -14,12 +14,16 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 function getUserProfile(userId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const Profile = yield prisma.profile.findFirst({
+        const Profile = yield prisma.user.findFirst({
             where: {
                 User_id: userId,
             },
+            select: {
+                Name: true,
+                Profile: true,
+            },
         });
-        return Profile;
+        return Object.assign(Object.assign({}, Profile === null || Profile === void 0 ? void 0 : Profile.Profile), { Name: Profile === null || Profile === void 0 ? void 0 : Profile.Name });
     });
 }
 exports.getUserProfile = getUserProfile;
