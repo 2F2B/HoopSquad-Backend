@@ -44,6 +44,7 @@ authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 
     try {
         const result = yield (0, oAuth_1.LoginGoogle)(req.query.code);
         res.header("Access-Token", result.Token);
+        res.header("User-Id", result.Id);
         res.end();
     }
     catch (err) {
@@ -56,6 +57,7 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
     try {
         const result = yield (0, oAuth_1.LoginKakao)(req.query.code);
         res.header("Access-Token", result.Token);
+        res.header("User-Id", result.Id);
         res.end();
     }
     catch (err) {
