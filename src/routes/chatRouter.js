@@ -45,10 +45,26 @@ function createRoom(hostId, guestId) {
         }
     });
 }
+function checkUserOnline(io, userId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let result;
+        io.sockets.sockets.forEach((s) => {
+            const socket = s;
+            if (socket["userId"] == userId) {
+                return (result = true);
+            }
+        });
+        if (result == true)
+            return true;
+        else
+            return false;
+    });
+}
 const socketIOHandler = (server) => {
     const io = new socket_io_1.default.Server(server);
     io.on("connection", (s) => {
         const socket = s;
+        console.log(socket.rooms);
         socket.on("setNickname", (nick) => {
             socket["nickname"] = nick;
         });
@@ -68,6 +84,10 @@ const socketIOHandler = (server) => {
                 where: {
                     OR: [{ Host_id: socket["userId"] }, { Guest_id: socket["userId"] }],
                 },
+                select: {
+                    Host_id: true,
+                    Guest_id: true,
+                },
             });
             chatRoomList.forEach((room) => {
                 socket.join(`${room.Host_id}_${room.Guest_id}`);
@@ -75,6 +95,7 @@ const socketIOHandler = (server) => {
         }));
         socket.on("join", (room, done) => {
             socket.join(room);
+            console.log(socket.rooms);
             done();
         });
         socket.on("makeRoom", (guestId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -88,12 +109,18 @@ const socketIOHandler = (server) => {
                     guest.join(`${hostId}_${guestId}`);
                 }
             });
+            socket.emit("getRoomName", `${hostId}_${guestId}`);
         }));
         socket.on("disconnect", () => { });
-        socket.on("send", (data, room) => {
+        socket.on("send", (data, room) => __awaiter(void 0, void 0, void 0, function* () {
             console.log(data);
+            // const hostId = room.split("_")[0];
+            // const guestId = room.split("_")[1];
+            // if (socket["userId"] == +hostId) {
+            //   const result = await checkUserOnline(io, +hostId);
+            // }
             socket.to(room).emit("receive", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
-        });
+        }));
     });
 };
 //CHECKLIST

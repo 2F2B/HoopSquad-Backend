@@ -43,12 +43,26 @@ async function createRoom(hostId: number, guestId: number) {
   }
 }
 
+async function checkUserOnline(io: SocketIO.Server, userId: number) {
+  let result;
+  io.sockets.sockets.forEach((s) => {
+    const socket = s as Socket;
+    if (socket["userId"] == userId) {
+      return (result = true);
+    }
+  });
+  if (result == true) return true;
+  else return false;
+}
+
 const socketIOHandler = (
   server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
 ) => {
   const io = new SocketIO.Server(server);
   io.on("connection", (s) => {
     const socket = s as Socket;
+
+    console.log(socket.rooms);
 
     socket.on("setNickname", (nick: string) => {
       socket["nickname"] = nick;
@@ -71,6 +85,10 @@ const socketIOHandler = (
         where: {
           OR: [{ Host_id: socket["userId"] }, { Guest_id: socket["userId"] }],
         },
+        select: {
+          Host_id: true,
+          Guest_id: true,
+        },
       });
 
       chatRoomList.forEach((room) => {
@@ -80,12 +98,12 @@ const socketIOHandler = (
 
     socket.on("join", (room, done) => {
       socket.join(room);
+      console.log(socket.rooms);
       done();
     });
 
     socket.on("makeRoom", async (guestId: number) => {
       const hostId = socket["userId"];
-
       await createRoom(hostId, guestId);
 
       socket.join(`${hostId}_${guestId}`);
@@ -96,12 +114,19 @@ const socketIOHandler = (
           guest.join(`${hostId}_${guestId}`);
         }
       });
+      socket.emit("getRoomName", `${hostId}_${guestId}`);
     });
 
     socket.on("disconnect", () => {});
 
-    socket.on("send", (data, room) => {
+    socket.on("send", async (data: { payload: string }, room: string) => {
       console.log(data);
+      // const hostId = room.split("_")[0];
+      // const guestId = room.split("_")[1];
+      // if (socket["userId"] == +hostId) {
+      //   const result = await checkUserOnline(io, +hostId);
+      // }
+
       socket.to(room).emit("receive", {
         nickname: socket["nickname"],
         ...data,
