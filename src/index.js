@@ -24,9 +24,11 @@ const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
 const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
+const profileRouter = require("./routes/profileRouter");
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/match", matchRouter);
+app.use("/profile", profileRouter);
 socketIOHandler(httpServer);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
