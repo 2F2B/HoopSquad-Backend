@@ -15,7 +15,6 @@ async function getUserProfile(userId: number) {
       Profile: true,
     },
   });
-
   return { ...Profile?.Profile, Name: Profile?.Name };
 }
 
