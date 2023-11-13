@@ -41,11 +41,10 @@ authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 }));
 authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { code } = req.query;
-    console.log(code);
     try {
-        const result = yield (0, oAuth_1.LoginGoogle)(code);
-        res.send(result);
+        const result = yield (0, oAuth_1.LoginGoogle)(req.query.code);
+        res.header("Access-Token", result.Token);
+        res.end();
     }
     catch (err) {
         res.status(400);
@@ -55,9 +54,9 @@ authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 
 }));
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.query.code);
-        const data = yield (0, oAuth_1.LoginKakao)(req.query.code);
-        res.send(data);
+        const result = yield (0, oAuth_1.LoginKakao)(req.query.code);
+        res.header("Access-Token", result.Token);
+        res.end();
     }
     catch (err) {
         res.status(400);
