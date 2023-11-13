@@ -8,24 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const User_1 = require("../profile/User");
-const profileRouter = express_1.default.Router();
-profileRouter.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield (0, User_1.getUserProfile)(+req.params.id);
-        if (!result)
-            throw new Error("Profile Not Found");
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
-    }
-}));
-module.exports = profileRouter;
+exports.getUserProfile = void 0;
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+function getUserProfile(userId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const Profile = yield prisma.profile.findFirst({
+            where: {
+                User_id: userId,
+            },
+        });
+        return Profile;
+    });
+}
+exports.getUserProfile = getUserProfile;
