@@ -73,20 +73,10 @@ async function LoginKakao(code: any) {
         User_id: true,
       },
     });
-    const userProfile = await prisma.user.findFirst({
-      where: {
-        User_id: tmp?.User_id,
-      },
-      select: {
-        Name: true,
-        Profile: true,
-      },
-    });
     const response = {
       Token: newToken.Access_Token,
-      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+      Id: tmp?.User_id!!.toString(),
     };
-    console.log(response);
     return response;
   }
 
@@ -111,18 +101,9 @@ async function LoginKakao(code: any) {
       User_id: true,
     },
   });
-  const userProfile = await prisma.user.findFirst({
-    where: {
-      User_id: tmp?.User_id,
-    },
-    select: {
-      Name: true,
-      Profile: true,
-    },
-  });
   const response = {
     Token: newToken.Access_Token,
-    Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+    Id: tmp?.User_id!!.toString(),
   };
   return response;
 }
@@ -190,18 +171,9 @@ async function LoginGoogle( // 유저 코드 넘어옴
         User_id: true,
       },
     });
-    const userProfile = await prisma.user.findFirst({
-      where: {
-        User_id: tmp?.User_id,
-      },
-      select: {
-        Name: true,
-        Profile: true,
-      },
-    });
     const response = {
       Token: newToken.Access_Token,
-      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+      Id: tmp?.User_id!!.toString(),
     };
     return response;
   } else {
@@ -227,18 +199,9 @@ async function LoginGoogle( // 유저 코드 넘어옴
         User_id: true,
       },
     });
-    const userProfile = await prisma.user.findFirst({
-      where: {
-        User_id: tmp?.User_id,
-      },
-      select: {
-        Name: true,
-        Profile: true,
-      },
-    });
     const response = {
       Token: newToken.Access_Token,
-      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+      Id: tmp?.User_id!!.toString(),
     };
     return response;
   }
