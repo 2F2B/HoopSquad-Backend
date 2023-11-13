@@ -65,7 +65,29 @@ async function LoginKakao(code: any) {
         OAuthToken: true,
       },
     });
-    return newToken.Access_Token;
+    const tmp = await prisma.oAuthToken.findFirst({
+      where: {
+        AccessToken: newToken.Access_Token,
+      },
+      select: {
+        User_id: true,
+      },
+    });
+    const userProfile = await prisma.user.findFirst({
+      where: {
+        User_id: tmp?.User_id,
+      },
+      select: {
+        Name: true,
+        Profile: true,
+      },
+    });
+    const response = {
+      Token: newToken.Access_Token,
+      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+    };
+    console.log(response);
+    return response;
   }
 
   await prisma.oAuthToken.updateMany({
@@ -81,7 +103,28 @@ async function LoginKakao(code: any) {
       RToken_CreatedAt: newToken.RToken_CreatedAt,
     },
   });
-  return newToken?.Access_Token!!;
+  const tmp = await prisma.oAuthToken.findFirst({
+    where: {
+      AccessToken: newToken.Access_Token,
+    },
+    select: {
+      User_id: true,
+    },
+  });
+  const userProfile = await prisma.user.findFirst({
+    where: {
+      User_id: tmp?.User_id,
+    },
+    select: {
+      Name: true,
+      Profile: true,
+    },
+  });
+  const response = {
+    Token: newToken.Access_Token,
+    Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+  };
+  return response;
 }
 async function LoginGoogle( // 유저 코드 넘어옴
   code: String | ParsedQs | String[] | ParsedQs[] | undefined,
@@ -107,7 +150,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
     Auth_id: user.data.id,
   };
 
-  const token = GenerateToken(JSON.stringify(userData)); // JWT 토큰 발행
+  const newToken = GenerateToken(JSON.stringify(userData)); // JWT 토큰 발행
 
   const isUserExist = await prisma.oAuthToken.findFirst({
     where: {
@@ -123,12 +166,12 @@ async function LoginGoogle( // 유저 코드 넘어옴
         OAuthToken: {
           create: {
             Auth_id: user.data.id.toString(),
-            AccessToken: token.Access_Token,
-            RefreshToken: token.Refresh_Token,
-            AToken_Expires: token.AToken_Expires,
-            RToken_Expires: token.RToken_Expires,
-            AToken_CreatedAt: token.AToken_CreatedAt,
-            RToken_CreatedAt: token.RToken_CreatedAt,
+            AccessToken: newToken.Access_Token,
+            RefreshToken: newToken.Refresh_Token,
+            AToken_Expires: newToken.AToken_Expires,
+            RToken_Expires: newToken.RToken_Expires,
+            AToken_CreatedAt: newToken.AToken_CreatedAt,
+            RToken_CreatedAt: newToken.RToken_CreatedAt,
           },
         },
         Profile: {
@@ -139,7 +182,28 @@ async function LoginGoogle( // 유저 코드 넘어옴
         OAuthToken: true,
       },
     });
-    return token.Access_Token;
+    const tmp = await prisma.oAuthToken.findFirst({
+      where: {
+        AccessToken: newToken.Access_Token,
+      },
+      select: {
+        User_id: true,
+      },
+    });
+    const userProfile = await prisma.user.findFirst({
+      where: {
+        User_id: tmp?.User_id,
+      },
+      select: {
+        Name: true,
+        Profile: true,
+      },
+    });
+    const response = {
+      Token: newToken.Access_Token,
+      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+    };
+    return response;
   } else {
     //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
     await prisma.oAuthToken.updateMany({
@@ -147,15 +211,36 @@ async function LoginGoogle( // 유저 코드 넘어옴
         Auth_id: user.data.id.toString(),
       },
       data: {
-        AccessToken: token.Access_Token,
-        RefreshToken: token.Refresh_Token,
-        AToken_Expires: token.AToken_Expires,
-        RToken_Expires: token.RToken_Expires,
-        AToken_CreatedAt: token.AToken_CreatedAt,
-        RToken_CreatedAt: token.RToken_CreatedAt,
+        AccessToken: newToken.Access_Token,
+        RefreshToken: newToken.Refresh_Token,
+        AToken_Expires: newToken.AToken_Expires,
+        RToken_Expires: newToken.RToken_Expires,
+        AToken_CreatedAt: newToken.AToken_CreatedAt,
+        RToken_CreatedAt: newToken.RToken_CreatedAt,
       },
     });
-    return token?.Access_Token!!;
+    const tmp = await prisma.oAuthToken.findFirst({
+      where: {
+        AccessToken: newToken.Access_Token,
+      },
+      select: {
+        User_id: true,
+      },
+    });
+    const userProfile = await prisma.user.findFirst({
+      where: {
+        User_id: tmp?.User_id,
+      },
+      select: {
+        Name: true,
+        Profile: true,
+      },
+    });
+    const response = {
+      Token: newToken.Access_Token,
+      Profile: { ...userProfile?.Profile, Name: userProfile?.Name },
+    };
+    return response;
   }
 }
 

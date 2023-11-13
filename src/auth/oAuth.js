@@ -69,7 +69,29 @@ function LoginKakao(code) {
                     OAuthToken: true,
                 },
             });
-            return newToken.Access_Token;
+            const tmp = yield prisma.oAuthToken.findFirst({
+                where: {
+                    AccessToken: newToken.Access_Token,
+                },
+                select: {
+                    User_id: true,
+                },
+            });
+            const userProfile = yield prisma.user.findFirst({
+                where: {
+                    User_id: tmp === null || tmp === void 0 ? void 0 : tmp.User_id,
+                },
+                select: {
+                    Name: true,
+                    Profile: true,
+                },
+            });
+            const response = {
+                Token: newToken.Access_Token,
+                Profile: Object.assign(Object.assign({}, userProfile === null || userProfile === void 0 ? void 0 : userProfile.Profile), { Name: userProfile === null || userProfile === void 0 ? void 0 : userProfile.Name }),
+            };
+            console.log(response);
+            return response;
         }
         yield prisma.oAuthToken.updateMany({
             where: {
@@ -84,7 +106,28 @@ function LoginKakao(code) {
                 RToken_CreatedAt: newToken.RToken_CreatedAt,
             },
         });
-        return newToken === null || newToken === void 0 ? void 0 : newToken.Access_Token;
+        const tmp = yield prisma.oAuthToken.findFirst({
+            where: {
+                AccessToken: newToken.Access_Token,
+            },
+            select: {
+                User_id: true,
+            },
+        });
+        const userProfile = yield prisma.user.findFirst({
+            where: {
+                User_id: tmp === null || tmp === void 0 ? void 0 : tmp.User_id,
+            },
+            select: {
+                Name: true,
+                Profile: true,
+            },
+        });
+        const response = {
+            Token: newToken.Access_Token,
+            Profile: Object.assign(Object.assign({}, userProfile === null || userProfile === void 0 ? void 0 : userProfile.Profile), { Name: userProfile === null || userProfile === void 0 ? void 0 : userProfile.Name }),
+        };
+        return response;
     });
 }
 exports.LoginKakao = LoginKakao;
@@ -109,7 +152,7 @@ code) {
         const userData = {
             Auth_id: user.data.id,
         };
-        const token = (0, token_1.GenerateToken)(JSON.stringify(userData)); // JWT 토큰 발행
+        const newToken = (0, token_1.GenerateToken)(JSON.stringify(userData)); // JWT 토큰 발행
         const isUserExist = yield prisma.oAuthToken.findFirst({
             where: {
                 Auth_id: user.data.id.toString(),
@@ -123,12 +166,12 @@ code) {
                     OAuthToken: {
                         create: {
                             Auth_id: user.data.id.toString(),
-                            AccessToken: token.Access_Token,
-                            RefreshToken: token.Refresh_Token,
-                            AToken_Expires: token.AToken_Expires,
-                            RToken_Expires: token.RToken_Expires,
-                            AToken_CreatedAt: token.AToken_CreatedAt,
-                            RToken_CreatedAt: token.RToken_CreatedAt,
+                            AccessToken: newToken.Access_Token,
+                            RefreshToken: newToken.Refresh_Token,
+                            AToken_Expires: newToken.AToken_Expires,
+                            RToken_Expires: newToken.RToken_Expires,
+                            AToken_CreatedAt: newToken.AToken_CreatedAt,
+                            RToken_CreatedAt: newToken.RToken_CreatedAt,
                         },
                     },
                     Profile: {
@@ -139,7 +182,28 @@ code) {
                     OAuthToken: true,
                 },
             });
-            return token.Access_Token;
+            const tmp = yield prisma.oAuthToken.findFirst({
+                where: {
+                    AccessToken: newToken.Access_Token,
+                },
+                select: {
+                    User_id: true,
+                },
+            });
+            const userProfile = yield prisma.user.findFirst({
+                where: {
+                    User_id: tmp === null || tmp === void 0 ? void 0 : tmp.User_id,
+                },
+                select: {
+                    Name: true,
+                    Profile: true,
+                },
+            });
+            const response = {
+                Token: newToken.Access_Token,
+                Profile: Object.assign(Object.assign({}, userProfile === null || userProfile === void 0 ? void 0 : userProfile.Profile), { Name: userProfile === null || userProfile === void 0 ? void 0 : userProfile.Name }),
+            };
+            return response;
         }
         else {
             //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
@@ -148,15 +212,36 @@ code) {
                     Auth_id: user.data.id.toString(),
                 },
                 data: {
-                    AccessToken: token.Access_Token,
-                    RefreshToken: token.Refresh_Token,
-                    AToken_Expires: token.AToken_Expires,
-                    RToken_Expires: token.RToken_Expires,
-                    AToken_CreatedAt: token.AToken_CreatedAt,
-                    RToken_CreatedAt: token.RToken_CreatedAt,
+                    AccessToken: newToken.Access_Token,
+                    RefreshToken: newToken.Refresh_Token,
+                    AToken_Expires: newToken.AToken_Expires,
+                    RToken_Expires: newToken.RToken_Expires,
+                    AToken_CreatedAt: newToken.AToken_CreatedAt,
+                    RToken_CreatedAt: newToken.RToken_CreatedAt,
                 },
             });
-            return token === null || token === void 0 ? void 0 : token.Access_Token;
+            const tmp = yield prisma.oAuthToken.findFirst({
+                where: {
+                    AccessToken: newToken.Access_Token,
+                },
+                select: {
+                    User_id: true,
+                },
+            });
+            const userProfile = yield prisma.user.findFirst({
+                where: {
+                    User_id: tmp === null || tmp === void 0 ? void 0 : tmp.User_id,
+                },
+                select: {
+                    Name: true,
+                    Profile: true,
+                },
+            });
+            const response = {
+                Token: newToken.Access_Token,
+                Profile: Object.assign(Object.assign({}, userProfile === null || userProfile === void 0 ? void 0 : userProfile.Profile), { Name: userProfile === null || userProfile === void 0 ? void 0 : userProfile.Name }),
+            };
+            return response;
         }
     });
 }
