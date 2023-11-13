@@ -28,7 +28,7 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/google/register", async (req, res) => {
+authRouter.get("/google/register", async (req, res) => {
   const { code } = req.query;
   console.log(code);
   try {
@@ -41,7 +41,7 @@ authRouter.post("/google/register", async (req, res) => {
   }
 });
 
-authRouter.post("/kakao/register", async (req, res) => {
+authRouter.get("/kakao/register", async (req, res) => {
   try {
     console.log(req.query.code);
     const data = await LoginKakao(req.query.code);

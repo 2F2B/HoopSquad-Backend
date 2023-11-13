@@ -40,7 +40,7 @@ authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.send({ result: "error" });
     }
 }));
-authRouter.post("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     console.log(code);
     try {
@@ -53,7 +53,7 @@ authRouter.post("/google/register", (req, res) => __awaiter(void 0, void 0, void
         res.send({ result: "error" });
     }
 }));
-authRouter.post("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.query.code);
         const data = yield (0, oAuth_1.LoginKakao)(req.query.code);
