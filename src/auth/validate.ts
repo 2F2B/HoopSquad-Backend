@@ -66,7 +66,7 @@ async function Validation(
 
       await prisma.oAuthToken.updateMany({
         where: {
-          Auth_id: token.Auth_id.toString(),
+          Auth_id: token.Auth_id,
         },
         data: {
           AccessToken: newTokens.Access_Token,
@@ -80,7 +80,7 @@ async function Validation(
 
       return { access_token: newTokens.Access_Token };
     }
-  } else return { result: "expired" }; // A/T 가 없음
+  }
 }
 
 export { Validation };
