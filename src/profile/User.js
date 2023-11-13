@@ -38,24 +38,12 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 function getUserProfile(userId) {
   return __awaiter(this, void 0, void 0, function* () {
-    const Profile = yield prisma.user.findFirst({
+    const Profile = yield prisma.profile.findFirst({
       where: {
         User_id: userId,
       },
-      select: {
-        Name: true,
-        Profile: true,
-      },
     });
-    if (isUserExist) {
-      //유저가 있으면 삭제
-      const user = yield prisma.user.delete({
-        where: {
-          User_id: isUserExist.User_id,
-        },
-      });
-      return { result: "success" };
-    } else throw new Error("User Not Exists");
+    return Profile;
   });
 }
 exports.getUserProfile = getUserProfile;
