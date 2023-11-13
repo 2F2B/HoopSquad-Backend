@@ -32,6 +32,7 @@ authRouter.get("/google/register", async (req, res) => {
   try {
     const result = await LoginGoogle(req.query.code);
     res.header("Access-Token", result.Token);
+    res.header("User-Id", result.Id);
     res.end();
   } catch (err) {
     res.status(400);
@@ -44,6 +45,7 @@ authRouter.get("/kakao/register", async (req, res) => {
   try {
     const result = await LoginKakao(req.query.code);
     res.header("Access-Token", result.Token);
+    res.header("User-Id", result.Id);
     res.end();
   } catch (err) {
     res.status(400);
