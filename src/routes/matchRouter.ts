@@ -7,6 +7,7 @@ const matchRouter = express.Router();
 matchRouter.get("/", async (req, res) => {
   // 전체 게시글 조회
   try {
+    console.log(req.body);
     const result = await AllMatch(req);
     res.status(200);
     res.send(result);
@@ -40,6 +41,7 @@ matchRouter.get("/info", async (req, res) => {
 
 matchRouter.post("/add", async (req, res) => {
   try {
+    console.log(req.body);
     const add = await AddMatch(req);
     res.status(201);
     res.send(add);

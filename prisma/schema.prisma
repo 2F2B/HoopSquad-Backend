@@ -4,7 +4,8 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
+  url = env("LOCALDB")
 }
 
 model Alarm {
@@ -82,15 +83,16 @@ model Posting {
   IsTeam        Boolean  @default(false)
   Title         String   @db.VarChar(100)
   WriteDate     DateTime @default(now()) @db.Timestamp(0)
-  PlayTime      String   @db.VarChar(45)
+  PlayTime      Int
   Location      String   @db.VarChar(45)
   RecruitAmount String   @db.VarChar(45)
   CurrentAmount String   @db.VarChar(45)
   Introduce     String?  @db.VarChar(600)
   Map_id        Int
-  GameType      String   @db.VarChar(10)
   Image_id      Int?
-  Map           Map      @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+
+  GameType      GameType[]
+  Map           Map     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
   Image         Image?   @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_posting_image")
 
@@ -178,4 +180,16 @@ model UserData {
   User     User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_UserData_User")
 
   @@index([User_id], map: "User_idx")
+}
+
+model GameType{
+  GameType_id Int @id @default(autoincrement())
+  Posting_id Int
+  OneOnOne Boolean @default(false)
+  ThreeOnThree Boolean @default(false)
+  FiveOnFive Boolean @default(false)
+
+  Posting  Posting @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
+
+  @@index([Posting_id], map: "fk_GameType_Posting")
 }
