@@ -149,7 +149,7 @@ async function AllMatch( // 게시글 전체 조회
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  console.log(request.body.data);
+  console.log(request.body);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {
