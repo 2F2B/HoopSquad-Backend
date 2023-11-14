@@ -8,3 +8,4 @@ yarn-error.log
 index.html
 
 dist
+*.map
