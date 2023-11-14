@@ -11,10 +11,8 @@ const matchRouter = express.Router();
 
 matchRouter.get("/", async (req, res) => {
   try {
-    let result;
-    if (req.query.all) result = await AllMatch(req);
-    else if (req.query.info) result = await MatchInfo(req);
-    else throw new Error("Bad Request");
+    console.log(req.body);
+    const result = await AllMatch(req);
     res.status(200);
     res.send(result);
   } catch (err) {
@@ -28,8 +26,7 @@ matchRouter.get("/", async (req, res) => {
 
 matchRouter.post("/", upload.single("Image"), async (req, res) => {
   try {
-    // console.log(image);
-    if (!req.body) throw new Error("Body Not Exists");
+    console.log(req.body);
     const add = await AddMatch(req);
     res.status(201);
     if (req.file) {
