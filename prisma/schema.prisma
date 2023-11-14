@@ -30,23 +30,12 @@ model ChatRelay {
 }
 
 model ChatRoom {
-  Room_id   Int        @id
+  Room_id   Int        @id @default(autoincrement())
   Host_id   Int
   Guest_id  Int
   Time      DateTime   @default(now()) @db.Timestamp(0)
   ChatRelay ChatRelay?
   Message   Message[]
-}
-
-model Comments {
-  Comment_id Int      @id @default(autoincrement())
-  Post_id    Int
-  WriteDate  DateTime @default(now()) @db.Timestamp(0)
-  Contents   String   @db.VarChar(400)
-  User_id    String   @db.VarChar(45)
-  Posting    Posting  @relation(fields: [Post_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Comments_Posting")
-
-  @@index([Post_id], map: "fk_Comments_Post1_idx")
 }
 
 model Court {
@@ -98,28 +87,30 @@ model OAuthToken {
 }
 
 model Posting {
-  Posting_id    Int        @id @default(autoincrement())
+  Posting_id    Int      @id @default(autoincrement())
   User_id       Int
-  IsTeam        Boolean    @default(false)
-  Title         String     @db.VarChar(100)
-  WriteDate     DateTime   @default(now()) @db.Timestamp(0)
-  PlayTime      String     @db.VarChar(45)
-  Location      String     @db.VarChar(45)
-  RecruitAmount String     @db.VarChar(45)
-  CurrentAmount String     @db.VarChar(45)
-  Introduce     String?    @db.VarChar(600)
-  Map_id        Int?
-  Comments      Comments[]
-  Map           Map?       @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  IsTeam        Boolean  @default(false)
+  Title         String   @db.VarChar(100)
+  WriteDate     DateTime @default(now()) @db.Timestamp(0)
+  PlayTime      String   @db.VarChar(45)
+  Location      String   @db.VarChar(45)
+  RecruitAmount String   @db.VarChar(45)
+  CurrentAmount String   @db.VarChar(45)
+  Introduce     String?  @db.VarChar(600)
+  Map_id        Int
+  GameType      String   @db.VarChar(10)
+  Image_id      Int?
+  Map           Map     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  User          User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  Image         Image?   @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_posting_image")
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
+  @@index([Image_id], map: "fk_posting_image")
 }
 
 model Profile {
   User_id   Int     @id
-  Image     Bytes?  @db.Blob
   Height    Float?  @db.Float
   Age       Int?
   Position  String? @db.VarChar(45)
@@ -127,7 +118,11 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
+  Image_id  Int?
   User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Image     Image?  @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_profile_image")
+
+  @@index([Image_id], map: "fk_profile_image")
 }
 
 model Review {
@@ -138,28 +133,29 @@ model Review {
 }
 
 model TeamProfile {
-  Team_id    Int         @id @default(autoincrement())
+  Team_id    Int        @id @default(autoincrement())
   Admin_id   Int
-  Name       String      @db.VarChar(45)
-  TeamImage  Bytes?      @db.Blob
-  Location   String      @db.VarChar(45)
-  Introduce  String?     @db.VarChar(400)
-  LatestDate DateTime?   @db.DateTime(0)
+  Name       String     @db.VarChar(45)
+  TeamImage  Bytes?     @db.Blob
+  Location   String     @db.VarChar(45)
+  Introduce  String?    @db.VarChar(400)
+  LatestDate DateTime?  @db.DateTime(0)
   UserAmount Int?
-  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
-  TeamRelay  TeamRelay[]
+  User       User       @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
+  TeamRelay  TeamRelay?
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
 
 model TeamRelay {
-  Team_id     Int
+  Team_id     Int         @id
   IsAdmin     Boolean
-  User_id     Int         @id
+  User_id     Int
   User        User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
+  @@index([User_id], map: "TeamRelay_User_id_fkey")
 }
 
 model User {
@@ -172,5 +168,22 @@ model User {
   Profile     Profile?
   Review      Review?
   TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay?
+  TeamRelay   TeamRelay[]
+  UserData    UserData[]
+}
+model Image {
+  Image_id  Int       @id @default(autoincrement())
+  ImageData Bytes     @db.Blob
+  Posting   Posting[]
+  Profile   Profile[]
+}
+
+model UserData {
+  Data_id Int @id @default(autoincrement())
+  Email String @db.VarChar(50)
+  Password String @db.VarChar(50)
+  User_id     Int
+  User             User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_UserData_User")
+  
+  @@index([User_id], map: "User_idx")
 }
