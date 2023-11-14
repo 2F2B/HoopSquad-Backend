@@ -22,7 +22,7 @@ courtRouter.get("/", async (req, res) => {
   }
 });
 
-courtRouter.post("/add", async (req, res) => {
+courtRouter.post("/", async (req, res) => {
   const result = await addCourt(req.body);
   res.status(result.Code);
   res.json(result);
