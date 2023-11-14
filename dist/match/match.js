@@ -322,4 +322,4 @@ function MatchInfo(request) {
     });
 }
 exports.MatchInfo = MatchInfo;
-//# sourceMappingURL=match.js.map
+//# sourceMappingURL=../../src/map/match/match.js.map
