@@ -17,11 +17,10 @@ const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
     // 현재 날짜와 시간을 포함하는 Date 객체 생성
     const currentDate = new Date("2023-11-11T15:16:00");
-    console.log(currentDate.getTime() / 1000);
     return Math.floor(Date.now() / 1000);
 }
 function isTrue(Type) {
-    console.log("1", Type);
+    // true, false string을 boolean으로 변환
     if (Type === "true")
         return true;
     else if (Type === "false")
@@ -31,7 +30,7 @@ function isTrue(Type) {
 }
 function SearchMatchByTitleAndLocation(filter, sort, input) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(filter, sort, input);
+        // 제목, 주소 기반 검색
         return yield prisma.posting.findMany({
             where: {
                 [filter]: {
@@ -65,6 +64,7 @@ function SearchMatchByTitleAndLocation(filter, sort, input) {
 }
 function SearchMatchByType(typePostingId, sort) {
     return __awaiter(this, void 0, void 0, function* () {
+        // 게임 유형에 따라 검사
         return yield prisma.posting.findMany({
             where: {
                 Posting_id: {
@@ -109,7 +109,7 @@ function AllMatch(// 게시글 전체 조회
 request) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
-        // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역       sort: "WriteDate PlayTime" / filter: "Title GameType Location"
+        // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
         const sort = (_a = request.query.Sort) === null || _a === void 0 ? void 0 : _a.toString();
         const input = request.query.Input;
         let filter;
@@ -128,6 +128,7 @@ request) {
                 (yield isTrue((_c = request.query) === null || _c === void 0 ? void 0 : _c.Three)) ? (three = true) : (three = null);
                 (yield isTrue((_d = request.query) === null || _d === void 0 ? void 0 : _d.Five)) ? (five = true) : (five = null);
                 const typePostingId = yield prisma.gameType.findMany({
+                    // 검색 조건에 맞는 GameType 테이블을 먼저 검색
                     where: {
                         OneOnOne: one ? true : undefined,
                         ThreeOnThree: three ? true : undefined,
@@ -151,8 +152,6 @@ request) {
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request.body);
-        console.log(request.file);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
@@ -168,13 +167,9 @@ function AddMatch(request) {
         const req = request.body.data;
         const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
         const playTime = new Date(req.PlayTime).getTime();
-        let one = isTrue(req.One) ? true : false, three = isTrue(req.Three) ? true : false, five = isTrue(req.Five) ? true : false;
-        let isTeam = isTrue(req.IsTeam) ? true : false;
+        const one = isTrue(req.One) ? true : false, three = isTrue(req.Three) ? true : false, five = isTrue(req.Five) ? true : false, isTeam = isTrue(req.IsTeam) ? true : false;
         const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
-        console.log(utc);
         const Time = new Date(utc + KR_TIME_DIFF);
-        console.log(new Date(utc));
-        console.log(Time);
         const newMap = yield prisma.map.create({
             data: {
                 LocationName: req.LocationName,
