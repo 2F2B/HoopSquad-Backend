@@ -17,18 +17,26 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 class Socket extends socket_io_1.default.Socket {
 }
-function getRoomName(hostId, guestId) {
-    return `${hostId}_${guestId}`;
-}
-/**
- * 호스트가 오프라인인 상대에게 메시지를 보내는 함수
- * @param payload
- * @param writerId
- * @param receiverId
- */
-function createHostMessageOffline({ payload, hostId, guestId, }) {
+function createMessageOffline({ payload, writerId, receiverId, isWriterHost, }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const roomName = yield prisma.chatRoom.findFirst({
+        yield prisma.message.create({
+            data: {
+                Msg: payload,
+                Writer_id: writerId.toString(),
+                Receiver_id: receiverId.toString(),
+                ChatRoom: {
+                    create: {
+                        Host_id: isWriterHost ? writerId : receiverId,
+                        Guest_id: isWriterHost ? receiverId : writerId,
+                    },
+                },
+            },
+        });
+    });
+}
+function createRoom(hostId, guestId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const isChatRoomExist = yield prisma.chatRoom.findFirst({
             where: {
                 RoomName: getRoomName(hostId, guestId),
             },
@@ -175,19 +183,21 @@ function createRoom(hostId, guestId) {
                     const hostId = +currentRoom.split("_")[0];
                     const guestId = +currentRoom.split("_")[1];
                     if (yield checkUserOffline(io, hostId)) {
-                        createHostMessageOffline({
+                        createMessageOffline({
                             payload: data.payload,
-                            hostId: hostId,
-                            guestId: guestId,
+                            writerId: guestId,
+                            receiverId: hostId,
+                            isWriterHost: false,
                         });
                         socket.to(currentRoom).emit("userLeft");
                         return;
                     }
                     else if (yield checkUserOffline(io, guestId)) {
-                        createGuestMessageOffline({
+                        createMessageOffline({
                             payload: data.payload,
-                            hostId: hostId,
-                            guestId: guestId,
+                            writerId: hostId,
+                            receiverId: guestId,
+                            isWriterHost: true,
                         });
                         socket.to(currentRoom).emit("userLeft");
                         return;
