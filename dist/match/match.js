@@ -153,7 +153,7 @@ request) {
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request.body);
+        console.log(request.body.data);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
