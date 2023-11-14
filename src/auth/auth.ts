@@ -1,4 +1,3 @@
-import express from "express";
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express";
@@ -7,77 +6,79 @@ import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 
 const prisma = new PrismaClient();
 
-async function LoginGoogle( // 유저 코드 넘어옴
-  code: String | ParsedQs | String[] | ParsedQs[] | undefined,
-) {
-  const res = await axios.post(`${process.env.gTokenUri}`, {
-    // google에서 받은 코드를 통해 access 토큰 발급
-    code,
-    client_id: `${process.env.gClientId}`,
-    client_secret: `${process.env.gClientSecret}`,
-    redirect_uri: `${process.env.gSignupRedirectUri}`,
-    // redirect_uri: "http://localhost:3000/auth/google/register", //test용 로컬 호스트
-    grant_type: "authorization_code",
-  });
-
-  const user = await axios.get(`${process.env.gUserInfoUri}`, {
-    // 발급받은 access 토큰으로 유저 데이터 요청
-    headers: {
-      Authorization: `Bearer ${res.data.access_token}`,
-    },
-  });
-
-  const userData = {
-    Auth_id: user.data.id,
-  };
-
-  const token = GenerateToken(JSON.stringify(userData)); // JWT 토큰 발행
-
-  const isUserExist = await prisma.oAuthToken.findFirst({
-    where: {
-      Auth_id: user.data.id.toString(),
-    },
-  });
-
-  if (!isUserExist) {
-    // 유저 정보가 DB에 없으면  유저 정보 DB에 추가
-    const result = await prisma.user.create({
-      data: {
-        Name: user.data.name,
-        OAuthToken: {
-          create: {
-            Auth_id: user.data.id.toString(),
-            AccessToken: token.Access_Token,
-            RefreshToken: token.Refresh_Token,
-            AToken_Expires: token.AToken_Expires,
-            RToken_Expires: token.RToken_Expires,
-            AToken_CreatedAt: token.AToken_CreatedAt,
-            RToken_CreatedAt: token.RToken_CreatedAt,
-          },
-        },
-      },
-      include: {
-        OAuthToken: true,
-      },
-    });
-    return token.Access_Token;
-  } else {
-    //유저 정보가 DB에 있음 -> 액세스 토큰과 리프레시 토큰을 새로 발급해서 DB에 갱신
-    await prisma.oAuthToken.updateMany({
-      where: {
-        Auth_id: user.data.id.toString(),
-      },
-      data: {
-        AccessToken: token.Access_Token,
-        RefreshToken: token.Refresh_Token,
-        AToken_Expires: token.AToken_Expires,
-        RToken_Expires: token.RToken_Expires,
-        AToken_CreatedAt: token.AToken_CreatedAt,
-        RToken_CreatedAt: token.RToken_CreatedAt,
-      },
-    });
-    return token?.Access_Token!!;
-  }
+function NameGen(): string {
+  const rand = Math.floor(Math.random() * (999999 - 0)) + 0;
+  const name = "user-" + rand.toString();
+  return name;
 }
 
-export { LoginGoogle };
+async function Register(
+  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  if (req.body.Email == undefined) return { result: "error" };
+  const isExist = await prisma.userData.findFirst({
+    // 유저가 이미 가입했는지 확인
+    where: { Email: req.body.Email },
+  });
+  if (isExist) return { result: "isUser" }; //가입 유저
+  // 미가입 유저
+  const newUser = await prisma.user.create({
+    data: {
+      Name: NameGen(),
+      UserData: {
+        create: {
+          Email: req.body.Email,
+          Password: req.body.Password,
+        },
+      },
+    },
+  });
+  const newToken = await GenerateToken(
+    JSON.stringify({ Auth_id: newUser.User_id }),
+  );
+
+  await prisma.oAuthToken.create({
+    data: {
+      User_id: newUser.User_id,
+      AccessToken: newToken.Access_Token,
+      RefreshToken: newToken.Refresh_Token,
+      AToken_Expires: newToken.AToken_Expires,
+      RToken_Expires: newToken.RToken_Expires,
+      AToken_CreatedAt: newToken.AToken_CreatedAt,
+      RToken_CreatedAt: newToken.RToken_CreatedAt,
+      Auth_id: newUser.User_id.toString(),
+    },
+  });
+  return { token: newToken.Access_Token };
+}
+
+async function Login(
+  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  if (req.body.Email == undefined) return { result: "error" };
+  const isExist = await prisma.userData.findFirst({
+    where: {
+      Email: req.body.Email,
+    },
+  });
+  if (!isExist) return { result: "notUser" }; // DB에 유저 없음
+  if (isExist.Password != req.body.Password) return { result: "PasswordError" };
+  // DB에 유저 있음
+  const newToken = await GenerateToken(
+    JSON.stringify({ Auth_id: isExist.User_id }),
+  );
+  await prisma.oAuthToken.create({
+    data: {
+      User_id: isExist.User_id,
+      AccessToken: newToken.Access_Token,
+      RefreshToken: newToken.Refresh_Token,
+      AToken_Expires: newToken.AToken_Expires,
+      RToken_Expires: newToken.RToken_Expires,
+      AToken_CreatedAt: newToken.AToken_CreatedAt,
+      RToken_CreatedAt: newToken.RToken_CreatedAt,
+      Auth_id: isExist.User_id.toString(),
+    },
+  });
+  return { token: newToken.Access_Token };
+}
+export { Register, Login };
