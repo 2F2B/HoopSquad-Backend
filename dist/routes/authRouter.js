@@ -99,4 +99,4 @@ authRouter.post("/delete", (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (err) { }
 }));
 module.exports = authRouter;
-//# sourceMappingURL=../../src/map/routes/authRouter.js.map
+//# sourceMappingURL=authRouter.js.map

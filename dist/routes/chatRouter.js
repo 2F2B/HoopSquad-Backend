@@ -193,4 +193,4 @@ const socketIOHandler = (server) => {
 //[x]: 데이터베이스 연동
 //[ ]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
 module.exports = { socketIOHandler };
-//# sourceMappingURL=../../src/map/routes/chatRouter.js.map
+//# sourceMappingURL=chatRouter.js.map

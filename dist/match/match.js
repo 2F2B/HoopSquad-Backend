@@ -267,4 +267,4 @@ function MatchInfo(request) {
     });
 }
 exports.MatchInfo = MatchInfo;
-//# sourceMappingURL=../../src/map/match/match.js.map
+//# sourceMappingURL=match.js.map

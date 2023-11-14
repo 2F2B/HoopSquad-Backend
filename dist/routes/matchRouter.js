@@ -101,4 +101,4 @@ matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* (
 //   }
 // });
 module.exports = matchRouter;
-//# sourceMappingURL=../../src/map/routes/matchRouter.js.map
+//# sourceMappingURL=matchRouter.js.map

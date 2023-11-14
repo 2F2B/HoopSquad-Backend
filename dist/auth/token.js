@@ -54,4 +54,4 @@ function AccessRefresh(UserData) {
     return res;
 }
 exports.AccessRefresh = AccessRefresh;
-//# sourceMappingURL=../../src/map/auth/token.js.map
+//# sourceMappingURL=token.js.map

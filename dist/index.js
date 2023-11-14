@@ -53,4 +53,4 @@ app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 httpServer.listen(3000, () => {
     console.log("Server started on Port 3000");
 });
-//# sourceMappingURL=../src/map/index.js.map
+//# sourceMappingURL=index.js.map
