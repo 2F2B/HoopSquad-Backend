@@ -78,32 +78,16 @@ async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
   // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-  const sort = "Location";
-  let filter = "Title";
-  let one, three, five;
+  const sort = request.body.sort;
+  let filter = [1, 3, 5];
 
-  switch (request.body.filter) {
-    case "Title":
-      filter = "Title";
-      break;
-    case "Location":
-      filter = "Location";
-      break;
-    case request.body.filter.includes(1):
-      one = true;
-      break;
-    case request.body.filter.includes(3):
-      three = true;
-      break;
-    case request.body.filter.includes(5):
-      five = true;
-      break;
+  if (request.body.GameType) {
+  } else if (request.body.Title) {
   }
-
   const newMatch = await prisma.posting.findMany({
     where: {
-      [filter]: {
-        contains: [filter],
+      Location: {
+        contains: request.body.Location,
       },
     },
     orderBy: {
@@ -137,7 +121,7 @@ async function AllMatch( // 게시글 전체 조회
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  console.log(request.body.data);
+  console.log(request.body);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {
@@ -158,25 +142,17 @@ async function AddMatch(
   let one, three, five;
   const type = req.GameType;
   switch (type) {
-    case type.includes("1"):
+    case type.includes(1):
       one = true;
       break;
-    case type.includes("3"):
+    case type.includes(3):
       three = true;
       break;
-    case type.includes("5"):
+    case type.includes(5):
       five = true;
       break;
   }
-  let bool;
-  switch (req.IsTeam) {
-    case "true":
-      bool = true;
-      break;
-    case "false":
-      bool = false;
-      break;
-  }
+
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
@@ -185,18 +161,13 @@ async function AddMatch(
       Posting: {
         create: {
           User_id: user.User_id,
-          IsTeam: bool,
+          IsTeam: req.IsTeam,
           Title: req.Title.toString(),
           GameType: {
             create: {
               OneOnOne: one,
               ThreeOnThree: three,
               FiveOnFive: five,
-            },
-          },
-          Image: {
-            create: {
-              ImageData: request.file?.buffer!!,
             },
           },
           WriteDate: new Date(),
@@ -218,7 +189,7 @@ async function AddMatch(
   if (request.file) {
     // 이미지가 존재하면 Image 추가 후 반환
     console.log("!23");
-    const Image = await prisma.image.create({
+    const image = await prisma.image.create({
       data: {
         ImageData: request.file.buffer,
       },
@@ -229,6 +200,14 @@ async function AddMatch(
       },
       data: {
         Image_id: Image.Image_id,
+      },
+    });
+    await prisma.posting.update({
+      where: {
+        Posting_id: posting?.Posting_id,
+      },
+      data: {
+        Image_id: image.Image_id,
       },
     });
     return {
