@@ -39,7 +39,7 @@ function Validation(request) {
             if (!(0, token_1.AccessVerify)(token.AccessToken))
                 throw new Error("Token Not Correct"); // A/T 틀림
             if (!(0, token_1.AccessVerify)(token.RefreshToken))
-                throw new Error(""); // A/T X, R/T X
+                throw new Error("All Token Expired"); // A/T X, R/T X
             if (isTokenValidMoreThanAWeek(token)) {
                 const newToken = (0, token_1.AccessRefresh)(token.Auth_id);
                 return { access_token: newToken.Access_Token, User_id: token.User_id };
