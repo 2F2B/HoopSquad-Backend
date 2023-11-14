@@ -79,10 +79,26 @@ async function AllMatch( // 게시글 전체 조회
 ) {
   // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
   const sort = request.body.sort;
-  let filter = [1, 3, 5];
+  let filter;
+  let one, three, five;
 
-  if (request.body.GameType) {
-  } else if (request.body.Title) {
+  switch (request.body.filter) {
+    case "Title":
+      filter = "Title";
+      break;
+    case "Location":
+      filter = "Location";
+      break;
+      case request.body.filter.includes(1):
+        one = true;
+        break;
+      case request.body.filter.includes("3"):
+        three = true;
+        break;
+      case request.body.filter.includes("5"):
+        five = true;
+        break;
+  }
   }
   const newMatch = await prisma.posting.findMany({
     where: {
@@ -121,7 +137,7 @@ async function AllMatch( // 게시글 전체 조회
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  console.log(request.body);
+  console.log(request.body.data);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {
@@ -142,25 +158,25 @@ async function AddMatch(
   let one, three, five;
   const type = req.GameType;
   switch (type) {
-    case type.includes(1):
+    case type.includes("1"):
       one = true;
       break;
-    case type.includes(3):
+    case type.includes("3"):
       three = true;
       break;
-    case type.includes(5):
+    case type.includes("5"):
       five = true;
       break;
   }
-
-  const one = isTrue(req.One) ? true : false,
-    three = isTrue(req.Three) ? true : false,
-    five = isTrue(req.Five) ? true : false,
-    isTeam = isTrue(req.IsTeam) ? true : false;
-  const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
-
-  const Time = new Date(utc + KR_TIME_DIFF);
-  console.log(request.file);
+  let bool;
+  switch (req.IsTeam) {
+    case "true":
+      bool = true;
+      break;
+    case "false":
+      bool = false;
+      break;
+  }
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
@@ -169,7 +185,7 @@ async function AddMatch(
       Posting: {
         create: {
           User_id: user.User_id,
-          IsTeam: req.IsTeam,
+          IsTeam: bool,
           Title: req.Title.toString(),
           GameType: {
             create: {
@@ -224,7 +240,7 @@ async function AddMatch(
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (!request.query.Posting_id) throw new Error("Posting_id Not Exists");
+  console.log(request);
   const map = await prisma.posting.findFirst({
     where: {
       Posting_id: parseInt(request.query.Posting_id.toString()),

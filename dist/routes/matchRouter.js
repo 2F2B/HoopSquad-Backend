@@ -16,7 +16,6 @@ const express_1 = __importDefault(require("express"));
 const match_1 = require("../match/match");
 const matchRouter = express_1.default.Router();
 matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // 전체 게시글 조회
     try {
         console.log(req.body);
         const result = yield (0, match_1.AllMatch)(req);
@@ -24,42 +23,25 @@ matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.send(result);
     }
     catch (err) {
-        console.log(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
-matchRouter.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+matchRouter.post("/", upload.single("Image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const add = yield (0, match_1.MatchFilter)(req);
-        res.status(200);
-        res.send(add);
-    }
-    catch (err) {
-        console.log(err);
-        res.send({ result: "error" });
-    }
-}));
-matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const add = yield (0, match_1.MatchInfo)(req);
-        res.status(200);
-        res.send(add);
-    }
-    catch (err) {
-        console.log(err);
-        res.send({ result: "error" });
-    }
-}));
-matchRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        console.log(req.body);
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);
-        res.send(add);
+        res.send(req.body);
     }
     catch (err) {
-        console.log(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(401);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 module.exports = matchRouter;

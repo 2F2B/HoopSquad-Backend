@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MatchInfo = exports.MatchFilter = exports.AddMatch = exports.AllMatch = void 0;
+exports.MatchInfo = exports.AddMatch = exports.AllMatch = void 0;
 const client_1 = require("@prisma/client");
 const googleMaps_1 = require("../google-maps/googleMaps");
 const prisma = new client_1.PrismaClient();
@@ -33,11 +33,18 @@ function FilterTitle(title) {
             select: {
                 Posting_id: true,
                 Title: true,
-                GameType: true,
                 WriteDate: true,
+                PlayTime: true,
                 Location: true,
                 RecruitAmount: true,
                 CurrentAmount: true,
+                GameType: {
+                    select: {
+                        OneOnOne: true,
+                        ThreeOnThree: true,
+                        FiveOnFive: true,
+                    },
+                },
                 Image: {
                     select: {
                         ImageData: true,
@@ -80,49 +87,63 @@ request) {
     return __awaiter(this, void 0, void 0, function* () {
         // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
         const sort = request.body.sort;
-        let filter = [1, 3, 5];
-        if (request.body.GameType) {
+        let filter;
+        let one, three, five;
+        switch (request.body.filter) {
+            case "Title":
+                filter = "Title";
+                break;
+            case "Location":
+                filter = "Location";
+                break;
+            case request.body.filter.includes(1):
+                one = true;
+                break;
+            case request.body.filter.includes("3"):
+                three = true;
+                break;
+            case request.body.filter.includes("5"):
+                five = true;
+                break;
         }
-        else if (request.body.Title) {
-        }
-        const newMatch = yield prisma.posting.findMany({
-            where: {
-                Location: {
-                    contains: request.body.Location,
-                },
-            },
-            orderBy: {
-                [sort]: "asc",
-            },
-            select: {
-                Posting_id: true,
-                Title: true,
-                WriteDate: true,
-                PlayTime: true,
-                Location: true,
-                RecruitAmount: true,
-                CurrentAmount: true,
-                GameType: {
-                    select: {
-                        OneOnOne: true,
-                        ThreeOnThree: true,
-                        FiveOnFive: true,
-                    },
-                },
-                Image: {
-                    select: {
-                        ImageData: true,
-                    },
-                },
-            },
-        });
-        return newMatch;
     });
 }
 exports.AllMatch = AllMatch;
+const newMatch = await prisma.posting.findMany({
+    where: {
+        Location: {
+            contains: request.body.Location,
+        },
+    },
+    orderBy: {
+        [sort]: "asc",
+    },
+    select: {
+        Posting_id: true,
+        Title: true,
+        WriteDate: true,
+        PlayTime: true,
+        Location: true,
+        RecruitAmount: true,
+        CurrentAmount: true,
+        GameType: {
+            select: {
+                OneOnOne: true,
+                ThreeOnThree: true,
+                FiveOnFive: true,
+            },
+        },
+        Image: {
+            select: {
+                ImageData: true,
+            },
+        },
+    },
+});
+return newMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request.body);
+        console.log(request.body.data);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
@@ -141,14 +162,23 @@ function AddMatch(request) {
         let one, three, five;
         const type = req.GameType;
         switch (type) {
-            case type.includes(1):
+            case type.includes("1"):
                 one = true;
                 break;
-            case type.includes(3):
+            case type.includes("3"):
                 three = true;
                 break;
-            case type.includes(5):
+            case type.includes("5"):
                 five = true;
+                break;
+        }
+        let bool;
+        switch (req.IsTeam) {
+            case "true":
+                bool = true;
+                break;
+            case "false":
+                bool = false;
                 break;
         }
         const newMap = yield prisma.map.create({
@@ -159,7 +189,7 @@ function AddMatch(request) {
                 Posting: {
                     create: {
                         User_id: user.User_id,
-                        IsTeam: req.IsTeam,
+                        IsTeam: bool,
                         Title: req.Title.toString(),
                         GameType: {
                             create: {
@@ -213,17 +243,17 @@ function AddMatch(request) {
 exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(request);
         const map = yield prisma.posting.findFirst({
             where: {
-                Posting_id: request.body.Posting_id,
+                Posting_id: parseInt(request.query.Posting_id.toString()),
             },
             select: {
                 Map_id: true,
             },
         });
-        if (!map) {
-            return { result: "expired" };
-        }
+        if (!map)
+            throw new Error("Posting Not Exists");
         const match = yield prisma.map.findFirst({
             where: {
                 Map_id: map.Map_id,
@@ -232,7 +262,22 @@ function MatchInfo(request) {
                 LocationName: true,
                 Lat: true,
                 Lng: true,
-                Posting: true,
+                Posting: {
+                    select: {
+                        Posting_id: true,
+                        User_id: true,
+                        IsTeam: true,
+                        Title: true,
+                        WriteDate: true,
+                        PlayTime: true,
+                        Location: true,
+                        RecruitAmount: true,
+                        CurrentAmount: true,
+                        Introduce: true,
+                        GameType: true,
+                        Image: true,
+                    },
+                },
             },
         });
         if (!match) {
@@ -329,5 +374,4 @@ function MatchFilter(request) {
         // } else return { result: "error" };
     });
 }
-exports.MatchFilter = MatchFilter;
 //# sourceMappingURL=match.js.map
