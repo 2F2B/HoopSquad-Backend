@@ -13,7 +13,7 @@ authRouter.post("/register", async (req, res) => {
     res.send(result);
   } catch (err) {
     if (err instanceof Error) {
-      res.status(401);
+      res.status(400);
       console.log(err);
       res.send({ error: err.message });
     }
