@@ -413,4 +413,4 @@ function MatchFilter(request) {
         // } else return { result: "error" };
     });
 }
-//# sourceMappingURL=../../src/map/match/match.js.map
+//# sourceMappingURL=match.js.map

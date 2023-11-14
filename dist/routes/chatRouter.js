@@ -199,4 +199,4 @@ function createRoom(hostId, guestId) {
         module.exports = { socketIOHandler };
     });
 }
-//# sourceMappingURL=../../src/map/routes/chatRouter.js.map
+//# sourceMappingURL=chatRouter.js.map
