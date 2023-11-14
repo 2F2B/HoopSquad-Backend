@@ -74,4 +74,4 @@ function setUserProfile(req) {
     });
 }
 exports.setUserProfile = setUserProfile;
-//# sourceMappingURL=../../src/map/profile/User.js.map
+//# sourceMappingURL=User.js.map
