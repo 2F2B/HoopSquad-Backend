@@ -48,8 +48,7 @@ matchRouter.get("/info", async (req, res) => {
 
 matchRouter.post("/add", upload.single("Image"), async (req, res) => {
   try {
-    // console.log(image);
-    if (!req.body) throw new Error("Body Not Exists");
+    console.log(req.body);
     const add = await AddMatch(req);
     res.status(201);
     if (req.file) {
