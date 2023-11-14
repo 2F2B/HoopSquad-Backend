@@ -55,4 +55,4 @@ matchRouter.post("/", upload.single("Image"), (req, res) => __awaiter(void 0, vo
     }
 }));
 module.exports = matchRouter;
-//# sourceMappingURL=../../src/map/routes/matchRouter.js.map
+//# sourceMappingURL=matchRouter.js.map
