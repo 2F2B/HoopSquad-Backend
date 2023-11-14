@@ -150,7 +150,6 @@ async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
   console.log(request.body);
-  console.log(request.file);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {

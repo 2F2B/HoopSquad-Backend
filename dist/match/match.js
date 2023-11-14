@@ -139,8 +139,13 @@ request) {
                         Posting_id: true,
                     },
                 });
-                const postingIds = typePostingId.map((item) => item.Posting_id);
-                console.log("id", postingIds);
+                if (!typePostingId)
+                    throw new Error("GameType Not Exists");
+                const postingIds = typePostingId.map((item) => item.Posting_id
+                    ? item.Posting_id
+                    : (() => {
+                        throw new Error("Posting_id Not Exists");
+                    })());
                 return yield SearchMatchByType(postingIds, sort);
         }
     });
@@ -149,7 +154,6 @@ exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(request.body);
-        console.log(request.file);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
