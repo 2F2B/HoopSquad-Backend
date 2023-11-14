@@ -1,14 +1,18 @@
-import express, { response } from "express";
-import axios from "axios";
-import { PrismaClient } from "@prisma/client";
+import express from "express";
+import { getUserProfile } from "../profile/User";
 
 const profileRouter = express.Router();
-const prisma = new PrismaClient();
 
-profileRouter.get("/info", async (req, res) => {
-  const userinfo = await prisma.oAuthToken.findFirst({
-    where: {
-      AccessToken: req.body.access_token,
-    },
-  });
+profileRouter.get("/user/:id", async (req, res) => {
+  try {
+    const result = await getUserProfile(+req.params.id!!);
+    if (!result) throw new Error("Profile Not Found");
+    res.send(result);
+  } catch (err) {
+    res.status(400);
+    console.error(err);
+    res.send({ result: "error" });
+  }
 });
+
+module.exports = profileRouter;
