@@ -2,10 +2,12 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
+const multipart = require("connect-multiparty");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(multipart());
 
 const httpServer = http.createServer(app);
 
