@@ -17,6 +17,23 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 class Socket extends socket_io_1.default.Socket {
 }
+function createMessageOffline({ payload, writerId, receiverId, isWriterHost, }) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield prisma.message.create({
+            data: {
+                Msg: payload,
+                Writer_id: writerId.toString(),
+                Receiver_id: receiverId.toString(),
+                ChatRoom: {
+                    create: {
+                        Host_id: isWriterHost ? writerId : receiverId,
+                        Guest_id: isWriterHost ? receiverId : writerId,
+                    },
+                },
+            },
+        });
+    });
+}
 function createRoom(hostId, guestId) {
     return __awaiter(this, void 0, void 0, function* () {
         const isChatRoomExist = yield prisma.chatRoom.findFirst({
@@ -45,19 +62,19 @@ function createRoom(hostId, guestId) {
         }
     });
 }
-function checkUserOnline(io, userId) {
+function checkUserOffline(io, userId) {
     return __awaiter(this, void 0, void 0, function* () {
-        let result;
+        let isOnline;
         io.sockets.sockets.forEach((s) => {
             const socket = s;
             if (socket["userId"] == userId) {
-                return (result = true);
+                return (isOnline = true);
             }
         });
-        if (result == true)
-            return true;
-        else
+        if (isOnline == true)
             return false;
+        else
+            return true;
     });
 }
 const socketIOHandler = (server) => {
@@ -112,14 +129,31 @@ const socketIOHandler = (server) => {
             socket.emit("getRoomName", `${hostId}_${guestId}`);
         }));
         socket.on("disconnect", () => { });
-        socket.on("send", (data, room) => __awaiter(void 0, void 0, void 0, function* () {
+        socket.on("send", (data, currentRoom) => __awaiter(void 0, void 0, void 0, function* () {
+            const hostId = +currentRoom.split("_")[0];
+            const guestId = +currentRoom.split("_")[1];
+            if (yield checkUserOffline(io, hostId)) {
+                createMessageOffline({
+                    payload: data.payload,
+                    writerId: guestId,
+                    receiverId: hostId,
+                    isWriterHost: false,
+                });
+                socket.to(currentRoom).emit("userLeft");
+                return;
+            }
+            else if (yield checkUserOffline(io, guestId)) {
+                createMessageOffline({
+                    payload: data.payload,
+                    writerId: hostId,
+                    receiverId: guestId,
+                    isWriterHost: true,
+                });
+                socket.to(currentRoom).emit("userLeft");
+                return;
+            }
             console.log(data);
-            // const hostId = room.split("_")[0];
-            // const guestId = room.split("_")[1];
-            // if (socket["userId"] == +hostId) {
-            //   const result = await checkUserOnline(io, +hostId);
-            // }
-            socket.to(room).emit("receive", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
+            socket.to(currentRoom).emit("receive", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
         }));
     });
 };
