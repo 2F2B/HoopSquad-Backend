@@ -52,10 +52,9 @@ matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 matchRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body);
-        const add = yield (0, match_1.AddMatch)(req);
-        res.status(201);
-        res.send(add);
+        // const add = await AddMatch(req);
+        // res.status(201);
+        res.send(req.body);
     }
     catch (err) {
         console.log(err);

@@ -1,6 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { AllMatch, AddMatch, MatchFilter, MatchInfo } from "../match/match";
+import { BodyParser } from "body-parser";
 
 const matchRouter = express.Router();
 
@@ -41,10 +42,9 @@ matchRouter.get("/info", async (req, res) => {
 
 matchRouter.post("/add", async (req, res) => {
   try {
-    console.log(req.body);
     const add = await AddMatch(req);
     res.status(201);
-    res.send(add);
+    res.send(req.body);
   } catch (err) {
     console.log(err);
     res.send({ result: "error" });
