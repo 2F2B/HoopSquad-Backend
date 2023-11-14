@@ -16,6 +16,34 @@ class Socket extends SocketIO.Socket {
   userId!: number;
 }
 
+type createMessageOfflineType = {
+  payload: string;
+  writerId: number;
+  receiverId: number;
+  isWriterHost: boolean;
+};
+
+async function createMessageOffline({
+  payload,
+  writerId,
+  receiverId,
+  isWriterHost,
+}: createMessageOfflineType) {
+  await prisma.message.create({
+    data: {
+      Msg: payload,
+      Writer_id: writerId.toString(),
+      Receiver_id: receiverId.toString(),
+      ChatRoom: {
+        create: {
+          Host_id: isWriterHost ? writerId : receiverId,
+          Guest_id: isWriterHost ? receiverId : writerId,
+        },
+      },
+    },
+  });
+}
+
 async function createRoom(hostId: number, guestId: number) {
   const isChatRoomExist = await prisma.chatRoom.findFirst({
     where: {
@@ -43,16 +71,16 @@ async function createRoom(hostId: number, guestId: number) {
   }
 }
 
-async function checkUserOnline(io: SocketIO.Server, userId: number) {
-  let result;
+async function checkUserOffline(io: SocketIO.Server, userId: number) {
+  let isOnline;
   io.sockets.sockets.forEach((s) => {
     const socket = s as Socket;
     if (socket["userId"] == userId) {
-      return (result = true);
+      return (isOnline = true);
     }
   });
-  if (result == true) return true;
-  else return false;
+  if (isOnline == true) return false;
+  else return true;
 }
 
 const socketIOHandler = (
@@ -119,20 +147,40 @@ const socketIOHandler = (
 
     socket.on("disconnect", () => {});
 
-    socket.on("send", async (data: { payload: string }, room: string) => {
-      console.log(data);
-      // const hostId = room.split("_")[0];
-      // const guestId = room.split("_")[1];
-      // if (socket["userId"] == +hostId) {
-      //   const result = await checkUserOnline(io, +hostId);
-      // }
+    socket.on(
+      "send",
+      async (data: { payload: string }, currentRoom: string) => {
+        const hostId = +currentRoom.split("_")[0];
+        const guestId = +currentRoom.split("_")[1];
 
-      socket.to(room).emit("receive", {
-        nickname: socket["nickname"],
-        ...data,
-        createdAt: Date.now(),
-      });
-    });
+        if (await checkUserOffline(io, hostId)) {
+          createMessageOffline({
+            payload: data.payload,
+            writerId: guestId,
+            receiverId: hostId,
+            isWriterHost: false,
+          });
+          socket.to(currentRoom).emit("userLeft");
+          return;
+        } else if (await checkUserOffline(io, guestId)) {
+          createMessageOffline({
+            payload: data.payload,
+            writerId: hostId,
+            receiverId: guestId,
+            isWriterHost: true,
+          });
+          socket.to(currentRoom).emit("userLeft");
+          return;
+        }
+
+        console.log(data);
+        socket.to(currentRoom).emit("receive", {
+          nickname: socket["nickname"],
+          ...data,
+          createdAt: Date.now(),
+        });
+      },
+    );
   });
 };
 
