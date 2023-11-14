@@ -11,9 +11,11 @@ authRouter.post("/register", async (req, res) => {
     const result = await Register(req);
     res.send(result);
   } catch (err) {
-    res.status(400);
-    console.log(err);
-    res.send({ result: "error" });
+    if (err instanceof Error) {
+      res.status(400);
+      console.log(err);
+      res.send({ error: err.message });
+    }
   }
 });
 
@@ -22,9 +24,11 @@ authRouter.post("/login", async (req, res) => {
     const result = await Login(req);
     res.send(result);
   } catch (err) {
-    res.status(400);
-    console.log(err);
-    res.send({ result: "error" });
+    if (err instanceof Error) {
+      res.status(400);
+      console.log(err);
+      res.send({ error: err.message });
+    }
   }
 });
 
@@ -35,9 +39,11 @@ authRouter.get("/google/register", async (req, res) => {
     res.header("User-Id", result.Id);
     res.end();
   } catch (err) {
-    res.status(400);
-    console.error(err);
-    res.send({ result: "error" });
+    if (err instanceof Error) {
+      res.status(400);
+      console.log(err);
+      res.send({ error: err.message });
+    }
   }
 });
 
@@ -48,9 +54,11 @@ authRouter.get("/kakao/register", async (req, res) => {
     res.header("User-Id", result.Id);
     res.end();
   } catch (err) {
-    res.status(400);
-    console.error(err);
-    res.send({ result: "error" });
+    if (err instanceof Error) {
+      res.status(400);
+      console.log(err);
+      res.send({ error: err.message });
+    }
   }
 });
 
@@ -63,9 +71,11 @@ authRouter.post("/validation", async (req, res) => {
     else res.status(200); //OK
     res.send(result);
   } catch (err) {
-    res.status(400);
-    console.error(err);
-    res.send({ result: "error" });
+    if (err instanceof Error) {
+      res.status(400);
+      console.log(err);
+      res.send({ error: err.message });
+    }
   }
 });
 
