@@ -119,31 +119,53 @@ function createRoom(hostId, guestId) {
                     return true;
             });
         }
-        const socketIOHandler = (server) => {
-            const io = new socket_io_1.default.Server(server);
-            io.on("connection", (s) => {
-                const socket = s;
-                console.log(socket.rooms);
-                socket.on("setNickname", (nick) => {
-                    socket["nickname"] = nick;
-                });
-                socket.on("setUserId", (id) => __awaiter(this, void 0, void 0, function* () {
-                    // const user = await prisma.oAuthToken.findFirst({
-                    //   where: {
-                    //     AccessToken: token,
-                    //   },
-                    //   select: {
-                    //     User_id: true,
-                    //   },
-                    // });
-                    socket["userId"] = id;
-                }));
-                socket.on("joinAllRooms", (user_id) => __awaiter(this, void 0, void 0, function* () {
-                    const chatRoomList = yield prisma.chatRoom.findMany({
-                        where: {
-                            OR: [
-                                {
-                                    Host_id: user_id,
+    });
+}
+function checkUserOffline(io, userId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let isOnline;
+        io.sockets.sockets.forEach((s) => {
+            const socket = s;
+            if (socket["userId"] == userId) {
+                return (isOnline = true);
+            }
+        });
+        if (isOnline == true)
+            return false;
+        else
+            return true;
+    });
+}
+const socketIOHandler = (server) => {
+    const io = new socket_io_1.default.Server(server);
+    io.on("connection", (s) => {
+        const socket = s;
+        console.log(socket.rooms);
+        socket.on("setNickname", (nick) => {
+            socket["nickname"] = nick;
+        });
+        socket.on("setUserId", (id) => __awaiter(void 0, void 0, void 0, function* () {
+            // const user = await prisma.oAuthToken.findFirst({
+            //   where: {
+            //     AccessToken: token,
+            //   },
+            //   select: {
+            //     User_id: true,
+            //   },
+            // });
+            socket["userId"] = id;
+        }));
+        socket.on("joinAllRooms", (user_id) => __awaiter(void 0, void 0, void 0, function* () {
+            const chatRoomList = yield prisma.chatRoom.findMany({
+                where: {
+                    OR: [
+                        {
+                            Host_id: user_id,
+                        },
+                        {
+                            Message: {
+                                some: {
+                                    User_id: user_id,
                                 },
                                 {
                                     Message: {
@@ -154,19 +176,42 @@ function createRoom(hostId, guestId) {
                                 },
                             ],
                         },
-                        select: {
-                            RoomName: true,
-                        },
-                    });
-                    chatRoomList.forEach((room) => {
-                        socket.join(`${room.RoomName}`);
-                    });
-                    console.log(socket.rooms);
-                }));
-                socket.on("join", (room, done) => {
-                    socket.join(room);
-                    console.log(socket.rooms);
-                    done();
+                    ],
+                },
+                select: {
+                    RoomName: true,
+                },
+            });
+            chatRoomList.forEach((room) => {
+                socket.join(`${room.RoomName}`);
+            });
+            console.log(socket.rooms);
+        }));
+        socket.on("join", (room, done) => {
+            socket.join(room);
+            console.log(socket.rooms);
+            done();
+        });
+        socket.on("makeRoom", (guestId, done) => __awaiter(void 0, void 0, void 0, function* () {
+            const hostId = socket["userId"];
+            yield createRoom(hostId, guestId);
+            yield joinRoom({
+                socket: socket,
+                hostId: hostId,
+                guestId: guestId,
+                io: io,
+            });
+        }));
+        socket.on("disconnect", () => { });
+        socket.on("send", (data, currentRoom) => __awaiter(void 0, void 0, void 0, function* () {
+            const hostId = +currentRoom.split("_")[0];
+            const guestId = +currentRoom.split("_")[1];
+            if (yield checkUserOffline(io, hostId)) {
+                createMessageOffline({
+                    payload: data.payload,
+                    writerId: guestId,
+                    receiverId: hostId,
+                    isWriterHost: false,
                 });
                 socket.on("makeRoom", (guestId, done) => __awaiter(this, void 0, void 0, function* () {
                     const hostId = socket["userId"];
