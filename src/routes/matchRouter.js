@@ -18,6 +18,7 @@ const matchRouter = express_1.default.Router();
 matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // 전체 게시글 조회
     try {
+        console.log(req.body);
         const result = yield (0, match_1.AllMatch)(req);
         res.status(200);
         res.send(result);
@@ -51,6 +52,7 @@ matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 matchRouter.post("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req.body);
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);
         res.send(add);
