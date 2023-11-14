@@ -43,7 +43,7 @@ authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
 authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, oAuth_1.LoginGoogle)(req.query.code);
-        res.header("Access-Token", result.Token);
+        res.header("Authorization", `Bearer ${result.Token}`);
         res.header("User-Id", result.Id);
         res.end();
     }
