@@ -19,34 +19,33 @@ class Socket extends SocketIO.Socket {
 type createMessageOfflineType = {
   payload: string;
   writerId: number;
-  roomName: string;
+  receiverId: number;
+  isWriterHost: boolean;
 };
 
-type joinRoomType = {
-  socket: Socket;
-  hostId: number;
-  guestId: number;
-  io: SocketIO.Server;
-};
-
-function getRoomName(hostId: number, guestId: number) {
-  return `${hostId}_${guestId}`;
-}
-
-/**
- * 유저가 오프라인인 상대에게 메시지를 보내는 함수
- * @param payload
- * @param writerId
- * @param roomName
- */
 async function createMessageOffline({
   payload,
   writerId,
-  roomName,
-}: createMessageOfflineType): Promise<void> {
-  const hostId = +roomName.split("_")[0];
-  const guestId = +roomName.split("_")[1];
-  const room = await prisma.chatRoom.findFirst({
+  receiverId,
+  isWriterHost,
+}: createMessageOfflineType) {
+  await prisma.message.create({
+    data: {
+      Msg: payload,
+      Writer_id: writerId.toString(),
+      Receiver_id: receiverId.toString(),
+      ChatRoom: {
+        create: {
+          Host_id: isWriterHost ? writerId : receiverId,
+          Guest_id: isWriterHost ? receiverId : writerId,
+        },
+      },
+    },
+  });
+}
+
+async function createRoom(hostId: number, guestId: number) {
+  const isChatRoomExist = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(hostId, guestId),
     },
@@ -87,31 +86,6 @@ async function createRoom(hostId: number, guestId: number) {
   }
 }
 
-/**
- * 방에 참가하는 함수
- * @param socket
- * @param hostId
- * @param guestId
- * @param io
- */
-async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
-  socket.join(getRoomName(hostId, guestId));
-  io.sockets.sockets.forEach((sock) => {
-    const user = sock as Socket;
-    if (user["userId"] == guestId) {
-      const guest = user;
-      guest.join(getRoomName(hostId, guestId));
-    }
-  });
-  socket.emit("getRoomName", getRoomName(hostId, guestId));
-}
-
-/**
- * 유저가 오프라인인지 체크하는 함수
- * @param io
- * @param userId
- * @returns
- */
 async function checkUserOffline(io: SocketIO.Server, userId: number) {
   let isOnline;
   io.sockets.sockets.forEach((s) => {
@@ -203,49 +177,34 @@ const socketIOHandler = (
     socket.on(
       "send",
       async (data: { payload: string }, currentRoom: string) => {
-        const hostId = currentRoom.split("_")[0];
-        const guestId = currentRoom.split("_")[1];
+        const hostId = +currentRoom.split("_")[0];
+        const guestId = +currentRoom.split("_")[1];
 
-        if (await checkUserOffline(io, +hostId)) {
+        if (await checkUserOffline(io, hostId)) {
           createMessageOffline({
             payload: data.payload,
-            writerId: +guestId,
-            roomName: currentRoom,
+            writerId: guestId,
+            receiverId: hostId,
+            isWriterHost: false,
           });
-
+          socket.to(currentRoom).emit("userLeft");
           return;
-        } else if (await checkUserOffline(io, +guestId)) {
+        } else if (await checkUserOffline(io, guestId)) {
           createMessageOffline({
             payload: data.payload,
-            writerId: +hostId,
-            roomName: currentRoom,
+            writerId: hostId,
+            receiverId: guestId,
+            isWriterHost: true,
           });
-
+          socket.to(currentRoom).emit("userLeft");
           return;
         }
 
         console.log(data);
-        socket.to(currentRoom).emit("sendCallback", {
+        socket.to(currentRoom).emit("receive", {
           nickname: socket["nickname"],
           ...data,
           createdAt: Date.now(),
-        });
-
-        const roomId = await prisma.chatRoom.findFirst({
-          where: {
-            RoomName: getRoomName(+hostId, +guestId),
-          },
-          select: {
-            Room_id: true,
-          },
-        });
-
-        await prisma.message.create({
-          data: {
-            Msg: data.payload,
-            User_id: socket["userId"],
-            Room_id: roomId?.Room_id!!,
-          },
         });
       },
     );
