@@ -122,7 +122,7 @@ request) {
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request.body);
+        console.log(request.body.data);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
@@ -141,14 +141,23 @@ function AddMatch(request) {
         let one, three, five;
         const type = req.GameType;
         switch (type) {
-            case type.includes(1):
+            case type.includes("1"):
                 one = true;
                 break;
-            case type.includes(3):
+            case type.includes("3"):
                 three = true;
                 break;
-            case type.includes(5):
+            case type.includes("5"):
                 five = true;
+                break;
+        }
+        let bool;
+        switch (req.IsTeam) {
+            case "true":
+                bool = true;
+                break;
+            case "false":
+                bool = false;
                 break;
         }
         const newMap = yield prisma.map.create({
@@ -159,7 +168,7 @@ function AddMatch(request) {
                 Posting: {
                     create: {
                         User_id: user.User_id,
-                        IsTeam: req.IsTeam,
+                        IsTeam: bool,
                         Title: req.Title.toString(),
                         GameType: {
                             create: {
@@ -213,6 +222,7 @@ function AddMatch(request) {
 exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(request);
         const map = yield prisma.posting.findFirst({
             where: {
                 Posting_id: request.body.Posting_id,
