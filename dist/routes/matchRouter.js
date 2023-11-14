@@ -14,9 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const match_1 = require("../match/match");
-const multer_1 = __importDefault(require("multer"));
-const storage = multer_1.default.memoryStorage();
-const upload = (0, multer_1.default)({ storage: storage });
 const matchRouter = express_1.default.Router();
 matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -35,7 +32,7 @@ matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* (
 }));
 matchRouter.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const add = yield MatchFilter(req);
+        const add = yield (0, match_1.MatchFilter)(req);
         res.status(200);
         res.send(add);
     }
@@ -57,16 +54,9 @@ matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 matchRouter.post("/add", upload.single("Image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body);
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);
-        if (req.file) {
-            storage._removeFile(req, req.file, (err) => {
-                if (err)
-                    throw new Error("File Deletion Failed");
-            });
-        }
-        res.send(add);
+        res.send(req.body);
     }
     catch (err) {
         if (err instanceof Error) {
