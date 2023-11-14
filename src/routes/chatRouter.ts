@@ -18,33 +18,34 @@ class Socket extends SocketIO.Socket {
 
 type createMessageOfflineType = {
   payload: string;
-  hostId: number;
-  guestId: number;
+  writerId: number;
+  receiverId: number;
+  isWriterHost: boolean;
 };
 
-type joinRoomType = {
-  socket: Socket;
-  hostId: number;
-  guestId: number;
-  io: SocketIO.Server;
-};
-
-function getRoomName(hostId: number, guestId: number) {
-  return `${hostId}_${guestId}`;
+async function createMessageOffline({
+  payload,
+  writerId,
+  receiverId,
+  isWriterHost,
+}: createMessageOfflineType) {
+  await prisma.message.create({
+    data: {
+      Msg: payload,
+      Writer_id: writerId.toString(),
+      Receiver_id: receiverId.toString(),
+      ChatRoom: {
+        create: {
+          Host_id: isWriterHost ? writerId : receiverId,
+          Guest_id: isWriterHost ? receiverId : writerId,
+        },
+      },
+    },
+  });
 }
 
-/**
- * 호스트가 오프라인인 상대에게 메시지를 보내는 함수
- * @param payload
- * @param writerId
- * @param receiverId
- */
-async function createHostMessageOffline({
-  payload,
-  hostId,
-  guestId,
-}: createMessageOfflineType): Promise<void> {
-  const roomName = await prisma.chatRoom.findFirst({
+async function createRoom(hostId: number, guestId: number) {
+  const isChatRoomExist = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(hostId, guestId),
     },
@@ -203,18 +204,20 @@ const socketIOHandler = (
         const guestId = +currentRoom.split("_")[1];
 
         if (await checkUserOffline(io, hostId)) {
-          createHostMessageOffline({
+          createMessageOffline({
             payload: data.payload,
-            hostId: hostId,
-            guestId: guestId,
+            writerId: guestId,
+            receiverId: hostId,
+            isWriterHost: false,
           });
           socket.to(currentRoom).emit("userLeft");
           return;
         } else if (await checkUserOffline(io, guestId)) {
-          createGuestMessageOffline({
+          createMessageOffline({
             payload: data.payload,
-            hostId: hostId,
-            guestId: guestId,
+            writerId: hostId,
+            receiverId: guestId,
+            isWriterHost: true,
           });
           socket.to(currentRoom).emit("userLeft");
           return;
