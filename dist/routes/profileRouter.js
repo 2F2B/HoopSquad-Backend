@@ -29,4 +29,4 @@ profileRouter.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 }));
 module.exports = profileRouter;
-//# sourceMappingURL=profileRouter.js.map
+//# sourceMappingURL=../../src/map/routes/profileRouter.js.map

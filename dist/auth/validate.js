@@ -25,7 +25,7 @@ function Validation(request) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!request.body.access_token) {
             // A/T 가 안넘어옴
-            return { result: "no_token" };
+            throw new Error("Body Not Exist");
         }
         const token = yield prisma.oAuthToken.findFirst({
             where: {
@@ -53,7 +53,7 @@ function Validation(request) {
                 return { access_token: newToken.Access_Token, User_id: token.User_id };
             }
             else {
-                const newTokens = (0, token_1.GenerateToken)(token.Auth_id);
+                const newToken = (0, token_1.GenerateToken)(token.Auth_id);
                 yield prisma.oAuthToken.updateMany({
                     where: {
                         Auth_id: token.Auth_id,
@@ -70,7 +70,9 @@ function Validation(request) {
                 return { access_token: newTokens.Access_Token, User_id: token.User_id };
             }
         }
+        else
+            throw new Error("Token Not Exists");
     });
 }
 exports.Validation = Validation;
-//# sourceMappingURL=validate.js.map
+//# sourceMappingURL=../../src/map/auth/validate.js.map

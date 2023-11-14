@@ -21,13 +21,13 @@ function NameGen() {
 function Register(req) {
     return __awaiter(this, void 0, void 0, function* () {
         if (req.body.Email == undefined)
-            return { result: "error" };
+            throw new Error("Not Provided");
         const isExist = yield prisma.userData.findFirst({
             // 유저가 이미 가입했는지 확인
             where: { Email: req.body.Email },
         });
         if (isExist)
-            return { result: "isUser" }; //가입 유저
+            throw new Error("User Already Exist"); //가입 유저
         // 미가입 유저
         const newUser = yield prisma.user.create({
             data: {
@@ -60,16 +60,18 @@ exports.Register = Register;
 function Login(req) {
     return __awaiter(this, void 0, void 0, function* () {
         if (req.body.Email == undefined)
-            return { result: "error" };
+            throw new Error("Email Not Provided");
+        if (req.body.Password == undefined)
+            throw new Error("Password Not Provided");
         const isExist = yield prisma.userData.findFirst({
             where: {
                 Email: req.body.Email,
             },
         });
         if (!isExist)
-            return { result: "notUser" }; // DB에 유저 없음
+            throw new Error("User Not Exist"); // DB에 유저 없음
         if (isExist.Password != req.body.Password)
-            return { result: "PasswordError" };
+            throw new Error("Password Not Match");
         // DB에 유저 있음
         const newToken = yield (0, token_1.GenerateToken)(JSON.stringify({ Auth_id: isExist.User_id }));
         yield prisma.oAuthToken.create({
@@ -84,8 +86,13 @@ function Login(req) {
                 Auth_id: isExist.User_id.toString(),
             },
         });
-        return { token: newToken.Access_Token };
+        const user = yield prisma.user.findFirst({
+            where: {
+                User_id: isExist.User_id,
+            },
+        });
+        return { token: newToken.Access_Token, Name: user === null || user === void 0 ? void 0 : user.Name };
     });
 }
 exports.Login = Login;
-//# sourceMappingURL=auth.js.map
+//# sourceMappingURL=../../src/map/auth/auth.js.map

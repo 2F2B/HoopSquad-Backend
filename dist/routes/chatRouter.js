@@ -307,4 +307,4 @@ const socketIOHandler = (server) => {
         });
     }
 };
-//# sourceMappingURL=chatRouter.js.map
+//# sourceMappingURL=../../src/map/routes/chatRouter.js.map

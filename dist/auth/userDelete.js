@@ -29,10 +29,9 @@ function UserDelete(req) {
             });
             return { result: "success" };
         }
-        else {
-            return { result: "expired" };
-        }
+        else
+            throw new Error("User Not Exists");
     });
 }
 exports.UserDelete = UserDelete;
-//# sourceMappingURL=userDelete.js.map
+//# sourceMappingURL=../../src/map/auth/userDelete.js.map

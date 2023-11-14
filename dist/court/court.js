@@ -92,4 +92,4 @@ function addCourt(req) {
     });
 }
 exports.addCourt = addCourt;
-//# sourceMappingURL=court.js.map
+//# sourceMappingURL=../../src/map/court/court.js.map

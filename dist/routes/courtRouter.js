@@ -42,4 +42,4 @@ courtRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     res.json(result);
 }));
 module.exports = courtRouter;
-//# sourceMappingURL=courtRouter.js.map
+//# sourceMappingURL=../../src/map/routes/courtRouter.js.map

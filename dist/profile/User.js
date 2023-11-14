@@ -27,4 +27,4 @@ function getUserProfile(userId) {
     });
 }
 exports.getUserProfile = getUserProfile;
-//# sourceMappingURL=User.js.map
+//# sourceMappingURL=../../src/map/profile/User.js.map

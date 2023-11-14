@@ -21,36 +21,44 @@ const authRouter = express_1.default.Router();
 authRouter.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, auth_1.Register)(req);
+        res.status(201);
         res.send(result);
     }
     catch (err) {
-        res.status(400);
-        console.log(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 authRouter.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, auth_1.Login)(req);
+        res.status(200);
         res.send(result);
     }
     catch (err) {
-        res.status(400);
-        console.log(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, oAuth_1.LoginGoogle)(req.query.code);
-        res.header("Access-Token", result.Token);
+        res.header("Authorization", `Bearer ${result.Token}`);
         res.header("User-Id", result.Id);
         res.end();
     }
     catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -61,9 +69,11 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         res.end();
     }
     catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -71,26 +81,35 @@ authRouter.post("/validation", (req, res) => __awaiter(void 0, void 0, void 0, f
         const result = yield (0, validate_1.Validation)(req);
         if (result === null || result === void 0 ? void 0 : result.access_token)
             res.status(201); //Created
-        else if ((result === null || result === void 0 ? void 0 : result.result) == "expired")
-            res.status(401); //Unauthorized
-        else if ((result === null || result === void 0 ? void 0 : result.result) == "no_token")
-            res.status(400); //Bad Request
         else
             res.status(200); //OK
         res.send(result);
     }
     catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            if (err.message == "Token Expired") {
+                res.status(401);
+            }
+            else
+                res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 authRouter.post("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, userDelete_1.UserDelete)(req);
+        res.status(200);
         res.send(result);
     }
-    catch (err) { }
+    catch (err) {
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
+    }
 }));
 module.exports = authRouter;
-//# sourceMappingURL=authRouter.js.map
+//# sourceMappingURL=../../src/map/routes/authRouter.js.map
