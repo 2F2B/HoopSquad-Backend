@@ -100,15 +100,14 @@ model Posting {
   Introduce     String?  @db.VarChar(600)
   Map_id        Int
   Image_id      Int?
+  Image Image[]
 
   GameType      GameType[]
   Map           Map     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
-  Image         Image?   @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_posting_image")
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
-  @@index([Image_id], map: "fk_posting_image")
 }
 
 model Profile {
@@ -120,11 +119,9 @@ model Profile {
   GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
-  Image_id  Int?
+  Image   Image[]
   User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-  Image     Image?  @relation(fields: [Image_id], references: [Image_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_profile_image")
 
-  @@index([Image_id], map: "fk_profile_image")
 }
 
 model Review {
@@ -175,9 +172,15 @@ model User {
 }
 model Image {
   Image_id  Int       @id @default(autoincrement())
+  Profile_id Int
+  Posting_id Int
   ImageData Bytes     @db.Blob
-  Posting   Posting[]
-  Profile   Profile[]
+
+  Profile     Profile?  @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_profile")
+  Posting     Posting?  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_posting")
+
+  @@index([Profile_id], map: "fk_image_profile")
+  @@index([Posting_id], map: "fk_image_posting")
 }
 
 model UserData {
