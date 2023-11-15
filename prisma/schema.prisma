@@ -91,6 +91,7 @@ model Posting {
   Introduce     String?  @db.VarChar(600)
   Map_id        Int
   Image_id      Int?
+  Image Image[]
 
   GameType      GameType[]
   Map           Map     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
