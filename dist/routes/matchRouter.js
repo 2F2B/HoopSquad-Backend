@@ -33,9 +33,31 @@ matchRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
     }
 }));
-matchRouter.post("/", upload.single("Image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+matchRouter.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body);
+        const add = yield MatchFilter(req);
+        res.status(200);
+        res.send(add);
+    }
+    catch (err) {
+        console.log(err);
+        res.send({ result: "error" });
+    }
+}));
+matchRouter.get("/info", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const add = yield (0, match_1.MatchInfo)(req);
+        res.status(200);
+        res.send(add);
+    }
+    catch (err) {
+        console.log(err);
+        res.send({ result: "error" });
+    }
+}));
+matchRouter.post("/add", upload.single("Image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // console.log(image);
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);
         if (req.file) {

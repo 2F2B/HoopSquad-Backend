@@ -118,16 +118,32 @@ async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
   // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-  const sort = request.body.sort;
-  let filter = [1, 3, 5];
+  const sort = "Location";
+  let filter = "Title";
+  let one, three, five;
 
-  if (request.body.GameType) {
-  } else if (request.body.Title) {
+  switch (request.body.filter) {
+    case "Title":
+      filter = "Title";
+      break;
+    case "Location":
+      filter = "Location";
+      break;
+    case request.body.filter.includes(1):
+      one = true;
+      break;
+    case request.body.filter.includes(3):
+      three = true;
+      break;
+    case request.body.filter.includes(5):
+      five = true;
+      break;
   }
+
   const newMatch = await prisma.posting.findMany({
     where: {
-      Location: {
-        contains: request.body.Location,
+      [filter]: {
+        contains: [filter],
       },
     },
     orderBy: {
@@ -210,6 +226,11 @@ async function AddMatch(
               FiveOnFive: five,
             },
           },
+          Image: {
+            create: {
+              ImageData: request.file?.buffer!!,
+            },
+          },
           WriteDate: new Date(),
           PlayTime: playTime / 1000,
           Location: Location.result[0],
@@ -226,12 +247,12 @@ async function AddMatch(
     },
   });
 
-  if (req.Image) {
+  if (request.file) {
     // 이미지가 존재하면 Image 추가 후 반환
     console.log("!23");
-    const image = await prisma.image.create({
+    const Image = await prisma.image.create({
       data: {
-        ImageData: req.Image,
+        ImageData: request.file.buffer,
       },
     });
     await prisma.posting.update({
@@ -239,7 +260,7 @@ async function AddMatch(
         Posting_id: posting?.Posting_id,
       },
       data: {
-        Image_id: image.Image_id,
+        Image_id: Image.Image_id,
       },
     });
     return {

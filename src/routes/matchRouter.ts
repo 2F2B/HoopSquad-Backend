@@ -24,9 +24,31 @@ matchRouter.get("/", async (req, res) => {
   }
 });
 
-matchRouter.post("/", upload.single("Image"), async (req, res) => {
+matchRouter.get("/filter", async (req, res) => {
   try {
-    console.log(req.body);
+    const add = await MatchFilter(req);
+    res.status(200);
+    res.send(add);
+  } catch (err) {
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+matchRouter.get("/info", async (req, res) => {
+  try {
+    const add = await MatchInfo(req);
+    res.status(200);
+    res.send(add);
+  } catch (err) {
+    console.log(err);
+    res.send({ result: "error" });
+  }
+});
+
+matchRouter.post("/add", upload.single("Image"), async (req, res) => {
+  try {
+    // console.log(image);
     const add = await AddMatch(req);
     res.status(201);
     if (req.file) {

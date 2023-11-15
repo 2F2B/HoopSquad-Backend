@@ -19,6 +19,12 @@ app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use(
+  bodyParser.raw({
+    type: "image/jpeg",
+    limit: "10mb",
+  }),
+);
 
 try {
   socketIOHandler(httpServer);
