@@ -89,7 +89,6 @@ model Posting {
   CurrentAmount String   @db.VarChar(45)
   Introduce     String?  @db.VarChar(600)
   Map_id        Int
-  Image_id      Int?
   Image Image[]
 
   GameType      GameType[]
@@ -164,8 +163,8 @@ model User {
 
 model Image {
   Image_id  Int       @id @default(autoincrement())
-  Profile_id Int
-  Posting_id Int
+  Profile_id Int?
+  Posting_id Int?
   ImageData Bytes     @db.Blob
 
   Profile     Profile?  @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_profile")
