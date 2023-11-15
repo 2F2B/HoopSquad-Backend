@@ -16,11 +16,9 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const http_1 = __importDefault(require("http"));
-const multipart = require("connect-multiparty");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
-app.use(multipart());
 const httpServer = http_1.default.createServer(app);
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
@@ -31,6 +29,10 @@ app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use(body_parser_1.default.raw({
+    type: "image/jpeg",
+    limit: "10mb",
+}));
 socketIOHandler(httpServer);
 app.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
