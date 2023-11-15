@@ -9,15 +9,106 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MatchInfo = exports.MatchFilter = exports.AddMatch = exports.AllMatch = void 0;
+exports.MatchInfo = exports.AddMatch = exports.AllMatch = void 0;
 const client_1 = require("@prisma/client");
 const googleMaps_1 = require("../google-maps/googleMaps");
+const KR_TIME_DIFF = 10 * 9 * 60 * 60 * 1000;
 const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
     // 현재 날짜와 시간을 포함하는 Date 객체 생성
     const currentDate = new Date("2023-11-11T15:16:00");
     console.log(currentDate.getTime() / 1000);
     return Math.floor(Date.now() / 1000);
+}
+function isTrue(Type) {
+    console.log("1", Type);
+    if (Type === "true")
+        return true;
+    else if (Type === "false")
+        return false;
+    else
+        throw new Error("String Is Not Boolean");
+}
+function SearchMatchByTitleAndLocation(filter, sort, input) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(filter, sort, input);
+        return yield prisma.posting.findMany({
+            where: {
+                [filter]: {
+                    contains: input ? input : "",
+                },
+            },
+            orderBy: {
+                [sort]: "asc",
+            },
+            select: {
+                Posting_id: true,
+                Title: true,
+                WriteDate: true,
+                PlayTime: true,
+                Location: true,
+                RecruitAmount: true,
+                CurrentAmount: true,
+                GameType: {
+                    select: {
+                        OneOnOne: true,
+                        ThreeOnThree: true,
+                        FiveOnFive: true,
+                    },
+                },
+                Image: {
+                    select: {
+                        ImageData: true,
+                    },
+                },
+            },
+        });
+    });
+}
+function SearchMatchByType(typePostingId, sort) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield prisma.posting.findMany({
+            where: {
+                Posting_id: {
+                    in: typePostingId,
+                },
+            },
+            orderBy: {
+                [sort]: "asc",
+            },
+            select: {
+                Posting_id: true,
+                Title: true,
+                WriteDate: true,
+                PlayTime: true,
+                Location: true,
+                RecruitAmount: true,
+                CurrentAmount: true,
+                GameType: {
+                    select: {
+                        OneOnOne: true,
+                        ThreeOnThree: true,
+                        FiveOnFive: true,
+                    },
+                },
+                Image: {
+                    select: {
+                        ImageData: true,
+                    },
+                },
+                Map: {
+                    select: {
+                        LocationName: true,
+                        Lat: true,
+                        Lng: true,
+                    },
+                },
+            },
+        });
+    });
+}
+function FindAllMatch(filter, sort) {
+    return __awaiter(this, void 0, void 0, function* () { });
 }
 function FilterTitle(title) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -77,67 +168,47 @@ function FilterGameType(title) {
 }
 function AllMatch(// 게시글 전체 조회
 request) {
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
-        // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-        const sort = "Location";
-        let filter = "Title";
+        // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역       sort: "WriteDate PlayTime" / filter: "Title GameType Location"
+        const sort = (_a = request.query.Sort) === null || _a === void 0 ? void 0 : _a.toString();
+        const input = request.query.Input;
+        let filter;
         let one, three, five;
-        switch (request.body.filter) {
+        if (!sort)
+            throw new Error("Sort Not Exist"); //  정렬 정보 없을때
+        switch (request.query.Filter) {
             case "Title":
                 filter = "Title";
-                break;
+                return SearchMatchByTitleAndLocation(filter, sort, input);
             case "Location":
                 filter = "Location";
-                break;
-            case request.body.filter.includes(1):
-                one = true;
-                break;
-            case request.body.filter.includes(3):
-                three = true;
-                break;
-            case request.body.filter.includes(5):
-                five = true;
-                break;
+                return SearchMatchByTitleAndLocation(filter, sort, input);
+            case "GameType":
+                (yield isTrue((_b = request.query) === null || _b === void 0 ? void 0 : _b.One)) ? (one = true) : (one = null);
+                (yield isTrue((_c = request.query) === null || _c === void 0 ? void 0 : _c.Three)) ? (three = true) : (three = null);
+                (yield isTrue((_d = request.query) === null || _d === void 0 ? void 0 : _d.Five)) ? (five = true) : (five = null);
+                const typePostingId = yield prisma.gameType.findMany({
+                    where: {
+                        OneOnOne: one ? true : undefined,
+                        ThreeOnThree: three ? true : undefined,
+                        FiveOnFive: five ? true : undefined,
+                    },
+                    select: {
+                        Posting_id: true,
+                    },
+                });
+                const postingIds = typePostingId.map((item) => item.Posting_id);
+                console.log("id", postingIds);
+                return yield SearchMatchByType(postingIds, sort);
         }
-        const newMatch = yield prisma.posting.findMany({
-            where: {
-                [filter]: {
-                    contains: [filter],
-                },
-            },
-            orderBy: {
-                [sort]: "asc",
-            },
-            select: {
-                Posting_id: true,
-                Title: true,
-                WriteDate: true,
-                PlayTime: true,
-                Location: true,
-                RecruitAmount: true,
-                CurrentAmount: true,
-                GameType: {
-                    select: {
-                        OneOnOne: true,
-                        ThreeOnThree: true,
-                        FiveOnFive: true,
-                    },
-                },
-                Image: {
-                    select: {
-                        ImageData: true,
-                    },
-                },
-            },
-        });
-        return newMatch;
     });
 }
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(request.body);
+        console.log(request.file);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
@@ -153,19 +224,13 @@ function AddMatch(request) {
         const req = request.body.data;
         const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
         const playTime = new Date(req.PlayTime).getTime();
-        let one, three, five;
-        const type = req.GameType;
-        switch (type) {
-            case type.includes(1):
-                one = true;
-                break;
-            case type.includes(3):
-                three = true;
-                break;
-            case type.includes(5):
-                five = true;
-                break;
-        }
+        let one = isTrue(req.One) ? true : false, three = isTrue(req.Three) ? true : false, five = isTrue(req.Five) ? true : false;
+        let isTeam = isTrue(req.IsTeam) ? true : false;
+        const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
+        console.log(utc);
+        const Time = new Date(utc + KR_TIME_DIFF);
+        console.log(new Date(utc));
+        console.log(Time);
         const newMap = yield prisma.map.create({
             data: {
                 LocationName: req.LocationName,
@@ -173,8 +238,8 @@ function AddMatch(request) {
                 Lng: parseFloat(req.Lng),
                 Posting: {
                     create: {
-                        User_id: user.User_id,
-                        IsTeam: req.IsTeam,
+                        User: { connect: { User_id: user.User_id } },
+                        IsTeam: isTeam,
                         Title: req.Title.toString(),
                         GameType: {
                             create: {
@@ -183,12 +248,14 @@ function AddMatch(request) {
                                 FiveOnFive: five,
                             },
                         },
-                        Image: {
-                            create: {
-                                ImageData: (_a = request.file) === null || _a === void 0 ? void 0 : _a.buffer,
-                            },
-                        },
-                        WriteDate: new Date(),
+                        Image: request.file
+                            ? {
+                                create: {
+                                    ImageData: request.file.buffer,
+                                },
+                            }
+                            : undefined,
+                        WriteDate: Time.toISOString(),
                         PlayTime: playTime / 1000,
                         Location: Location.result[0],
                         RecruitAmount: req.RecruitAmount,
@@ -203,38 +270,6 @@ function AddMatch(request) {
                 Map_id: newMap.Map_id,
             },
         });
-        if (request.file) {
-            // 이미지가 존재하면 Image 추가 후 반환
-            console.log("!23");
-            const Image = yield prisma.image.create({
-                data: {
-                    ImageData: request.file.buffer,
-<<<<<<< HEAD
-                },
-            });
-            yield prisma.posting.update({
-                where: {
-                    Posting_id: posting === null || posting === void 0 ? void 0 : posting.Posting_id,
-                },
-                data: {
-                    Image_id: Image.Image_id,
-=======
->>>>>>> f2b75ed (매칭 이미지 삽입 관련 코드 작성, 테스트 필요)
-                },
-            });
-            yield prisma.posting.update({
-                where: {
-                    Posting_id: posting === null || posting === void 0 ? void 0 : posting.Posting_id,
-                },
-                data: {
-                    Image_id: Image.Image_id,
-                },
-            });
-            return {
-                TimeStamp: Date.now().toString(),
-                Posting_id: posting === null || posting === void 0 ? void 0 : posting.Posting_id,
-            };
-        }
         return {
             TimeStamp: Date.now().toString(),
             Posting_id: posting === null || posting === void 0 ? void 0 : posting.Posting_id,
@@ -244,18 +279,18 @@ function AddMatch(request) {
 exports.AddMatch = AddMatch;
 function MatchInfo(request) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request);
+        if (!request.query.Posting_id)
+            throw new Error("Posting_id Not Exists");
         const map = yield prisma.posting.findFirst({
             where: {
-                Posting_id: request.body.Posting_id,
+                Posting_id: parseInt(request.query.Posting_id.toString()),
             },
             select: {
                 Map_id: true,
             },
         });
-        if (!map) {
-            return { result: "expired" };
-        }
+        if (!map)
+            throw new Error("Posting Not Exists");
         const match = yield prisma.map.findFirst({
             where: {
                 Map_id: map.Map_id,
@@ -264,102 +299,27 @@ function MatchInfo(request) {
                 LocationName: true,
                 Lat: true,
                 Lng: true,
-                Posting: true,
+                Posting: {
+                    select: {
+                        Posting_id: true,
+                        User_id: true,
+                        IsTeam: true,
+                        Title: true,
+                        WriteDate: true,
+                        PlayTime: true,
+                        Location: true,
+                        RecruitAmount: true,
+                        CurrentAmount: true,
+                        Introduce: true,
+                        Image: true,
+                    },
+                },
             },
         });
-        if (!match) {
-            return { result: "expired" };
-        }
+        if (!match)
+            throw new Error("Posting Not Exists");
         return match;
     });
 }
 exports.MatchInfo = MatchInfo;
-function MatchFilter(request) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // if (request.body.Location) {
-        //   // 주소로 필터링 하여 반환
-        //   const location = request.body.Location;
-        //   const res = await prisma.posting.findMany({
-        //     where: {
-        //       Location: {
-        //         contains: location,
-        //       },
-        //     },
-        //     select: {
-        //       Posting_id: true,
-        //       Title: true,
-        //       GameType: true,
-        //       WriteDate: true,
-        //       Location: true,
-        //       RecruitAmount: true,
-        //       CurrentAmount: true,
-        //     },
-        //   });
-        //   const updatedMatch = res.map((posting) => {
-        //     // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameType을 숫자 배열로 변경
-        //     const gameTypeArray = posting.GameType.split(",").map(Number);
-        //     return {
-        //       ...posting,
-        //       GameType: gameTypeArray,
-        //     };
-        //   });
-        //   return updatedMatch;
-        // } else if (request.body.Title) {
-        //   // 제목으로 필터링
-        //   const search = request.body.Title;
-        //   const res = await prisma.posting.findMany({
-        //     where: {
-        //       Title: {
-        //         contains: search,
-        //       },
-        //     },
-        //     select: {
-        //       Posting_id: true,
-        //       Title: true,
-        //       GameType: true,
-        //       WriteDate: true,
-        //       Location: true,
-        //       RecruitAmount: true,
-        //       CurrentAmount: true,
-        //     },
-        //   });
-        //   const updatedMatch = res.map((posting) => {
-        //     // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameType을 숫자 배열로 변경
-        //     const gameTypeArray = posting.GameType.split(",").map(Number);
-        //     return {
-        //       ...posting,
-        //       GameType: gameTypeArray,
-        //     };
-        //   });
-        //   return updatedMatch;
-        // } else if (request.body.Type) {
-        //   // 게임 타입으로 필터링
-        //   const gameType = request.body.Type;
-        //   const res = await prisma.posting.findMany({
-        //     where: {
-        //       GameType: { contains: gameType.toString() },
-        //     },
-        //     select: {
-        //       Posting_id: true,
-        //       Title: true,
-        //       GameType: true,
-        //       WriteDate: true,
-        //       Location: true,
-        //       RecruitAmount: true,
-        //       CurrentAmount: true,
-        //     },
-        //   });
-        //   const updatedMatch = res.map((posting) => {
-        //     // 문자열 -> 숫자 배열로 변환한 뒤 match의 GameTyp을 숫자 배열로 변경
-        //     const gameTypeArray = posting.GameType.split(",").map(Number);
-        //     return {
-        //       ...posting,
-        //       GameType: gameTypeArray,
-        //     };
-        //   });
-        //   return updatedMatch;
-        // } else return { result: "error" };
-    });
-}
-exports.MatchFilter = MatchFilter;
 //# sourceMappingURL=match.js.map
