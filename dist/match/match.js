@@ -86,16 +86,30 @@ function AllMatch(// 게시글 전체 조회
 request) {
     return __awaiter(this, void 0, void 0, function* () {
         // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-        const sort = request.body.sort;
-        let filter = [1, 3, 5];
-        if (request.body.GameType) {
-        }
-        else if (request.body.Title) {
+        const sort = "Location";
+        let filter = "Title";
+        let one, three, five;
+        switch (request.body.filter) {
+            case "Title":
+                filter = "Title";
+                break;
+            case "Location":
+                filter = "Location";
+                break;
+            case request.body.filter.includes(1):
+                one = true;
+                break;
+            case request.body.filter.includes(3):
+                three = true;
+                break;
+            case request.body.filter.includes(5):
+                five = true;
+                break;
         }
         const newMatch = yield prisma.posting.findMany({
             where: {
-                Location: {
-                    contains: request.body.Location,
+                [filter]: {
+                    contains: [filter],
                 },
             },
             orderBy: {
@@ -128,6 +142,7 @@ request) {
 }
 exports.AllMatch = AllMatch;
 function AddMatch(request) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(request.body);
         const user = yield prisma.oAuthToken.findFirst({
@@ -175,6 +190,11 @@ function AddMatch(request) {
                                 FiveOnFive: five,
                             },
                         },
+                        Image: {
+                            create: {
+                                ImageData: (_a = request.file) === null || _a === void 0 ? void 0 : _a.buffer,
+                            },
+                        },
                         WriteDate: new Date(),
                         PlayTime: playTime / 1000,
                         Location: Location.result[0],
@@ -193,7 +213,7 @@ function AddMatch(request) {
         if (request.file) {
             // 이미지가 존재하면 Image 추가 후 반환
             console.log("!23");
-            const image = yield prisma.image.create({
+            const Image = yield prisma.image.create({
                 data: {
                     ImageData: request.file.buffer,
                 },
@@ -204,14 +224,6 @@ function AddMatch(request) {
                 },
                 data: {
                     Image_id: Image.Image_id,
-                },
-            });
-            yield prisma.posting.update({
-                where: {
-                    Posting_id: posting === null || posting === void 0 ? void 0 : posting.Posting_id,
-                },
-                data: {
-                    Image_id: image.Image_id,
                 },
             });
             return {
