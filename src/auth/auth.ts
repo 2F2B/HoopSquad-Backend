@@ -82,6 +82,11 @@ async function Login(
       Auth_id: isExist.User_id.toString(),
     },
   });
-  return { token: newToken.Access_Token };
+  const user = await prisma.user.findFirst({
+    where: {
+      User_id: isExist.User_id,
+    },
+  });
+  return { token: newToken.Access_Token, Name: user?.Name };
 }
 export { Register, Login };
