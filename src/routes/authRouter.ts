@@ -72,7 +72,9 @@ authRouter.post("/validation", async (req, res) => {
     res.send(result);
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400);
+      if (err.message == "Token Expired") {
+        res.status(401);
+      } else res.status(400);
       console.log(err);
       res.send({ error: err.message });
     }
