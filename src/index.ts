@@ -26,7 +26,13 @@ app.use(
   }),
 );
 
-socketIOHandler(httpServer);
+try {
+  socketIOHandler(httpServer);
+} catch (err) {
+  if (err instanceof Error) {
+    console.error(err);
+  }
+}
 
 app.get("/", async (_req, res) => {
   try {
