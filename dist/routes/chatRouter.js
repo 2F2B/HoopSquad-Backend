@@ -21,16 +21,14 @@ function getRoomName(hostId, guestId) {
     return `${hostId}_${guestId}`;
 }
 /**
- * 유저가 오프라인인 상대에게 메시지를 보내는 함수
+ * 호스트가 오프라인인 상대에게 메시지를 보내는 함수
  * @param payload
  * @param writerId
- * @param roomName
+ * @param receiverId
  */
-function createMessageOffline({ payload, writerId, roomName, }) {
+function createHostMessageOffline({ payload, hostId, guestId, }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const hostId = +roomName.split("_")[0];
-        const guestId = +roomName.split("_")[1];
-        const room = yield prisma.chatRoom.findFirst({
+        const roomName = yield prisma.chatRoom.findFirst({
             where: {
                 RoomName: getRoomName(hostId, guestId),
             },
@@ -41,8 +39,33 @@ function createMessageOffline({ payload, writerId, roomName, }) {
         yield prisma.message.create({
             data: {
                 Msg: payload,
-                User_id: writerId,
-                Room_id: room === null || room === void 0 ? void 0 : room.Room_id,
+                User_id: hostId,
+                Room_id: roomName === null || roomName === void 0 ? void 0 : roomName.Room_id,
+            },
+        });
+    });
+}
+/**
+ * 게스트가 오프라인인 상대에게 메시지를 보내는 함수
+ * @param payload
+ * @param userId
+ * @param roomName
+ */
+function createGuestMessageOffline({ payload, hostId, guestId, }) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const roomName = yield prisma.chatRoom.findFirst({
+            where: {
+                RoomName: getRoomName(hostId, guestId),
+            },
+            select: {
+                Room_id: true,
+            },
+        });
+        yield prisma.message.create({
+            data: {
+                Msg: payload,
+                User_id: guestId,
+                Room_id: roomName === null || roomName === void 0 ? void 0 : roomName.Room_id,
             },
         });
     });
@@ -96,7 +119,7 @@ function createRoom(hostId, guestId) {
                 socket.on("setNickname", (nick) => {
                     socket["nickname"] = nick;
                 });
-                socket.on("setUserId", (id, done) => __awaiter(this, void 0, void 0, function* () {
+                socket.on("setUserId", (id) => __awaiter(this, void 0, void 0, function* () {
                     // const user = await prisma.oAuthToken.findFirst({
                     //   where: {
                     //     AccessToken: token,
@@ -106,7 +129,6 @@ function createRoom(hostId, guestId) {
                     //   },
                     // });
                     socket["userId"] = id;
-                    done();
                 }));
                 socket.on("joinAllRooms", (user_id) => __awaiter(this, void 0, void 0, function* () {
                     const chatRoomList = yield prisma.chatRoom.findMany({
@@ -147,31 +169,25 @@ function createRoom(hostId, guestId) {
                         guestId: guestId,
                         io: io,
                     });
-                    socket
-                        .to(getRoomName(hostId, guestId))
-                        .emit("makeRoomCallback", getRoomName(hostId, guestId));
-                    done(getRoomName(hostId, guestId));
                 }));
                 socket.on("disconnect", () => { });
                 socket.on("send", (data, currentRoom) => __awaiter(this, void 0, void 0, function* () {
                     const hostId = +currentRoom.split("_")[0];
                     const guestId = +currentRoom.split("_")[1];
                     if (yield checkUserOffline(io, hostId)) {
-                        createMessageOffline({
+                        createHostMessageOffline({
                             payload: data.payload,
-                            writerId: guestId,
-                            receiverId: hostId,
-                            isWriterHost: false,
+                            hostId: hostId,
+                            guestId: guestId,
                         });
                         socket.to(currentRoom).emit("userLeft");
                         return;
                     }
                     else if (yield checkUserOffline(io, guestId)) {
-                        createMessageOffline({
+                        createGuestMessageOffline({
                             payload: data.payload,
-                            writerId: hostId,
-                            receiverId: guestId,
-                            isWriterHost: true,
+                            hostId: hostId,
+                            guestId: guestId,
                         });
                         socket.to(currentRoom).emit("userLeft");
                         return;

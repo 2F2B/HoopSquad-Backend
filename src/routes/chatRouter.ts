@@ -18,8 +18,8 @@ class Socket extends SocketIO.Socket {
 
 type createMessageOfflineType = {
   payload: string;
-  writerId: number;
-  roomName: string;
+  hostId: number;
+  guestId: number;
 };
 
 type joinRoomType = {
@@ -34,19 +34,17 @@ function getRoomName(hostId: number, guestId: number) {
 }
 
 /**
- * 유저가 오프라인인 상대에게 메시지를 보내는 함수
+ * 호스트가 오프라인인 상대에게 메시지를 보내는 함수
  * @param payload
  * @param writerId
- * @param roomName
+ * @param receiverId
  */
-async function createMessageOffline({
+async function createHostMessageOffline({
   payload,
-  writerId,
-  roomName,
+  hostId,
+  guestId,
 }: createMessageOfflineType): Promise<void> {
-  const hostId = +roomName.split("_")[0];
-  const guestId = +roomName.split("_")[1];
-  const room = await prisma.chatRoom.findFirst({
+  const roomName = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(hostId, guestId),
     },
@@ -57,8 +55,36 @@ async function createMessageOffline({
   await prisma.message.create({
     data: {
       Msg: payload,
-      User_id: writerId,
-      Room_id: room?.Room_id!!,
+      User_id: hostId,
+      Room_id: roomName?.Room_id!!,
+    },
+  });
+}
+
+/**
+ * 게스트가 오프라인인 상대에게 메시지를 보내는 함수
+ * @param payload
+ * @param userId
+ * @param roomName
+ */
+async function createGuestMessageOffline({
+  payload,
+  hostId,
+  guestId,
+}: createMessageOfflineType): Promise<void> {
+  const roomName = await prisma.chatRoom.findFirst({
+    where: {
+      RoomName: getRoomName(hostId, guestId),
+    },
+    select: {
+      Room_id: true,
+    },
+  });
+  await prisma.message.create({
+    data: {
+      Msg: payload,
+      User_id: guestId,
+      Room_id: roomName?.Room_id!!,
     },
   });
 }
@@ -111,7 +137,7 @@ const socketIOHandler = (
       socket["nickname"] = nick;
     });
 
-    socket.on("setUserId", async (id: number, done: Function) => {
+    socket.on("setUserId", async (id: number) => {
       // const user = await prisma.oAuthToken.findFirst({
       //   where: {
       //     AccessToken: token,
@@ -121,7 +147,6 @@ const socketIOHandler = (
       //   },
       // });
       socket["userId"] = id;
-      done();
     });
 
     socket.on("joinAllRooms", async (user_id: number) => {
@@ -167,10 +192,6 @@ const socketIOHandler = (
         guestId: guestId,
         io: io,
       });
-      socket
-        .to(getRoomName(hostId, guestId))
-        .emit("makeRoomCallback", getRoomName(hostId, guestId));
-      done(getRoomName(hostId, guestId));
     });
 
     socket.on("disconnect", () => {});
@@ -182,20 +203,18 @@ const socketIOHandler = (
         const guestId = +currentRoom.split("_")[1];
 
         if (await checkUserOffline(io, hostId)) {
-          createMessageOffline({
+          createHostMessageOffline({
             payload: data.payload,
-            writerId: guestId,
-            receiverId: hostId,
-            isWriterHost: false,
+            hostId: hostId,
+            guestId: guestId,
           });
           socket.to(currentRoom).emit("userLeft");
           return;
         } else if (await checkUserOffline(io, guestId)) {
-          createMessageOffline({
+          createGuestMessageOffline({
             payload: data.payload,
-            writerId: hostId,
-            receiverId: guestId,
-            isWriterHost: true,
+            hostId: hostId,
+            guestId: guestId,
           });
           socket.to(currentRoom).emit("userLeft");
           return;
