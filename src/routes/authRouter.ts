@@ -66,13 +66,13 @@ authRouter.post("/validation", async (req, res) => {
   try {
     const result = await Validation(req);
     if (result?.access_token) res.status(201); //Created
-    else if (result?.result == "expired") res.status(401); //Unauthorized
-    else if (result?.result == "no_token") res.status(400); //Bad Request
     else res.status(200); //OK
     res.send(result);
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400);
+      if (err.message == "Token Expired") {
+        res.status(401);
+      } else res.status(400);
       console.log(err);
       res.send({ error: err.message });
     }
