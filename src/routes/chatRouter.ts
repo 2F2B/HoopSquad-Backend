@@ -19,61 +19,34 @@ class Socket extends SocketIO.Socket {
 type createMessageOfflineType = {
   payload: string;
   writerId: number;
-  receiverId: number;
-  isWriterHost: boolean;
+  roomName: string;
 };
 
-async function createMessageOffline({
-  payload,
-  writerId,
-  receiverId,
-  isWriterHost,
-}: createMessageOfflineType) {
-  await prisma.message.create({
-    data: {
-      Msg: payload,
-      Writer_id: writerId.toString(),
-      Receiver_id: receiverId.toString(),
-      ChatRoom: {
-        create: {
-          Host_id: isWriterHost ? writerId : receiverId,
-          Guest_id: isWriterHost ? receiverId : writerId,
-        },
-      },
-    },
-  });
-}
+type joinRoomType = {
+  socket: Socket;
+  hostId: number;
+  guestId: number;
+  io: SocketIO.Server;
+};
 
-async function createRoom(hostId: number, guestId: number) {
-  const isChatRoomExist = await prisma.chatRoom.findFirst({
-    where: {
-      RoomName: getRoomName(hostId, guestId),
-    },
-    select: {
-      Room_id: true,
-    },
-  });
-  await prisma.message.create({
-    data: {
-      Msg: payload,
-      User_id: hostId,
-      Room_id: roomName?.Room_id!!,
-    },
-  });
+function getRoomName(hostId: number, guestId: number) {
+  return `${hostId}_${guestId}`;
 }
 
 /**
- * 게스트가 오프라인인 상대에게 메시지를 보내는 함수
+ * 유저가 오프라인인 상대에게 메시지를 보내는 함수
  * @param payload
- * @param userId
+ * @param writerId
  * @param roomName
  */
-async function createGuestMessageOffline({
+async function createMessageOffline({
   payload,
-  hostId,
-  guestId,
+  writerId,
+  roomName,
 }: createMessageOfflineType): Promise<void> {
-  const roomName = await prisma.chatRoom.findFirst({
+  const hostId = +roomName.split("_")[0];
+  const guestId = +roomName.split("_")[1];
+  const room = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(hostId, guestId),
     },
@@ -84,8 +57,8 @@ async function createGuestMessageOffline({
   await prisma.message.create({
     data: {
       Msg: payload,
-      User_id: guestId,
-      Room_id: roomName?.Room_id!!,
+      User_id: writerId,
+      Room_id: room?.Room_id!!,
     },
   });
 }
@@ -135,7 +108,7 @@ const socketIOHandler = (
       socket["nickname"] = nick;
     });
 
-    socket.on("setUserId", async (id: number) => {
+    socket.on("setUserId", async (id: number, done: Function) => {
       // const user = await prisma.oAuthToken.findFirst({
       //   where: {
       //     AccessToken: token,
@@ -145,6 +118,7 @@ const socketIOHandler = (
       //   },
       // });
       socket["userId"] = id;
+      done();
     });
 
     socket.on("joinAllRooms", async (user_id: number) => {
@@ -190,6 +164,10 @@ const socketIOHandler = (
         guestId: guestId,
         io: io,
       });
+      socket
+        .to(getRoomName(hostId, guestId))
+        .emit("makeRoomCallback", getRoomName(hostId, guestId));
+      done(getRoomName(hostId, guestId));
     });
 
     socket.on("disconnect", () => {});
@@ -197,26 +175,24 @@ const socketIOHandler = (
     socket.on(
       "send",
       async (data: { payload: string }, currentRoom: string) => {
-        const hostId = +currentRoom.split("_")[0];
-        const guestId = +currentRoom.split("_")[1];
+        const hostId = currentRoom.split("_")[0];
+        const guestId = currentRoom.split("_")[1];
 
-        if (await checkUserOffline(io, hostId)) {
+        if (await checkUserOffline(io, +hostId)) {
           createMessageOffline({
             payload: data.payload,
-            writerId: guestId,
-            receiverId: hostId,
-            isWriterHost: false,
+            writerId: +guestId,
+            roomName: currentRoom,
           });
-          socket.to(currentRoom).emit("userLeft");
+
           return;
-        } else if (await checkUserOffline(io, guestId)) {
+        } else if (await checkUserOffline(io, +guestId)) {
           createMessageOffline({
             payload: data.payload,
-            writerId: hostId,
-            receiverId: guestId,
-            isWriterHost: true,
+            writerId: +hostId,
+            roomName: currentRoom,
           });
-          socket.to(currentRoom).emit("userLeft");
+
           return;
         }
 
@@ -225,6 +201,23 @@ const socketIOHandler = (
           nickname: socket["nickname"],
           ...data,
           createdAt: Date.now(),
+        });
+
+        const roomId = await prisma.chatRoom.findFirst({
+          where: {
+            RoomName: getRoomName(+hostId, +guestId),
+          },
+          select: {
+            Room_id: true,
+          },
+        });
+
+        await prisma.message.create({
+          data: {
+            Msg: data.payload,
+            User_id: socket["userId"],
+            Room_id: roomId?.Room_id!!,
+          },
         });
       },
     );
