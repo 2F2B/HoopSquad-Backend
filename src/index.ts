@@ -19,7 +19,13 @@ app.use("/court", courtRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 
-socketIOHandler(httpServer);
+try {
+  socketIOHandler(httpServer);
+} catch (err) {
+  if (err instanceof Error) {
+    console.error(err);
+  }
+}
 
 app.get("/", async (_req, res) => {
   try {
