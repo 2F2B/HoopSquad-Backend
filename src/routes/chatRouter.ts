@@ -267,7 +267,7 @@ const socketIOHandler = (
         }
 
         console.log(data);
-        socket.to(currentRoom).emit("receive", {
+        socket.to(currentRoom).emit("sendCallback", {
           nickname: socket["nickname"],
           ...data,
           createdAt: Date.now(),
