@@ -189,4 +189,3 @@ model GameType {
 
   @@index([Posting_id], map: "fk_GameType_Posting")
 }
-
