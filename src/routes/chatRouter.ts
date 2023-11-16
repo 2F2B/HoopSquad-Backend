@@ -222,7 +222,7 @@ const socketIOHandler = (
         }
 
         console.log(data);
-        socket.to(currentRoom).emit("receive", {
+        socket.to(currentRoom).emit("sendCallback", {
           nickname: socket["nickname"],
           ...data,
           createdAt: Date.now(),
@@ -255,7 +255,8 @@ const socketIOHandler = (
 //[x]: 방 참가
 //[x]: 방 생성
 //[x]: 메시지 전송
-//[ ]: 연결 끊기
-//[ ]: 데이터베이스 연동
+//[x]: 연결 끊기
+//[x]: 데이터베이스 연동
+//[ ]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
 
 module.exports = { socketIOHandler };
