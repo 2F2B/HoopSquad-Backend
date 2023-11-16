@@ -34,4 +34,4 @@ function UserDelete(req) {
     });
 }
 exports.UserDelete = UserDelete;
-//# sourceMappingURL=../../src/map/auth/userDelete.js.map
+//# sourceMappingURL=userDelete.js.map

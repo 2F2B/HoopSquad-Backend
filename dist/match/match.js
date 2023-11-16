@@ -107,65 +107,6 @@ function SearchMatchByType(typePostingId, sort) {
         });
     });
 }
-function FindAllMatch(filter, sort) {
-    return __awaiter(this, void 0, void 0, function* () { });
-}
-function FilterTitle(title) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield prisma.posting.findMany({
-            where: {
-                Title: {
-                    contains: title,
-                },
-            },
-            orderBy: {
-                WriteDate: "asc",
-            },
-            select: {
-                Posting_id: true,
-                Title: true,
-                GameType: true,
-                WriteDate: true,
-                Location: true,
-                RecruitAmount: true,
-                CurrentAmount: true,
-                Image: {
-                    select: {
-                        ImageData: true,
-                    },
-                },
-            },
-        });
-    });
-}
-function FilterGameType(title) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield prisma.posting.findMany({
-            where: {
-                Title: {
-                    contains: title,
-                },
-            },
-            orderBy: {
-                WriteDate: "asc",
-            },
-            select: {
-                Posting_id: true,
-                Title: true,
-                GameType: true,
-                WriteDate: true,
-                Location: true,
-                RecruitAmount: true,
-                CurrentAmount: true,
-                Image: {
-                    select: {
-                        ImageData: true,
-                    },
-                },
-            },
-        });
-    });
-}
 function AllMatch(// 게시글 전체 조회
 request) {
     var _a, _b, _c, _d;
@@ -311,6 +252,7 @@ function MatchInfo(request) {
                         RecruitAmount: true,
                         CurrentAmount: true,
                         Introduce: true,
+                        GameType: true,
                         Image: true,
                     },
                 },
@@ -322,4 +264,4 @@ function MatchInfo(request) {
     });
 }
 exports.MatchInfo = MatchInfo;
-//# sourceMappingURL=../../src/map/match/match.js.map
+//# sourceMappingURL=match.js.map

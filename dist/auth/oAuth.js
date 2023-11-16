@@ -209,4 +209,4 @@ code) {
     });
 }
 exports.LoginGoogle = LoginGoogle;
-//# sourceMappingURL=../../src/map/auth/oAuth.js.map
+//# sourceMappingURL=oAuth.js.map

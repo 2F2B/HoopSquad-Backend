@@ -75,4 +75,4 @@ function Validation(request) {
     });
 }
 exports.Validation = Validation;
-//# sourceMappingURL=../../src/map/auth/validate.js.map
+//# sourceMappingURL=validate.js.map

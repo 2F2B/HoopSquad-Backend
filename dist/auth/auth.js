@@ -95,4 +95,4 @@ function Login(req) {
     });
 }
 exports.Login = Login;
-//# sourceMappingURL=../../src/map/auth/auth.js.map
+//# sourceMappingURL=auth.js.map
