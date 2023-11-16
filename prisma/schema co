@@ -20,14 +20,12 @@ model Alarm {
 }
 
 model ChatRoom {
-  Room_id  Int       @id @default(autoincrement())
-  Host_id  Int
-  Time     DateTime  @default(now()) @db.Timestamp(0)
-  RoomName String
-  User     User      @relation(fields: [Host_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
-  Message  Message[]
-
-  @@index([Host_id], map: "ChatRoom_Host_id_fkey")
+  Room_id   Int        @id @default(autoincrement())
+  Host_id   Int
+  Guest_id  Int
+  Time      DateTime   @default(now()) @db.Timestamp(0)
+  ChatRelay ChatRelay?
+  Message   Message[]
 }
 
 model Court {
@@ -52,16 +50,15 @@ model Map {
 }
 
 model Message {
-  Message_id Int      @id @default(autoincrement())
-  Room_id    Int
-  Msg        String   @db.LongText
-  ChatTime   DateTime @default(now()) @db.Timestamp(0)
-  User_id    Int
-  User       User     @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-  ChatRoom   ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
+  Message_id  Int      @id @default(autoincrement())
+  Room_id     Int
+  Msg         String   @db.LongText
+  ChatTime    DateTime @default(now()) @db.Timestamp(0)
+  Writer_id   String   @db.VarChar(45)
+  Receiver_id String   @db.VarChar(45)
+  ChatRoom    ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Message_ChatRoom")
 
   @@index([Room_id], map: "Room_idx")
-  @@index([User_id], map: "Message_User_id_fkey")
 }
 
 model OAuthToken {
@@ -82,38 +79,35 @@ model OAuthToken {
 model Posting {
   Posting_id    Int        @id @default(autoincrement())
   User_id       Int
-  IsTeam        Boolean  @default(false)
-  Title         String   @db.VarChar(100)
-  WriteDate     DateTime @default(now()) @db.Timestamp(0)
+  IsTeam        Boolean    @default(false)
+  Title         String     @db.VarChar(100)
+  WriteDate     DateTime   @default(now()) @db.Timestamp(0)
   PlayTime      Int
-  Location      String   @db.VarChar(45)
-  RecruitAmount String   @db.VarChar(45)
-  CurrentAmount String   @db.VarChar(45)
-  Introduce     String?  @db.VarChar(600)
+  Location      String     @db.VarChar(45)
+  RecruitAmount String     @db.VarChar(45)
+  CurrentAmount String     @db.VarChar(45)
+  Introduce     String?    @db.VarChar(600)
   Map_id        Int
-  Image_id      Int?
-  Image Image[]
-
   GameType      GameType[]
-  Map           Map     @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  Image         Image[]
+  Map           Map        @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
 }
 
 model Profile {
-  User_id   Int        @id
-  Height    Float?     @db.Float
+  User_id   Int     @id
+  Height    Float?  @db.Float
   Age       Int?
   Position  String? @db.VarChar(45)
   Grade     String? @db.VarChar(45)
-  GameType  GameType[]
+  GameType  Int?
   Introduce String? @db.VarChar(45)
   Location  String? @db.VarChar(45)
-  Image   Image[]
+  Image     Image[]
   User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-
 }
 
 model Review {
@@ -153,8 +147,7 @@ model User {
   User_id     Int           @id @default(autoincrement())
   Name        String        @db.VarChar(45)
   Alarm       Alarm[]
-  ChatRoom    ChatRoom[]
-  Message     Message[]
+  ChatRelay   ChatRelay[]
   OAuthToken  OAuthToken[]
   Posting     Posting[]
   Profile     Profile?
@@ -165,16 +158,15 @@ model User {
 }
 
 model Image {
-  Image_id  Int       @id @default(autoincrement())
-  Profile_id Int
-  Posting_id Int
-  ImageData Bytes     @db.Blob
+  Image_id   Int      @id @default(autoincrement())
+  ImageData  Bytes    @db.Blob
+  Posting_id Int?
+  Profile_id Int?
+  Posting    Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_posting")
+  Profile    Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_profile")
 
-  Profile     Profile?  @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_profile")
-  Posting     Posting?  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_posting")
-
-  @@index([Profile_id], map: "fk_image_profile")
   @@index([Posting_id], map: "fk_image_posting")
+  @@index([Profile_id], map: "fk_image_profile")
 }
 
 model UserData {
@@ -187,14 +179,23 @@ model UserData {
   @@index([User_id], map: "User_idx")
 }
 
+model ChatRelay {
+  Room_id  Int      @id
+  User_id  Int
+  ChatRoom ChatRoom @relation(fields: [Room_id], references: [Room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_ChatRoom")
+  User     User     @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ChatRelay_User")
+
+  @@index([Room_id], map: "Room_idx")
+  @@index([User_id], map: "fk_ChatRelay_User")
+}
+
 model GameType {
   GameType_id  Int     @id @default(autoincrement())
-  Posting_id   Int?
-  Profile_id   Int?
+  Posting_id   Int
   OneOnOne     Boolean @default(false)
   ThreeOnThree Boolean @default(false)
   FiveOnFive   Boolean @default(false)
-  Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
-  Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction )
+  Posting      Posting @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
 
+  @@index([Posting_id], map: "fk_GameType_Posting")
 }
