@@ -29,6 +29,12 @@ type joinRoomType = {
   io: SocketIO.Server;
 };
 
+/**
+ * 호스트 ID와 게스트 ID로 방 이름을 알아내는 함수
+ * @param hostId
+ * @param guestId
+ * @returns
+ */
 function getRoomName(hostId: number, guestId: number) {
   return `${hostId}_${guestId}`;
 }
@@ -156,7 +162,6 @@ const socketIOHandler = (
   const io = new SocketIO.Server(server);
   io.on("connection", (s) => {
     const socket = s as Socket;
-    console.log(socket.rooms);
 
     socket.on("setNickname", (nick: string) => {
       socket["nickname"] = nick;
@@ -198,13 +203,10 @@ const socketIOHandler = (
       chatRoomList.forEach((room) => {
         socket.join(`${room.RoomName}`);
       });
-
-      console.log(socket.rooms);
     });
 
     socket.on("join", (room, done) => {
       socket.join(room);
-      console.log(socket.rooms);
       done();
     });
 
@@ -233,7 +235,6 @@ const socketIOHandler = (
             hostId: hostId,
             guestId: guestId,
           });
-          socket.to(currentRoom).emit("userLeft");
           return;
         } else if (await checkUserOffline(io, guestId)) {
           createGuestMessageOffline({
@@ -241,12 +242,10 @@ const socketIOHandler = (
             hostId: hostId,
             guestId: guestId,
           });
-          socket.to(currentRoom).emit("userLeft");
           return;
         }
 
-        console.log(data);
-        socket.to(currentRoom).emit("receive", {
+        socket.to(currentRoom).emit("sendCallback", {
           nickname: socket["nickname"],
           ...data,
           createdAt: Date.now(),
