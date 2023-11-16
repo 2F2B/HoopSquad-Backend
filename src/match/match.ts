@@ -102,69 +102,6 @@ async function SearchMatchByType(typePostingId: number[], sort: string) {
   });
 }
 
-async function FindAllMatch(filter: String, sort: String) {}
-
-async function FilterTitle(title: string) {
-  return await prisma.posting.findMany({
-    where: {
-      Title: {
-        contains: title,
-      },
-    },
-    orderBy: {
-      WriteDate: "asc",
-    },
-    select: {
-      Posting_id: true,
-      Title: true,
-      WriteDate: true,
-      PlayTime: true,
-      Location: true,
-      RecruitAmount: true,
-      CurrentAmount: true,
-      GameType: {
-        select: {
-          OneOnOne: true,
-          ThreeOnThree: true,
-          FiveOnFive: true,
-        },
-      },
-      Image: {
-        select: {
-          ImageData: true,
-        },
-      },
-    },
-  });
-}
-
-async function FilterGameType(title: string) {
-  return await prisma.posting.findMany({
-    where: {
-      Title: {
-        contains: title,
-      },
-    },
-    orderBy: {
-      WriteDate: "asc",
-    },
-    select: {
-      Posting_id: true,
-      Title: true,
-      GameType: true,
-      WriteDate: true,
-      Location: true,
-      RecruitAmount: true,
-      CurrentAmount: true,
-      Image: {
-        select: {
-          ImageData: true,
-        },
-      },
-    },
-  });
-}
-
 async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
@@ -316,6 +253,7 @@ async function MatchInfo(
           RecruitAmount: true,
           CurrentAmount: true,
           Introduce: true,
+          GameType: true,
           Image: true,
         },
       },
