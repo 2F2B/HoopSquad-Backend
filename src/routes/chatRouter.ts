@@ -84,6 +84,31 @@ async function createRoom(hostId: number, guestId: number) {
   }
 }
 
+/**
+ * 방에 참가하는 함수
+ * @param socket
+ * @param hostId
+ * @param guestId
+ * @param io
+ */
+async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
+  socket.join(getRoomName(hostId, guestId));
+  io.sockets.sockets.forEach((sock) => {
+    const user = sock as Socket;
+    if (user["userId"] == guestId) {
+      const guest = user;
+      guest.join(getRoomName(hostId, guestId));
+    }
+  });
+  socket.emit("getRoomName", getRoomName(hostId, guestId));
+}
+
+/**
+ * 유저가 오프라인인지 체크하는 함수
+ * @param io
+ * @param userId
+ * @returns
+ */
 async function checkUserOffline(io: SocketIO.Server, userId: number) {
   let isOnline;
   io.sockets.sockets.forEach((s) => {
