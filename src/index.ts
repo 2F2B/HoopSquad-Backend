@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -18,6 +19,12 @@ app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use(
+  bodyParser.raw({
+    type: "image/jpeg",
+    limit: "10mb",
+  }),
+);
 
 try {
   socketIOHandler(httpServer);
