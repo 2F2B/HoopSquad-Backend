@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("LOCALDB")
+  url      = env("DATABASE_URL")
 }
 
 model Alarm {
@@ -101,16 +101,16 @@ model Posting {
 }
 
 model Profile {
-  User_id   Int     @id
-  Height    Float?  @db.Float
+  User_id   Int        @id
+  Height    Float?     @db.Float
   Age       Int?
-  Position  String? @db.VarChar(45)
-  Grade     String? @db.VarChar(45)
+  Position  String?    @db.VarChar(45)
+  Grade     String?    @db.VarChar(45)
+  Introduce String?    @db.VarChar(45)
+  Location  String?    @db.VarChar(45)
   GameType  GameType[]
-  Introduce String? @db.VarChar(45)
-  Location  String? @db.VarChar(45)
   Image     Image[]
-  User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  User      User       @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Review {
@@ -184,14 +184,15 @@ model UserData {
 }
 
 model GameType {
-  GameType_id  Int     @id @default(autoincrement())
+  GameType_id  Int      @id @default(autoincrement())
   Posting_id   Int?
+  OneOnOne     Boolean  @default(false)
+  ThreeOnThree Boolean  @default(false)
+  FiveOnFive   Boolean  @default(false)
   Profile_id   Int?
-  OneOnOne     Boolean @default(false)
-  ThreeOnThree Boolean @default(false)
-  FiveOnFive   Boolean @default(false)
-  Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
-  Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction )
+  Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Posting      Posting?  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
 
   @@index([Posting_id], map: "fk_GameType_Posting")
+  @@index([Profile_id], map: "GameType_Profile_id_fkey")
 }
