@@ -11,12 +11,11 @@ const prisma = new PrismaClient();
 function getCurrentTime() {
   // 현재 날짜와 시간을 포함하는 Date 객체 생성
   const currentDate = new Date("2023-11-11T15:16:00");
-  console.log(currentDate.getTime() / 1000);
   return Math.floor(Date.now() / 1000);
 }
 
 function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
-  console.log("1", Type);
+  // true, false string을 boolean으로 변환
   if (Type === "true") return true;
   else if (Type === "false") return false;
   else throw new Error("String Is Not Boolean");
@@ -27,7 +26,7 @@ async function SearchMatchByTitleAndLocation(
   sort: string,
   input: any,
 ) {
-  console.log(filter, sort, input);
+  // 제목, 주소 기반 검색
   return await prisma.posting.findMany({
     where: {
       [filter]: {
@@ -60,6 +59,7 @@ async function SearchMatchByTitleAndLocation(
 }
 
 async function SearchMatchByType(typePostingId: number[], sort: string) {
+  // 게임 유형에 따라 검사
   return await prisma.posting.findMany({
     where: {
       Posting_id: {
@@ -103,7 +103,7 @@ async function SearchMatchByType(typePostingId: number[], sort: string) {
 async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역       sort: "WriteDate PlayTime" / filter: "Title GameType Location"
+  // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
   const sort = request.query.Sort?.toString();
   const input = request.query.Input;
   let filter;
@@ -123,6 +123,7 @@ async function AllMatch( // 게시글 전체 조회
       (await isTrue(request.query?.Five)) ? (five = true) : (five = null);
 
       const typePostingId = await prisma.gameType.findMany({
+        // 검색 조건에 맞는 GameType 테이블을 먼저 검색
         where: {
           OneOnOne: one ? true : undefined,
           ThreeOnThree: three ? true : undefined,
@@ -147,8 +148,6 @@ async function AllMatch( // 게시글 전체 조회
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  console.log(request.body);
-  console.log(request.file);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {
@@ -167,16 +166,13 @@ async function AddMatch(
   const Location = await LatLngToAddress(req.Lat, req.Lng);
   const playTime = new Date(req.PlayTime).getTime();
 
-  let one = isTrue(req.One) ? true : false,
+  const one = isTrue(req.One) ? true : false,
     three = isTrue(req.Three) ? true : false,
-    five = isTrue(req.Five) ? true : false;
-  let isTeam = isTrue(req.IsTeam) ? true : false;
+    five = isTrue(req.Five) ? true : false,
+    isTeam = isTrue(req.IsTeam) ? true : false;
   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
-  console.log(utc);
 
   const Time = new Date(utc + KR_TIME_DIFF);
-  console.log(new Date(utc));
-  console.log(Time);
 
   const newMap = await prisma.map.create({
     data: {
