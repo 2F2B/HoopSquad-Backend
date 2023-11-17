@@ -134,8 +134,14 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      const postingIds: number[] = typePostingId.map((item) => item.Posting_id);
-      console.log("id", postingIds);
+      if (!typePostingId) throw new Error("GameType Not Exists");
+      const postingIds: number[] = typePostingId.map((item) =>
+        item.Posting_id
+          ? item.Posting_id
+          : (() => {
+              throw new Error("Posting_id Not Exists");
+            })(),
+      );
       return await SearchMatchByType(postingIds, sort);
   }
 }
