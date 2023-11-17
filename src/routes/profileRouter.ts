@@ -28,4 +28,17 @@ profileRouter.post("/user", async (req, res) => {
   }
 });
 
+profileRouter.post("/user", async (req, res) => {
+  try {
+    if (!req.body) throw new Error("Body Not Exists");
+    const result = await setUserProfile(req);
+    if (!result) throw new Error("Profile Not Found");
+    res.send(result);
+  } catch (err) {
+    res.status(401);
+    console.error(err);
+    res.send({ result: "error" });
+  }
+});
+
 module.exports = profileRouter;

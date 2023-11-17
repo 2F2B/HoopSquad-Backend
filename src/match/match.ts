@@ -230,7 +230,6 @@ async function AddMatch(
   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
 
   const Time = new Date(utc + KR_TIME_DIFF);
-  console.log(request.file);
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = env("LOCALDB")
 }
 
 model Alarm {
@@ -78,7 +78,6 @@ model OAuthToken {
 
   @@index([User_id], map: "Personal_idx")
 }
-
 
 model Posting {
   Posting_id    Int        @id @default(autoincrement())
