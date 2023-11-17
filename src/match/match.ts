@@ -9,11 +9,22 @@ const prisma = new PrismaClient();
 function getCurrentTime() {
   // 현재 날짜와 시간을 포함하는 Date 객체 생성
   const currentDate = new Date("2023-11-11T15:16:00");
-  console.log(currentDate.getTime() / 1000);
   return Math.floor(Date.now() / 1000);
 }
 
-async function FilterTitle(title: string) {
+function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
+  // true, false string을 boolean으로 변환
+  if (Type === "true") return true;
+  else if (Type === "false") return false;
+  else throw new Error("String Is Not Boolean");
+}
+
+async function SearchMatchByTitleAndLocation(
+  filter: string,
+  sort: string,
+  input: any,
+) {
+  // 제목, 주소 기반 검색
   return await prisma.posting.findMany({
     where: {
       Title: {
@@ -117,9 +128,10 @@ async function FilterGameType(title: string) {
 async function AllMatch( // 게시글 전체 조회
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-  const sort = "Location";
-  let filter = "Title";
+  // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
+  const sort = request.query.Sort?.toString();
+  const input = request.query.Input;
+  let filter;
   let one, three, five;
 
   switch (request.body.filter) {
@@ -128,16 +140,33 @@ async function AllMatch( // 게시글 전체 조회
       break;
     case "Location":
       filter = "Location";
-      break;
-    case request.body.filter.includes(1):
-      one = true;
-      break;
-    case request.body.filter.includes(3):
-      three = true;
-      break;
-    case request.body.filter.includes(5):
-      five = true;
-      break;
+      return SearchMatchByTitleAndLocation(filter, sort, input);
+    case "GameType":
+      (await isTrue(request.query?.One)) ? (one = true) : (one = null);
+      (await isTrue(request.query?.Three)) ? (three = true) : (three = null);
+      (await isTrue(request.query?.Five)) ? (five = true) : (five = null);
+
+      const typePostingId = await prisma.gameType.findMany({
+        // 검색 조건에 맞는 GameType 테이블을 먼저 검색
+        where: {
+          OneOnOne: one ? true : undefined,
+          ThreeOnThree: three ? true : undefined,
+          FiveOnFive: five ? true : undefined,
+        },
+        select: {
+          Posting_id: true,
+        },
+      });
+      console.log(typePostingId);
+      if (!typePostingId) throw new Error("GameType Not Exists");
+      const postingIds: number[] = typePostingId.map((item) =>
+        item.Posting_id
+          ? item.Posting_id
+          : (() => {
+              throw new Error("Posting_id Not Exists");
+            })(),
+      );
+      return await SearchMatchByType(postingIds, sort);
   }
 
   const newMatch = await prisma.posting.findMany({
@@ -177,7 +206,6 @@ async function AllMatch( // 게시글 전체 조회
 async function AddMatch(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  console.log(request.body);
   const user = await prisma.oAuthToken.findFirst({
     // 유저 있는지 확인 및 user_id 가져오기
     where: {
@@ -195,19 +223,14 @@ async function AddMatch(
   const req = request.body.data;
   const Location = await LatLngToAddress(req.Lat, req.Lng);
   const playTime = new Date(req.PlayTime).getTime();
-  let one, three, five;
-  const type = req.GameType;
-  switch (type) {
-    case type.includes(1):
-      one = true;
-      break;
-    case type.includes(3):
-      three = true;
-      break;
-    case type.includes(5):
-      five = true;
-      break;
-  }
+
+  const one = isTrue(req.One) ? true : false,
+    three = isTrue(req.Three) ? true : false,
+    five = isTrue(req.Five) ? true : false,
+    isTeam = isTrue(req.IsTeam) ? true : false;
+  const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
+
+  const Time = new Date(utc + KR_TIME_DIFF);
 
   const newMap = await prisma.map.create({
     data: {

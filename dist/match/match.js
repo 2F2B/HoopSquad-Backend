@@ -16,11 +16,20 @@ const prisma = new client_1.PrismaClient();
 function getCurrentTime() {
     // 현재 날짜와 시간을 포함하는 Date 객체 생성
     const currentDate = new Date("2023-11-11T15:16:00");
-    console.log(currentDate.getTime() / 1000);
     return Math.floor(Date.now() / 1000);
 }
-function FilterTitle(title) {
+function isTrue(Type) {
+    // true, false string을 boolean으로 변환
+    if (Type === "true")
+        return true;
+    else if (Type === "false")
+        return false;
+    else
+        throw new Error("String Is Not Boolean");
+}
+function SearchMatchByTitleAndLocation(filter, sort, input) {
     return __awaiter(this, void 0, void 0, function* () {
+        // 제목, 주소 기반 검색
         return yield prisma.posting.findMany({
             where: {
                 Title: {
@@ -125,10 +134,12 @@ function FilterGameType(title) {
 }
 function AllMatch(// 게시글 전체 조회
 request) {
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
-        // 정렬: 최신순, 마감순  필터: 제목, 유형, null(지역) sort: "WriteDate PlayTime" / filter: "Title GameType"
-        const sort = "Location";
-        let filter = "Title";
+        // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
+        const sort = (_a = request.query.Sort) === null || _a === void 0 ? void 0 : _a.toString();
+        const input = request.query.Input;
+        let filter;
         let one, three, five;
         switch (request.body.filter) {
             case "Title":
@@ -136,16 +147,31 @@ request) {
                 break;
             case "Location":
                 filter = "Location";
-                break;
-            case request.body.filter.includes(1):
-                one = true;
-                break;
-            case request.body.filter.includes(3):
-                three = true;
-                break;
-            case request.body.filter.includes(5):
-                five = true;
-                break;
+                return SearchMatchByTitleAndLocation(filter, sort, input);
+            case "GameType":
+                (yield isTrue((_b = request.query) === null || _b === void 0 ? void 0 : _b.One)) ? (one = true) : (one = null);
+                (yield isTrue((_c = request.query) === null || _c === void 0 ? void 0 : _c.Three)) ? (three = true) : (three = null);
+                (yield isTrue((_d = request.query) === null || _d === void 0 ? void 0 : _d.Five)) ? (five = true) : (five = null);
+                const typePostingId = yield prisma.gameType.findMany({
+                    // 검색 조건에 맞는 GameType 테이블을 먼저 검색
+                    where: {
+                        OneOnOne: one ? true : undefined,
+                        ThreeOnThree: three ? true : undefined,
+                        FiveOnFive: five ? true : undefined,
+                    },
+                    select: {
+                        Posting_id: true,
+                    },
+                });
+                console.log(typePostingId);
+                if (!typePostingId)
+                    throw new Error("GameType Not Exists");
+                const postingIds = typePostingId.map((item) => item.Posting_id
+                    ? item.Posting_id
+                    : (() => {
+                        throw new Error("Posting_id Not Exists");
+                    })());
+                return yield SearchMatchByType(postingIds, sort);
         }
         const newMatch = yield prisma.posting.findMany({
             where: {
@@ -185,7 +211,6 @@ exports.AllMatch = AllMatch;
 function AddMatch(request) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(request.body);
         const user = yield prisma.oAuthToken.findFirst({
             // 유저 있는지 확인 및 user_id 가져오기
             where: {
@@ -201,19 +226,9 @@ function AddMatch(request) {
         const req = request.body.data;
         const Location = yield (0, googleMaps_1.LatLngToAddress)(req.Lat, req.Lng);
         const playTime = new Date(req.PlayTime).getTime();
-        let one, three, five;
-        const type = req.GameType;
-        switch (type) {
-            case type.includes(1):
-                one = true;
-                break;
-            case type.includes(3):
-                three = true;
-                break;
-            case type.includes(5):
-                five = true;
-                break;
-        }
+        const one = isTrue(req.One) ? true : false, three = isTrue(req.Three) ? true : false, five = isTrue(req.Five) ? true : false, isTeam = isTrue(req.IsTeam) ? true : false;
+        const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
+        const Time = new Date(utc + KR_TIME_DIFF);
         const newMap = yield prisma.map.create({
             data: {
                 LocationName: req.LocationName,
