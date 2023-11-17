@@ -135,7 +135,6 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      console.log(typePostingId);
       if (!typePostingId) throw new Error("GameType Not Exists");
       const postingIds: number[] = typePostingId.map((item) =>
         item.Posting_id
