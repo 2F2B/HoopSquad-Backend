@@ -21,6 +21,8 @@ const matchRouter = express_1.default.Router();
 matchRouter.post("/", upload.single("Image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // console.log(image);
+        if (!req.body)
+            throw new Error("Body Not Exists");
         const add = yield (0, match_1.AddMatch)(req);
         res.status(201);
         if (req.file) {
