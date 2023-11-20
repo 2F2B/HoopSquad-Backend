@@ -28,5 +28,20 @@ profileRouter.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.send({ result: "error" });
     }
 }));
+profileRouter.post("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.body)
+            throw new Error("Body Not Exists");
+        const result = yield (0, User_1.setUserProfile)(req);
+        if (!result)
+            throw new Error("Profile Not Found");
+        res.send(result);
+    }
+    catch (err) {
+        res.status(401);
+        console.error(err);
+        res.send({ result: "error" });
+    }
+}));
 module.exports = profileRouter;
 //# sourceMappingURL=profileRouter.js.map
