@@ -207,7 +207,7 @@ const socketIOHandler = (
 
     socket.on("disconnecting", () => {
       socket.rooms.forEach((room) =>
-        socket.to(room).emit("notifyDisconnect", socket["nickname"]),
+        socket.to(room).emit("broadcastDisconnect", socket["nickname"]),
       );
     });
 
@@ -217,6 +217,12 @@ const socketIOHandler = (
         const hostId = currentRoom.split("_")[0];
         const guestId = currentRoom.split("_")[1];
 
+        socket.to(currentRoom).emit("sendCallback", {
+          nickname: socket["nickname"],
+          ...data,
+          createdAt: Date.now(),
+        });
+
         if (await checkUserOffline(io, +hostId)) {
           createMessageOffline({
             payload: data.payload,
@@ -233,51 +239,7 @@ const socketIOHandler = (
           return;
         }
 
-        socket.to(currentRoom).emit("sendCallback", {
-          nickname: socket["nickname"],
-          ...data,
-          createdAt: Date.now(),
-        });
-
-    socket.on(
-      "send",
-      async (data: { payload: string }, currentRoom: string) => {
-        const hostId = currentRoom.split("_")[0];
-        const guestId = currentRoom.split("_")[1];
-
-        if (await checkUserOffline(io, +hostId)) {
-          createMessageOffline({
-            payload: data.payload,
-            writerId: +guestId,
-            roomName: currentRoom,
-          });
-
-          return;
-        } else if (await checkUserOffline(io, +guestId)) {
-          createMessageOffline({
-            payload: data.payload,
-            writerId: +hostId,
-            roomName: currentRoom,
-          });
-
-          return;
-        }
-
-        console.log(data);
-        socket.to(currentRoom).emit("sendCallback", {
-          nickname: socket["nickname"],
-          ...data,
-          createdAt: Date.now(),
-        });
-
-        const roomId = await prisma.chatRoom.findFirst({
-          where: {
-            RoomName: getRoomName(+hostId, +guestId),
-          },
-          select: {
-            Room_id: true,
-          },
-        });
+        const roomId = await getRoom(hostId, guestId);
 
         await prisma.message.create({
           data: {
