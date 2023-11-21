@@ -20,12 +20,15 @@ profileRouter.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         const result = yield (0, User_1.getUserProfile)(+req.params.id);
         if (!result)
             throw new Error("Profile Not Found");
+        res.status(200);
         res.send(result);
     }
     catch (err) {
-        res.status(400);
-        console.error(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(400);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 profileRouter.post("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -35,12 +38,15 @@ profileRouter.post("/user", (req, res) => __awaiter(void 0, void 0, void 0, func
         const result = yield (0, User_1.setUserProfile)(req);
         if (!result)
             throw new Error("Profile Not Found");
+        res.status(201);
         res.send(result);
     }
     catch (err) {
-        res.status(401);
-        console.error(err);
-        res.send({ result: "error" });
+        if (err instanceof Error) {
+            res.status(401);
+            console.log(err);
+            res.send({ error: err.message });
+        }
     }
 }));
 module.exports = profileRouter;

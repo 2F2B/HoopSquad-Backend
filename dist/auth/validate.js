@@ -36,26 +36,21 @@ function Validation(request) {
             if ((0, token_1.AccessVerify)(token.AccessToken)) {
                 return { result: "success", User_id: token.User_id };
             } // A/T O
+            if (!(0, token_1.AccessVerify)(token.AccessToken))
+                throw new Error("Token Not Correct"); // A/T 틀림
             if (!(0, token_1.AccessVerify)(token.RefreshToken))
-                return { result: "expired" }; // A/T X, R/T X
-            if ((0, token_1.AccessVerify)(token.AccessToken)) {
-                return { result: "success", User_id: token.User_id };
-            } // A/T O
-            if (!(0, token_1.AccessVerify)(token.RefreshToken))
-                throw new Error("Token Expired"); // A/T X, R/T X
+                throw new Error(""); // A/T X, R/T X
             if (isTokenValidMoreThanAWeek(token)) {
                 const newToken = (0, token_1.AccessRefresh)(token.Auth_id);
                 return { access_token: newToken.Access_Token, User_id: token.User_id };
             }
             else {
-                const newTokens = (0, token_1.GenerateToken)(token.Auth_id);
+                const newToken = (0, token_1.GenerateToken)(token.Auth_id);
                 return { access_token: newToken.Access_Token, User_id: token.User_id };
             }
-            {
-                const newTokens = (0, token_1.GenerateToken)(token.Auth_id);
-                return { access_token: newTokens.Access_Token, User_id: token.User_id };
-            }
         }
+        else
+            throw new Error("Token Not Exists");
     });
 }
 exports.Validation = Validation;
