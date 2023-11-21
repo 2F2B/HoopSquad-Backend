@@ -8,24 +8,9 @@ const prisma = new PrismaClient();
  * @param id
  * @returns
  */
-async function getCourt(id?: number): Promise<
-  | {
-      Court_id: number;
-      Name: string;
-      Location: string;
-      Map: {
-        Lat: number;
-        Lng: number;
-      };
-    }[]
-  | {
-      Court_id: number;
-      Name: string;
-      Location: string;
-    }[]
-> {
+async function getCourt(id?: number) {
   if (id) {
-    const court = await prisma.court.findMany({
+    const court = await prisma.court.findFirst({
       where: {
         Court_id: id,
       },
@@ -41,7 +26,7 @@ async function getCourt(id?: number): Promise<
         },
       },
     });
-    prisma.$disconnect();
+    if (!court) throw new Error("No Court Exist");
     return court;
   } else {
     const court = await prisma.court.findMany({
@@ -51,9 +36,22 @@ async function getCourt(id?: number): Promise<
         Location: true,
       },
     });
-    prisma.$disconnect();
     return court;
   }
+}
+
+function getCurrentDate() {
+  const currentDate = new Date(Date.now());
+
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+  const day = String(currentDate.getDate()).padStart(2, "0");
+  const hours = String(currentDate.getHours()).padStart(2, "0");
+  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+  const seconds = String(currentDate.getSeconds()).padStart(2, "0");
+
+  const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return formattedDate;
 }
 
 async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
@@ -66,12 +64,7 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
       ],
     },
   });
-  if (IsExist.length != 0) {
-    return {
-      Code: 400,
-      TimeStamp: Date.now().toString(),
-    };
-  }
+  if (IsExist.length != 0) throw new Error("Court Already Exist");
   await prisma.court.create({
     data: {
       Name: req.Name,
@@ -87,10 +80,7 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
 
-  return {
-    Code: 200,
-    TimeStamp: Date.now().toString(),
-  };
+  return { TimeStamp: getCurrentDate() };
 }
 
 export { getCourt, addCourt };
