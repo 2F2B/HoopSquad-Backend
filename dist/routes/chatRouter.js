@@ -174,11 +174,12 @@ const socketIOHandler = (server) => {
             done(getRoomName(hostId, guestId));
         }));
         socket.on("disconnecting", () => {
-            socket.rooms.forEach((room) => socket.to(room).emit("notifyDisconnect", socket["nickname"]));
+            socket.rooms.forEach((room) => socket.to(room).emit("broadcastDisconnect", socket["nickname"]));
         });
         socket.on("send", (data, currentRoom) => __awaiter(void 0, void 0, void 0, function* () {
             const hostId = currentRoom.split("_")[0];
             const guestId = currentRoom.split("_")[1];
+            socket.to(currentRoom).emit("sendCallback", Object.assign(Object.assign({ nickname: socket["nickname"] }, data), { createdAt: Date.now() }));
             if (yield checkUserOffline(io, +hostId)) {
                 createMessageOffline({
                     payload: data.payload,
