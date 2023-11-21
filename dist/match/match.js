@@ -172,6 +172,7 @@ function AddMatch(request) {
         const one = isTrue(req.One) ? true : false, three = isTrue(req.Three) ? true : false, five = isTrue(req.Five) ? true : false, isTeam = isTrue(req.IsTeam) ? true : false;
         const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
         const Time = new Date(utc + KR_TIME_DIFF);
+        console.log(request.file);
         const newMap = yield prisma.map.create({
             data: {
                 LocationName: req.LocationName,

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = env("LOCALDB")
 }
 
 model Alarm {
@@ -193,6 +193,4 @@ model GameType {
   Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   Posting      Posting?  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
 
-  @@index([Posting_id], map: "fk_GameType_Posting")
-  @@index([Profile_id], map: "GameType_Profile_id_fkey")
 }
