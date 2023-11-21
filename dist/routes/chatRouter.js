@@ -47,11 +47,6 @@ function createMessageOffline({ payload, writerId, roomName, }) {
         });
     });
 }
-/**
- * 방 생성 함수
- * @param hostId
- * @param guestId
- */
 function createRoom(hostId, guestId) {
     return __awaiter(this, void 0, void 0, function* () {
         const isChatRoomExist = yield prisma.chatRoom.findMany({
