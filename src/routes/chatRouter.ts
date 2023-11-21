@@ -3,6 +3,16 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import http from "http";
 import { PrismaClient } from "@prisma/client";
 
+//CHECKLIST
+//[x]: 닉네임 설정
+//[x]: 유저 아이디 설정
+//[x]: 방 참가
+//[x]: 방 생성
+//[x]: 메시지 전송
+//[x]: 연결 끊기
+//[x]: 데이터베이스 연동
+//[ ]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
+
 type SocketIO = SocketIO.Server<
   DefaultEventsMap,
   DefaultEventsMap,
@@ -11,6 +21,7 @@ type SocketIO = SocketIO.Server<
 >;
 
 const prisma = new PrismaClient();
+
 class Socket extends SocketIO.Socket {
   nickname!: string;
   userId!: number;
@@ -29,6 +40,147 @@ type joinRoomType = {
   io: SocketIO.Server;
 };
 
+const socketIOHandler = (
+  server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
+) => {
+  const io = new SocketIO.Server(server);
+  io.on("connection", (s) => {
+    const socket = s as Socket;
+
+    socket.on("setNickname", (nick: string) => {
+      socket["nickname"] = nick;
+    });
+
+    socket.on("setUserId", async (id: number, done: Function) => {
+      // const user = await prisma.oAuthToken.findFirst({
+      //   where: {
+      //     AccessToken: token,
+      //   },
+      //   select: {
+      //     User_id: true,
+      //   },
+      // });
+      socket["userId"] = id;
+      done();
+    });
+
+    socket.on("joinAllRooms", async (user_id: number) => {
+      const chatRoomList = await findAllChatRoom(user_id);
+
+      chatRoomList.forEach((room) => {
+        socket.join(`${room.RoomName}`);
+      });
+    });
+
+    socket.on("join", (room, done) => {
+      socket.join(room);
+      done();
+    });
+
+    socket.on("makeRoom", async (guestId: number, done: Function) => {
+      const hostId = socket["userId"];
+      await createRoom(hostId, guestId);
+      await joinRoom({
+        socket: socket,
+        hostId: hostId,
+        guestId: guestId,
+        io: io,
+      });
+      socket
+        .to(getRoomName(hostId, guestId))
+        .emit("makeRoomCallback", getRoomName(hostId, guestId));
+      done(getRoomName(hostId, guestId));
+    });
+
+    socket.on("disconnecting", () => {
+      socket.rooms.forEach((room) =>
+        socket.to(room).emit("broadcastDisconnect", socket["nickname"]),
+      );
+    });
+
+    socket.on(
+      "send",
+      async (data: { payload: string }, currentRoom: string) => {
+        const hostId = currentRoom.split("_")[0];
+        const guestId = currentRoom.split("_")[1];
+
+        socket.to(currentRoom).emit("sendCallback", {
+          nickname: socket["nickname"],
+          ...data,
+          createdAt: Date.now(),
+        });
+
+        if (await checkUserOffline(io, +hostId)) {
+          createMessageOffline({
+            payload: data.payload,
+            writerId: +guestId,
+            roomName: currentRoom,
+          });
+          return;
+        } else if (await checkUserOffline(io, +guestId)) {
+          createMessageOffline({
+            payload: data.payload,
+            writerId: +hostId,
+            roomName: currentRoom,
+          });
+          return;
+        }
+
+        const roomId = await getRoom(hostId, guestId);
+
+        await prisma.message.create({
+          data: {
+            Msg: data.payload,
+            User_id: socket["userId"],
+            Room_id: roomId?.Room_id!!,
+          },
+        });
+      },
+    );
+  });
+};
+
+module.exports = { socketIOHandler };
+
+async function getRoom(hostId: string, guestId: string) {
+  return await prisma.chatRoom.findFirst({
+    where: {
+      RoomName: getRoomName(+hostId, +guestId),
+    },
+    select: {
+      Room_id: true,
+    },
+  });
+}
+
+async function findAllChatRoom(user_id: number) {
+  return await prisma.chatRoom.findMany({
+    where: {
+      OR: [
+        {
+          Host_id: user_id,
+        },
+        {
+          Message: {
+            some: {
+              User_id: user_id,
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      RoomName: true,
+    },
+  });
+}
+
+/**
+ * 호스트 ID와 게스트 ID로 방 이름을 알아내는 함수
+ * @param hostId
+ * @param guestId
+ * @returns
+ */
 function getRoomName(hostId: number, guestId: number) {
   return `${hostId}_${guestId}`;
 }
@@ -120,143 +272,3 @@ async function checkUserOffline(io: SocketIO.Server, userId: number) {
   if (isOnline == true) return false;
   else return true;
 }
-
-const socketIOHandler = (
-  server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
-) => {
-  const io = new SocketIO.Server(server);
-  io.on("connection", (s) => {
-    const socket = s as Socket;
-    console.log(socket.rooms);
-
-    socket.on("setNickname", (nick: string) => {
-      socket["nickname"] = nick;
-    });
-
-    socket.on("setUserId", async (id: number, done: Function) => {
-      // const user = await prisma.oAuthToken.findFirst({
-      //   where: {
-      //     AccessToken: token,
-      //   },
-      //   select: {
-      //     User_id: true,
-      //   },
-      // });
-      socket["userId"] = id;
-      done();
-    });
-
-    socket.on("joinAllRooms", async (user_id: number) => {
-      const chatRoomList = await prisma.chatRoom.findMany({
-        where: {
-          OR: [
-            {
-              Host_id: user_id,
-            },
-            {
-              Message: {
-                some: {
-                  User_id: user_id,
-                },
-              },
-            },
-          ],
-        },
-        select: {
-          RoomName: true,
-        },
-      });
-
-      chatRoomList.forEach((room) => {
-        socket.join(`${room.RoomName}`);
-      });
-
-      console.log(socket.rooms);
-    });
-
-    socket.on("join", (room, done) => {
-      socket.join(room);
-      console.log(socket.rooms);
-      done();
-    });
-
-    socket.on("makeRoom", async (guestId: number, done: Function) => {
-      const hostId = socket["userId"];
-      await createRoom(hostId, guestId);
-      await joinRoom({
-        socket: socket,
-        hostId: hostId,
-        guestId: guestId,
-        io: io,
-      });
-      socket
-        .to(getRoomName(hostId, guestId))
-        .emit("makeRoomCallback", getRoomName(hostId, guestId));
-      done(getRoomName(hostId, guestId));
-    });
-
-    socket.on("disconnect", () => {});
-
-    socket.on(
-      "send",
-      async (data: { payload: string }, currentRoom: string) => {
-        const hostId = currentRoom.split("_")[0];
-        const guestId = currentRoom.split("_")[1];
-
-        if (await checkUserOffline(io, +hostId)) {
-          createMessageOffline({
-            payload: data.payload,
-            writerId: +guestId,
-            roomName: currentRoom,
-          });
-
-          return;
-        } else if (await checkUserOffline(io, +guestId)) {
-          createMessageOffline({
-            payload: data.payload,
-            writerId: +hostId,
-            roomName: currentRoom,
-          });
-
-          return;
-        }
-
-        console.log(data);
-        socket.to(currentRoom).emit("sendCallback", {
-          nickname: socket["nickname"],
-          ...data,
-          createdAt: Date.now(),
-        });
-
-        const roomId = await prisma.chatRoom.findFirst({
-          where: {
-            RoomName: getRoomName(+hostId, +guestId),
-          },
-          select: {
-            Room_id: true,
-          },
-        });
-
-        await prisma.message.create({
-          data: {
-            Msg: data.payload,
-            User_id: socket["userId"],
-            Room_id: roomId?.Room_id!!,
-          },
-        });
-      },
-    );
-  });
-};
-
-//CHECKLIST
-//[x]: 닉네임 설정
-//[x]: 유저 아이디 설정
-//[x]: 방 참가
-//[x]: 방 생성
-//[x]: 메시지 전송
-//[x]: 연결 끊기
-//[x]: 데이터베이스 연동
-//[ ]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
-
-module.exports = { socketIOHandler };
