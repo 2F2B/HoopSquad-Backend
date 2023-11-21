@@ -15,12 +15,12 @@ function NameGen(): string {
 async function Register(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (req.body.Email == undefined) return { result: "error" };
+  if (req.body.Email == undefined) throw new Error("Not Provided");
   const isExist = await prisma.userData.findFirst({
     // 유저가 이미 가입했는지 확인
     where: { Email: req.body.Email },
   });
-  if (isExist) return { result: "isUser" }; //가입 유저
+  if (isExist) throw new Error("User Already Exist"); //가입 유저
   // 미가입 유저
   const newUser = await prisma.user.create({
     data: {
@@ -55,14 +55,17 @@ async function Register(
 async function Login(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (req.body.Email == undefined) return { result: "error" };
+  if (req.body.Email == undefined) throw new Error("Email Not Provided");
+  if (req.body.Password == undefined) throw new Error("Password Not Provided");
   const isExist = await prisma.userData.findFirst({
     where: {
       Email: req.body.Email,
     },
   });
-  if (!isExist) return { result: "notUser" }; // DB에 유저 없음
-  if (isExist.Password != req.body.Password) return { result: "PasswordError" };
+
+  if (!isExist) throw new Error("User Not Exist"); // DB에 유저 없음
+  if (isExist.Password != req.body.Password)
+    throw new Error("Password Not Match");
   // DB에 유저 있음
   const newToken = await GenerateToken(
     JSON.stringify({ Auth_id: isExist.User_id }),
@@ -79,6 +82,11 @@ async function Login(
       Auth_id: isExist.User_id.toString(),
     },
   });
-  return { token: newToken.Access_Token };
+  const user = await prisma.user.findFirst({
+    where: {
+      User_id: isExist.User_id,
+    },
+  });
+  return { token: newToken.Access_Token, Name: user?.Name };
 }
 export { Register, Login };
