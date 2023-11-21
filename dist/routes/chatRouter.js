@@ -17,26 +17,20 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 class Socket extends socket_io_1.default.Socket {
 }
-function createMessageOffline({ payload, writerId, receiverId, isWriterHost, }) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield prisma.message.create({
-            data: {
-                Msg: payload,
-                Writer_id: writerId.toString(),
-                Receiver_id: receiverId.toString(),
-                ChatRoom: {
-                    create: {
-                        Host_id: isWriterHost ? writerId : receiverId,
-                        Guest_id: isWriterHost ? receiverId : writerId,
-                    },
-                },
-            },
-        });
-    });
+function getRoomName(hostId, guestId) {
+    return `${hostId}_${guestId}`;
 }
-function createRoom(hostId, guestId) {
+/**
+ * 유저가 오프라인인 상대에게 메시지를 보내는 함수
+ * @param payload
+ * @param writerId
+ * @param roomName
+ */
+function createMessageOffline({ payload, writerId, roomName, }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const isChatRoomExist = yield prisma.chatRoom.findFirst({
+        const hostId = +roomName.split("_")[0];
+        const guestId = +roomName.split("_")[1];
+        const room = yield prisma.chatRoom.findFirst({
             where: {
                 RoomName: getRoomName(hostId, guestId),
             },

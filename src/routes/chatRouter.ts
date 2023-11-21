@@ -19,33 +19,34 @@ class Socket extends SocketIO.Socket {
 type createMessageOfflineType = {
   payload: string;
   writerId: number;
-  receiverId: number;
-  isWriterHost: boolean;
+  roomName: string;
 };
 
+type joinRoomType = {
+  socket: Socket;
+  hostId: number;
+  guestId: number;
+  io: SocketIO.Server;
+};
+
+function getRoomName(hostId: number, guestId: number) {
+  return `${hostId}_${guestId}`;
+}
+
+/**
+ * 유저가 오프라인인 상대에게 메시지를 보내는 함수
+ * @param payload
+ * @param writerId
+ * @param roomName
+ */
 async function createMessageOffline({
   payload,
   writerId,
-  receiverId,
-  isWriterHost,
-}: createMessageOfflineType) {
-  await prisma.message.create({
-    data: {
-      Msg: payload,
-      Writer_id: writerId.toString(),
-      Receiver_id: receiverId.toString(),
-      ChatRoom: {
-        create: {
-          Host_id: isWriterHost ? writerId : receiverId,
-          Guest_id: isWriterHost ? receiverId : writerId,
-        },
-      },
-    },
-  });
-}
-
-async function createRoom(hostId: number, guestId: number) {
-  const isChatRoomExist = await prisma.chatRoom.findFirst({
+  roomName,
+}: createMessageOfflineType): Promise<void> {
+  const hostId = +roomName.split("_")[0];
+  const guestId = +roomName.split("_")[1];
+  const room = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(hostId, guestId),
     },

@@ -197,5 +197,4 @@ model GameType {
   Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
   Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction )
 
-  @@index([Posting_id], map: "fk_GameType_Posting")
 }
