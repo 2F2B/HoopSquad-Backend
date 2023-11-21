@@ -135,7 +135,6 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      console.log(typePostingId);
       if (!typePostingId) throw new Error("GameType Not Exists");
       const postingIds: number[] = typePostingId.map((item) =>
         item.Posting_id
@@ -176,7 +175,7 @@ async function AddMatch(
   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
 
   const Time = new Date(utc + KR_TIME_DIFF);
-
+  console.log(request.file);
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
