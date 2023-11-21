@@ -21,9 +21,7 @@ async function UserDelete(
       },
     });
     return { result: "success" };
-  } else {
-    return { result: "expired" };
-  }
+  } else throw new Error("User Not Exists");
 }
 
 export { UserDelete };

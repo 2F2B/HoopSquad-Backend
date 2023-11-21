@@ -25,7 +25,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ubuntu@52.79.227.4 "\
             cd /home/ubuntu/HoopSquad-Backend && \
-            git pull && \
+            git pull -f origin master && \
             yarn install && \
             tsc && \
             yarn prisma db push && \
