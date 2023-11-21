@@ -26,7 +26,7 @@ authRouter.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (err) {
         if (err instanceof Error) {
-            res.status(400);
+            res.status(401);
             console.log(err);
             res.send({ error: err.message });
         }
@@ -51,6 +51,7 @@ authRouter.get("/google/register", (req, res) => __awaiter(void 0, void 0, void 
         const result = yield (0, oAuth_1.LoginGoogle)(req.query.code);
         res.header("Authorization", `Bearer ${result.Token}`);
         res.header("User-Id", result.Id);
+        res.status(200);
         res.end();
     }
     catch (err) {
@@ -66,6 +67,7 @@ authRouter.get("/kakao/register", (req, res) => __awaiter(void 0, void 0, void 0
         const result = yield (0, oAuth_1.LoginKakao)(req.query.code);
         res.header("Access-Token", result.Token);
         res.header("User-Id", result.Id);
+        res.status(200);
         res.end();
     }
     catch (err) {
