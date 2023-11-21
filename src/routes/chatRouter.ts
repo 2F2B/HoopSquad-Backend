@@ -94,7 +94,7 @@ const socketIOHandler = (
 
     socket.on("disconnecting", () => {
       socket.rooms.forEach((room) =>
-        socket.to(room).emit("notifyDisconnect", socket["nickname"]),
+        socket.to(room).emit("broadcastDisconnect", socket["nickname"]),
       );
     });
 
@@ -103,6 +103,12 @@ const socketIOHandler = (
       async (data: { payload: string }, currentRoom: string) => {
         const hostId = currentRoom.split("_")[0];
         const guestId = currentRoom.split("_")[1];
+
+        socket.to(currentRoom).emit("sendCallback", {
+          nickname: socket["nickname"],
+          ...data,
+          createdAt: Date.now(),
+        });
 
         if (await checkUserOffline(io, +hostId)) {
           createMessageOffline({
@@ -119,12 +125,6 @@ const socketIOHandler = (
           });
           return;
         }
-
-        socket.to(currentRoom).emit("sendCallback", {
-          nickname: socket["nickname"],
-          ...data,
-          createdAt: Date.now(),
-        });
 
         const roomId = await getRoom(hostId, guestId);
 
