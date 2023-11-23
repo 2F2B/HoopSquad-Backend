@@ -1,8 +1,13 @@
-import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express";
 import { ParsedQs } from "qs";
-import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
+import { GenerateToken } from "./token";
+import {
+  NotProvidedError,
+  PasswordNotMatchError,
+  UserAlreadyExistError,
+  UserNotExistError,
+} from "./error";
 
 const prisma = new PrismaClient();
 
@@ -15,12 +20,12 @@ function NameGen(): string {
 async function Register(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (req.body.Email == undefined) throw new Error("Not Provided");
+  if (req.body.Email == undefined) throw new NotProvidedError();
   const isExist = await prisma.userData.findFirst({
     // 유저가 이미 가입했는지 확인
     where: { Email: req.body.Email },
   });
-  if (isExist) throw new Error("User Already Exist"); //가입 유저
+  if (isExist) throw new UserAlreadyExistError(); //가입 유저
   // 미가입 유저
   const newUser = await prisma.user.create({
     data: {
@@ -55,17 +60,16 @@ async function Register(
 async function Login(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (req.body.Email == undefined) throw new Error("Email Not Provided");
-  if (req.body.Password == undefined) throw new Error("Password Not Provided");
+  if (req.body.Email == undefined) throw new NotProvidedError("Email");
+  if (req.body.Password == undefined) throw new NotProvidedError("Password");
   const isExist = await prisma.userData.findFirst({
     where: {
       Email: req.body.Email,
     },
   });
 
-  if (!isExist) throw new Error("User Not Exist"); // DB에 유저 없음
-  if (isExist.Password != req.body.Password)
-    throw new Error("Password Not Match");
+  if (!isExist) throw new UserNotExistError(); // DB에 유저 없음
+  if (isExist.Password != req.body.Password) throw new PasswordNotMatchError();
   // DB에 유저 있음
   const newToken = await GenerateToken(
     JSON.stringify({ Auth_id: isExist.User_id }),
