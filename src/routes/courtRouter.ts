@@ -1,5 +1,7 @@
 import express from "express";
 import { getCourt, addCourt } from "../court/court";
+import { CourtAlreadyExistError, NoCourtExistError } from "../court/error";
+import { handleErrors } from "../ErrorHandler";
 const courtRouter = express.Router();
 
 courtRouter.get("/", async (_req, res) => {
@@ -7,10 +9,10 @@ courtRouter.get("/", async (_req, res) => {
     const result = await getCourt();
     res.json(result);
   } catch (err) {
-    if (err instanceof Error) {
-      res.status(400);
-      console.error(err);
-      res.json({ error: err.message });
+    if (err instanceof NoCourtExistError) {
+      handleErrors<NoCourtExistError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
@@ -20,10 +22,10 @@ courtRouter.get("/:id", async (req, res) => {
     const result = await getCourt(+req.params.id);
     res.json(result);
   } catch (err) {
-    if (err instanceof Error) {
-      res.status(400);
-      console.error(err);
-      res.json({ error: err.message });
+    if (err instanceof NoCourtExistError) {
+      handleErrors<NoCourtExistError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
@@ -33,9 +35,10 @@ courtRouter.post("/", async (req, res) => {
     const result = await addCourt(req.body);
     res.json(result);
   } catch (err) {
-    if (err instanceof Error) {
-      res.status(400);
-      res.json({ error: err.message });
+    if (err instanceof CourtAlreadyExistError) {
+      handleErrors<CourtAlreadyExistError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
