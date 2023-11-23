@@ -4,12 +4,22 @@ import { Login, Register } from "../auth/auth";
 import { UserDelete } from "../auth/userDelete";
 import { Validation } from "../auth/validate";
 import {
+  ErrorWithStatusCode,
   NotProvidedError,
   PasswordNotMatchError,
   UserAlreadyExistError,
   UserNotExistError,
 } from "../auth/error";
-import { handleErrors } from "../ErrorHandler";
+import { Response } from "express-serve-static-core";
+
+function handleErrors<T extends ErrorWithStatusCode | Error>(
+  err: T,
+  res: Response<any, Record<string, any>, number>,
+) {
+  const statusCode = err instanceof ErrorWithStatusCode ? err.statusCode : 400;
+  console.error(err);
+  res.status(statusCode).json({ error: err.message });
+}
 
 const authRouter = express.Router();
 
