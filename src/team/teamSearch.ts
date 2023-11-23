@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { TeamNotFoundError } from "./error";
 
 type TeamType = {
   Team_id: number;
@@ -37,7 +38,7 @@ async function getTeam(id?: number) {
 
     if (team) {
       return team;
-    } else return { result: "error" };
+    } else throw new TeamNotFoundError();
   }
 }
 
