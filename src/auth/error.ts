@@ -1,4 +1,6 @@
-import { ErrorWithStatusCode } from "../ErrorHandler";
+export class ErrorWithStatusCode extends Error {
+  statusCode!: number;
+}
 
 export class NotProvidedError extends ErrorWithStatusCode {
   statusCode: number = 400;
