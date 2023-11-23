@@ -11,6 +11,7 @@ const httpServer = http.createServer(app);
 const teamRouter = require("./routes/teamRouter");
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
+const alarmRouter = require("./routes/alarmRouter");
 const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
 const profileRouter = require("./routes/profileRouter");
@@ -20,6 +21,7 @@ app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use("/notification", alarmRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
