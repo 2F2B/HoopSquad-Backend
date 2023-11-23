@@ -8,9 +8,10 @@ alarmRouter.get("/:id", async (req, res) => {
     const result = await getAlarm(+req.params.id);
     res.json(result);
   } catch (err) {
-    console.error(err);
-    res.status(403);
-    res.json({ result: "error" });
+    if (err instanceof Error) {
+      console.error(err);
+      res.json({ error: err.message });
+    }
   }
 });
 
@@ -19,9 +20,10 @@ alarmRouter.post("/match", async (req, res) => {
     await applyMatch(req.body);
     res.json({ result: "success" });
   } catch (err) {
-    console.error(err);
-    res.status(403);
-    res.json({ result: "error" });
+    if (err instanceof Error) {
+      console.error(err);
+      res.json({ error: err.message });
+    }
   }
 });
 

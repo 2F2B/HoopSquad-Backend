@@ -38,5 +38,12 @@ async function applyMatch(body: { Alarm_id: number; IsApply: number }) {
       IsApply: body.IsApply,
     },
   });
+  const result = await prisma.alarm.findFirst({
+    where: {
+      Alarm_id: body.Alarm_id,
+    },
+  });
+
+  return result!!;
 }
 export { getAlarm, applyMatch };
