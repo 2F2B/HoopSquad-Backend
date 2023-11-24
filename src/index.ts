@@ -2,10 +2,6 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
-const teamRouter = require("./routes/teamRouter");
-const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
-const alarmRouter = require("./routes/alarmRouter");
 
 const app = express();
 app.use(cors());
