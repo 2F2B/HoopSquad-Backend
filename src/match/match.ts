@@ -3,6 +3,15 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress } from "../google-maps/googleMaps";
+import multer from "multer";
+import fs from "fs";
+
+fs.readdir("uploads", (error) => {
+  // uploads 폴더 없으면 생성
+  if (error) {
+    fs.mkdirSync("uploads");
+  }
+});
 
 const KR_TIME_DIFF = 10 * 9 * 60 * 60 * 1000;
 

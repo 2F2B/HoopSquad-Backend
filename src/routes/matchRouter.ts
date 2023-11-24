@@ -3,9 +3,21 @@ import { PrismaClient } from "@prisma/client";
 import { AllMatch, AddMatch, MatchInfo } from "../match/match";
 import { BodyParser } from "body-parser";
 import multer from "multer";
+import path from "path";
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) {
+      cb(null, "uploads/");
+    },
+    filename(req, file, cb) {
+      const ext = path.extname(file.originalname);
+      cb(null, path.basename(file.originalname, ext) + ext);
+    },
+  }),
+  limits: { fileSize: 1024 * 1024 },
+});
 
 const matchRouter = express.Router();
 
