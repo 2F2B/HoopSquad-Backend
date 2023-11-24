@@ -58,7 +58,7 @@ async function LoginKakao(code: any) {
           },
         },
         Profile: {
-          create: {},
+          create: { Overall: 50 },
         },
       },
       include: {
@@ -156,7 +156,9 @@ async function LoginGoogle( // 유저 코드 넘어옴
           },
         },
         Profile: {
-          create: {},
+          create: {
+            Overall: 50,
+          },
         },
       },
       include: {
