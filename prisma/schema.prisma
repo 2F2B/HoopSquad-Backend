@@ -192,4 +192,7 @@ model GameType {
   Profile_id   Int?
   Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
+
+  @@index([Profile_id], map: "GameType_Profile_id_fkey")
+  @@index([Posting_id], map: "fk_GameType_Posting")
 }
