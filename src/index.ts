@@ -2,7 +2,10 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
-import path from "path";
+const teamRouter = require("./routes/teamRouter");
+const authRouter = require("./routes/authRouter");
+const courtRouter = require("./routes/courtRouter");
+const alarmRouter = require("./routes/alarmRouter");
 
 const app = express();
 app.use(cors());
@@ -22,8 +25,6 @@ app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/notification", alarmRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
