@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("LOCALDB")
+  url      = env("DATABASE_URL")
 }
 
 model Alarm {
@@ -102,11 +102,10 @@ model Posting {
 
 model Profile {
   User_id   Int        @id
-  Team_id   Int?
-  Overall   Int
   Height    Float?     @db.Float
-  Weight    Int?
-  Year      Int?
+  Age       Int?
+  Position  String?    @db.VarChar(45)
+  Grade     String?    @db.VarChar(45)
   Introduce String?    @db.VarChar(45)
   Location  String?    @db.VarChar(45)
   GameType  GameType[]
@@ -164,7 +163,7 @@ model User {
 
 model Image {
   Image_id   Int      @id @default(autoincrement())
-  ImageData  String   @db.VarChar(100)
+  ImageData  Bytes    @db.Blob
   Posting_id Int?
   Profile_id Int?
   Posting    Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_posting")
@@ -195,5 +194,5 @@ model GameType {
   Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
 
   @@index([Profile_id], map: "GameType_Profile_id_fkey")
-  @@index([Posting_id], map: "fk_GameType_posting")
+  @@index([Posting_id], map: "fk_GameType_Posting")
 }
