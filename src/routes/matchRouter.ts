@@ -43,11 +43,6 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
     if (!req.body) throw new Error("Body Not Exists");
     const add = await AddMatch(req);
     res.status(201);
-    // if (req.files) {
-    //   storage._removeFile(req, req.files, (err) => {
-    //     if (err) throw new Error("File Deletion Failed");
-    //   });
-    // }
     res.send(add);
   } catch (err) {
     if (err instanceof Error) {
