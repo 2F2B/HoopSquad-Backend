@@ -184,7 +184,6 @@ async function AddMatch(
   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
 
   const Time = new Date(utc + KR_TIME_DIFF);
-  console.log(request.file);
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
@@ -202,13 +201,6 @@ async function AddMatch(
               FiveOnFive: five,
             },
           },
-          Image: request.file
-            ? {
-                create: {
-                  ImageData: request.file.buffer,
-                },
-              }
-            : undefined,
           WriteDate: Time.toISOString(),
           PlayTime: playTime / 1000,
           Location: Location.result[0],
@@ -219,12 +211,21 @@ async function AddMatch(
       },
     },
   });
+
   const posting = await prisma.posting.findFirst({
     where: {
       Map_id: newMap.Map_id,
     },
   });
-
+  const files = request.files! as Array<Express.Multer.File>;
+  files.map(async (file: any) => {
+    await prisma.image.create({
+      data: {
+        Posting: { connect: { Posting_id: posting?.Posting_id } },
+        ImageData: file.filename,
+      },
+    });
+  });
   return {
     TimeStamp: Date.now().toString(),
     Posting_id: posting?.Posting_id!!,

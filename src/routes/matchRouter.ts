@@ -13,10 +13,10 @@ const upload = multer({
     },
     filename(req, file, cb) {
       const ext = path.extname(file.originalname);
-      cb(null, path.basename(file.originalname, ext) + ext);
+      cb(null, path.basename(file.originalname, ext) + Date.now() + ext);
     },
   }),
-  limits: { fileSize: 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 const matchRouter = express.Router();
@@ -38,17 +38,16 @@ matchRouter.get("/", async (req, res) => {
   }
 });
 
-matchRouter.post("/", upload.single("Image"), async (req, res) => {
+matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
-    // console.log(image);
     if (!req.body) throw new Error("Body Not Exists");
     const add = await AddMatch(req);
     res.status(201);
-    if (req.file) {
-      storage._removeFile(req, req.file, (err) => {
-        if (err) throw new Error("File Deletion Failed");
-      });
-    }
+    // if (req.files) {
+    //   storage._removeFile(req, req.files, (err) => {
+    //     if (err) throw new Error("File Deletion Failed");
+    //   });
+    // }
     res.send(add);
   } catch (err) {
     if (err instanceof Error) {

@@ -164,7 +164,7 @@ model User {
 
 model Image {
   Image_id   Int      @id @default(autoincrement())
-  ImageData  Bytes    @db.Blob
+  ImageData  String   @db.VarChar(100)
   Posting_id Int?
   Profile_id Int?
   Posting    Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_image_posting")
