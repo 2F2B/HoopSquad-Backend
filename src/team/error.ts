@@ -1,4 +1,6 @@
-export class TeamNotFoundError extends Error {
+import { ErrorWithStatusCode } from "../ErrorHandler";
+
+export class TeamNotFoundError extends ErrorWithStatusCode {
   statusCode!: number;
   constructor() {
     super("No Team Exist");
