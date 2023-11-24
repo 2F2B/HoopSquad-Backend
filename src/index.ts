@@ -2,13 +2,14 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
+import path from "path";
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
-
+const teamRouter = require("./routes/teamRouter");
 const authRouter = require("./routes/authRouter");
 const courtRouter = require("./routes/courtRouter");
 const alarmRouter = require("./routes/alarmRouter");
@@ -18,8 +19,10 @@ const profileRouter = require("./routes/profileRouter");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
+app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/notification", alarmRouter);
 app.use(
   bodyParser.raw({
@@ -35,6 +38,8 @@ try {
     console.error(err);
   }
 }
+app.use("/team", teamRouter);
+app.use("/notification", alarmRouter);
 
 app.get("/", async (_req, res) => {
   try {
