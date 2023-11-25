@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
+import path from "path";
 
 const app = express();
 app.use(cors());
@@ -16,11 +17,15 @@ const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
 const profileRouter = require("./routes/profileRouter");
 
+const parentDirectory = path.join(__dirname, "../../");
+const uploadsDirectory = path.join(parentDirectory, "uploads");
+
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
+app.use("/uploads", express.static(path.join(__dirname, uploadsDirectory)));
 app.use(
   bodyParser.raw({
     type: "image/jpeg",

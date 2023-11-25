@@ -3,6 +3,17 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress } from "../google-maps/googleMaps";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+
+const parentDirectory = path.join(__dirname, "../../..");
+const uploadsDirectory = path.join(parentDirectory, "uploads");
+fs.readdir(uploadsDirectory, (error) => {
+  if (error) {
+    fs.mkdirSync(uploadsDirectory);
+  }
+});
 
 const KR_TIME_DIFF = 10 * 9 * 60 * 60 * 1000;
 
@@ -160,9 +171,7 @@ async function AddMatch(
     },
   });
 
-  if (!user) {
-    return { result: "expired" };
-  }
+  if (!user) throw new Error("User Not Exists");
 
   const req = request.body.data;
   const Location = await LatLngToAddress(req.Lat, req.Lng);
@@ -192,11 +201,6 @@ async function AddMatch(
               FiveOnFive: five,
             },
           },
-          Image: request.file
-            ? {
-                create: { ImageData: request.file.buffer },
-              }
-            : undefined,
           WriteDate: Time.toISOString(),
           PlayTime: playTime / 1000,
           Location: Location.result[0],
@@ -212,6 +216,16 @@ async function AddMatch(
     where: {
       Map_id: newMap.Map_id,
     },
+  });
+
+  const files = request.files as Array<Express.Multer.File>;
+  files.map(async (file: any) => {
+    await prisma.image.create({
+      data: {
+        Posting: { connect: { Posting_id: posting?.Posting_id } },
+        ImageData: file.filename,
+      },
+    });
   });
 
   return {
