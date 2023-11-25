@@ -28,5 +28,4 @@ jobs:
             git pull -f origin master && \
             yarn install && \
             tsc && \
-            yarn prisma db push && \
-            yarn prisma generate"
+            yarn prisma db push
