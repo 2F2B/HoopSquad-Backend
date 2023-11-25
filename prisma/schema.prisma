@@ -102,17 +102,18 @@ model Posting {
 
 model Profile {
   User_id   Int        @id
-  Team_id   Int?
-  Overall   Int
   Height    Float?     @db.Float
-  Weight    Int?
-  Year      Int?
   Introduce String?    @db.VarChar(45)
   Location  String?    @db.VarChar(45)
+  Overall   Int
+  Team_id   Int?
+  Weight    Int?
+  Year      Int?
   GameType  GameType[]
   Image     Image[]
   User      User       @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
+
 model Review {
   User_id Int     @id @default(autoincrement())
   Fouls   Boolean
