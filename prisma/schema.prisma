@@ -102,17 +102,17 @@ model Posting {
 
 model Profile {
   User_id   Int        @id
+  Team_id   Int?
+  Overall   Int
   Height    Float?     @db.Float
-  Age       Int?
-  Position  String?    @db.VarChar(45)
-  Grade     String?    @db.VarChar(45)
+  Weight    Int?
+  Year      Int?
   Introduce String?    @db.VarChar(45)
   Location  String?    @db.VarChar(45)
   GameType  GameType[]
   Image     Image[]
   User      User       @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
-
 model Review {
   User_id Int     @id @default(autoincrement())
   Fouls   Boolean
@@ -192,4 +192,7 @@ model GameType {
   Profile_id   Int?
   Profile      Profile? @relation(fields: [Profile_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   Posting      Posting? @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_GameType_posting")
+
+  @@index([Profile_id], map: "GameType_Profile_id_fkey")
+  @@index([Posting_id], map: "fk_GameType_posting")
 }
