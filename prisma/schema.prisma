@@ -102,13 +102,13 @@ model Posting {
 
 model Profile {
   User_id    Int
-  Team_id    Int?
-  Overall    Int        @default(50)
   Height     Float?     @db.Float
-  Weight     Int?
-  Year       Int?
   Introduce  String?    @db.VarChar(45)
   Location   String?    @db.VarChar(45)
+  Overall    Int        @default(50)
+  Team_id    Int?
+  Weight     Int?
+  Year       Int?
   Profile_id Int        @id
   GameType   GameType[]
   Image      Image[]
@@ -140,10 +140,10 @@ model TeamProfile {
 }
 
 model TeamRelay {
-  TeamRelay_id Int         @id @default(autoincrement())
-  Team_id      Int         
+  Team_id      Int
   IsAdmin      Boolean
   User_id      Int
+  TeamRelay_id Int         @id @default(autoincrement())
   User         User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
   TeamProfile  TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
