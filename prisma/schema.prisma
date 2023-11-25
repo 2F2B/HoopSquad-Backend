@@ -102,13 +102,13 @@ model Posting {
 
 model Profile {
   User_id    Int
-  Team_id    Int?
-  Overall    Int        @default(50)
   Height     Float?     @db.Float
-  Weight     Int?
-  Year       Int?
   Introduce  String?    @db.VarChar(45)
   Location   String?    @db.VarChar(45)
+  Overall    Int        @default(50)
+  Team_id    Int?
+  Weight     Int?
+  Year       Int?
   Profile_id Int        @id
   GameType   GameType[]
   Image      Image[]
@@ -125,26 +125,27 @@ model Review {
 }
 
 model TeamProfile {
-  Team_id    Int        @id @default(autoincrement())
+  Team_id    Int         @id @default(autoincrement())
   Admin_id   Int
-  Name       String     @db.VarChar(45)
-  TeamImage  Bytes?     @db.Blob
-  Location   String     @db.VarChar(45)
-  Introduce  String?    @db.VarChar(400)
-  LatestDate DateTime?  @db.DateTime(0)
+  Name       String      @db.VarChar(45)
+  TeamImage  Bytes?      @db.Blob
+  Location   String      @db.VarChar(45)
+  Introduce  String?     @db.VarChar(400)
+  LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?
-  User       User       @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
-  TeamRelay  TeamRelay?
+  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
+  TeamRelay  TeamRelay[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
 
 model TeamRelay {
-  Team_id     Int         @id
-  IsAdmin     Boolean
-  User_id     Int
-  User        User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
-  TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
+  Team_id      Int
+  IsAdmin      Boolean
+  User_id      Int
+  TeamRelay_id Int         @id @default(autoincrement())
+  User         User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
+  TeamProfile  TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
   @@index([User_id], map: "TeamRelay_User_id_fkey")
