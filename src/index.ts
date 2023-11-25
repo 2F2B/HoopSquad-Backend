@@ -18,14 +18,13 @@ const matchRouter = require("./routes/matchRouter");
 const profileRouter = require("./routes/profileRouter");
 
 const parentDirectory = path.join(__dirname, "../../");
-const uploadsDirectory = path.join(parentDirectory, "uploads");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
-app.use("/uploads", express.static(path.join(__dirname, uploadsDirectory)));
+app.use("/uploads", express.static(path.join(parentDirectory, "uploads")));
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
