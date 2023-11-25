@@ -1,10 +1,33 @@
 import { ErrorWithStatusCode } from "../ErrorHandler";
 
 export class TeamNotFoundError extends ErrorWithStatusCode {
-  statusCode!: number;
+  statusCode: number = 404;
   constructor() {
-    super("No Team Exist");
+    super("Team Not Found");
     this.name = "TeamNotFoundError";
-    this.statusCode = 404;
+  }
+}
+
+export class NotAdminError extends ErrorWithStatusCode {
+  statusCode: number = 401;
+  constructor() {
+    super("Not Admin");
+    this.name = "NotAdmin";
+  }
+}
+
+export class UserAlreadyInTeamError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("User Already In Team");
+    this.name = "UserAlreadyInTeam";
+  }
+}
+
+export class TeamAdminLeaveError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("Team Admin Cannot Leave Team");
+    this.name = "TeamAdminLeave";
   }
 }
