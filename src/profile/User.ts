@@ -38,9 +38,8 @@ async function setUserProfile(
     },
     data: {
       Height: req.body.Height,
-      Age: req.body.Age,
-      Position: req.body.Position,
-      Grade: req.body.Grade,
+      Weight: req.body.Weight,
+      Year: req.body.Year,
       Introduce: req.body.Introduce,
       Location: req.body.Location,
     },

@@ -21,7 +21,6 @@ app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
-app.use("/notification", alarmRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -36,6 +35,8 @@ try {
     console.error(err);
   }
 }
+app.use("/team", teamRouter);
+app.use("/notification", alarmRouter);
 
 app.get("/", async (_req, res) => {
   try {

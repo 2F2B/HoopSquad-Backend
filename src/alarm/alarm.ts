@@ -44,6 +44,6 @@ async function applyMatch(body: { Alarm_id: number; IsApply: number }) {
     },
   });
 
-  return result!!;
+  return result;
 }
 export { getAlarm, applyMatch };

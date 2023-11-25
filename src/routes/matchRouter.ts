@@ -19,7 +19,7 @@ matchRouter.get("/", async (req, res) => {
     res.send(result);
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400);
+      res.status(401);
       console.log(err);
       res.send({ error: err.message });
     }
@@ -46,5 +46,6 @@ matchRouter.post("/", upload.single("Image"), async (req, res) => {
     }
   }
 });
+
 
 module.exports = matchRouter;
