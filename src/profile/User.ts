@@ -31,10 +31,15 @@ async function setUserProfile(
   });
 
   if (!isUser) throw new Error("User Not Exists");
-
-  const profile = await prisma.profile.update({
+  const profile = await prisma.profile.findFirst({
     where: {
       User_id: isUser.User_id,
+    },
+  });
+
+  const updatedProfile = await prisma.profile.update({
+    where: {
+      Profile_id: profile?.Profile_id,
     },
     data: {
       Height: req.body.Height,
@@ -46,7 +51,7 @@ async function setUserProfile(
   });
   const type = await prisma.gameType.findFirst({
     where: {
-      Profile_id: profile.User_id,
+      Profile_id: profile?.Profile_id,
     },
     select: {
       GameType_id: true,
@@ -62,7 +67,7 @@ async function setUserProfile(
       FiveOnFive: req.body.Five,
     },
   });
-  return { ...profile, GameType: updatedType };
+  return { ...updatedProfile, GameType: updatedType };
 }
 
 export { getUserProfile, setUserProfile };
