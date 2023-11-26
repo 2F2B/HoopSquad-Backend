@@ -16,7 +16,7 @@ import fs from "fs";
 import path from "path";
 
 const parentDirectory = path.join(__dirname, "../../..");
-const uploadsDirectory = path.join(parentDirectory, "uploads");
+const uploadsDirectory = path.join(parentDirectory, "image/match");
 fs.readdir(uploadsDirectory, (error) => {
   if (error) {
     fs.mkdirSync(uploadsDirectory);
@@ -304,6 +304,15 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
   if (user.User_id === posting?.User_id) {
     await prisma.posting.delete({
       where: { Posting_id: posting.Posting_id },
+    });
+    const images = await prisma.image.findMany({
+      where: {
+        Posting_id: posting.Posting_id,
+      },
+    });
+    images.forEach((file: any) => {
+      const filePath = path.join(uploadsDirectory, file.ImageData);
+      fs.unlink(filePath, (unlinkErr: any) => {});
     });
   } else throw new UserNotWriterError();
 }

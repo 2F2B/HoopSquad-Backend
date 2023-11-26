@@ -16,12 +16,12 @@ import {
 import { handleErrors } from "../ErrorHandler";
 
 const parentDirectory = path.join(__dirname, "../../..");
-const uploadsDirectory = path.join(parentDirectory, "uploads");
+const uploadsDirectory = path.join(parentDirectory, "image/match");
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: multer.diskStorage({
     destination(req, file, cb) {
-      //저장 위치: ../../../uploads
+      //저장 위치: ../../../image/match
       cb(null, uploadsDirectory);
     },
     filename(req, file, cb) {
