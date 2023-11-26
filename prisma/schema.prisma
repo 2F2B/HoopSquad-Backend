@@ -31,14 +31,14 @@ model ChatRoom {
 }
 
 model Court {
-  Court_id Int      @default(autoincrement())
+  Court_id Int      @id @default(autoincrement())
   Name     String   @db.VarChar(45)
   Date     DateTime @default(now()) @db.Timestamp(0)
   Location String   @db.VarChar(100)
   Map_id   Int
   Map      Map      @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Court_Map")
+  Report   Report[]
 
-  @@id([Court_id, Map_id])
   @@index([Map_id], map: "Map_idx")
 }
 
@@ -200,4 +200,10 @@ model GameType {
 
   @@index([Profile_id], map: "GameType_Profile_id_fkey")
   @@index([Posting_id], map: "fk_GameType_posting")
+}
+
+model Report {
+  id       Int    @id @default(autoincrement())
+  Court_id Int
+  Court    Court? @relation(fields: [Court_id], references: [Court_id], onDelete: Cascade, onUpdate: NoAction)
 }

@@ -189,9 +189,7 @@ async function AddMatch(
     three = isTrue(req.Three) ? true : false,
     five = isTrue(req.Five) ? true : false,
     isTeam = isTrue(req.IsTeam) ? true : false;
-  const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
-
-  const Time = new Date(utc + KR_TIME_DIFF);
+  const Time = getISOTime();
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
@@ -209,7 +207,7 @@ async function AddMatch(
               FiveOnFive: five,
             },
           },
-          WriteDate: Time.toISOString(),
+          WriteDate: Time,
           PlayTime: playTime / 1000,
           Location: Location.result[0],
           RecruitAmount: req.RecruitAmount,
@@ -240,6 +238,13 @@ async function AddMatch(
     TimeStamp: Date.now().toString(),
     Posting_id: posting?.Posting_id!!,
   };
+}
+
+export function getISOTime() {
+  const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
+
+  const Time = new Date(utc + KR_TIME_DIFF);
+  return Time.toISOString();
 }
 
 async function MatchInfo(
