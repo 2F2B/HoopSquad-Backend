@@ -57,9 +57,7 @@ async function LoginKakao(code: any) {
             RToken_CreatedAt: newToken.RToken_CreatedAt,
           },
         },
-        Profile: {
-          create: { Overall: 50 },
-        },
+        Profile: {},
       },
       include: {
         OAuthToken: true,
@@ -155,11 +153,7 @@ async function LoginGoogle( // 유저 코드 넘어옴
             RToken_CreatedAt: newToken.RToken_CreatedAt,
           },
         },
-        Profile: {
-          create: {
-            Overall: 50,
-          },
-        },
+        Profile: {},
       },
       include: {
         OAuthToken: true,

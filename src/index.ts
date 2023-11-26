@@ -16,14 +16,16 @@ const alarmRouter = require("./routes/alarmRouter");
 const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
 const profileRouter = require("./routes/profileRouter");
+const imageRouter = require("./routes/imageRouter");
+
+const parentDirectory = path.join(__dirname, "../../");
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/notification", alarmRouter);
+app.use("/image", imageRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
