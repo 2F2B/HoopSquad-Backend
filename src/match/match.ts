@@ -3,6 +3,14 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress } from "../google-maps/googleMaps";
+import {
+  SortNotFoundError,
+  GameTypeNotFoundError,
+  Posting_idNotFoundError,
+  UserNotFoundError,
+  PostingNotFoundError,
+  UserNotWriterError,
+} from "./error";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -121,7 +129,7 @@ async function AllMatch( // 게시글 전체 조회
   const input = request.query.Input;
   let filter;
   let one, three, five;
-  if (!sort) throw new Error("Sort Not Exist"); //  정렬 정보 없을때
+  if (!sort) throw new SortNotFoundError(); //  정렬 정보 없을때
 
   switch (request.query.Filter) {
     case "Title":
@@ -146,12 +154,12 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      if (!typePostingId) throw new Error("GameType Not Exists");
+      if (!typePostingId) throw new GameTypeNotFoundError();
       const postingIds: number[] = typePostingId.map((item) =>
         item.Posting_id
           ? item.Posting_id
           : (() => {
-              throw new Error("Posting_id Not Exists");
+              throw new Posting_idNotFoundError();
             })(),
       );
       return await SearchMatchByType(postingIds, sort);
@@ -171,7 +179,7 @@ async function AddMatch(
     },
   });
 
-  if (!user) throw new Error("User Not Exists");
+  if (!user) throw new UserNotFoundError();
 
   const req = request.body.data;
   const Location = await LatLngToAddress(req.Lat, req.Lng);
@@ -237,16 +245,16 @@ async function AddMatch(
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (!request.query.Posting_id) throw new Error("Posting_id Not Exists");
+  if (!request.query.Posting_id) throw new Posting_idNotFoundError();
   const map = await prisma.posting.findFirst({
     where: {
-      Posting_id: parseInt(request.query.Posting_id.toString()),
+      Posting_id: parseInt(request.query?.Posting_id.toString()),
     },
     select: {
       Map_id: true,
     },
   });
-  if (!map) throw new Error("Posting Not Exists");
+  if (!map) throw new PostingNotFoundError();
   const match = await prisma.map.findFirst({
     where: {
       Map_id: map.Map_id,
@@ -273,9 +281,32 @@ async function MatchInfo(
       },
     },
   });
-  if (!match) throw new Error("Posting Not Exists");
+  if (!match) throw new PostingNotFoundError();
   return match;
 }
 
+async function DeleteMatch(Posting_id: number, access_token: any) {
+  // 게시글 삭제
+  const user = await prisma.oAuthToken.findFirst({
+    where: {
+      AccessToken: access_token,
+    },
+    select: { User_id: true },
+  });
+  if (!user) throw new UserNotFoundError();
+
+  const posting = await prisma.posting.findFirst({
+    where: {
+      Posting_id: Posting_id,
+    },
+    select: { Posting_id: true, User_id: true },
+  });
+  if (user.User_id === posting?.User_id) {
+    await prisma.posting.delete({
+      where: { Posting_id: posting.Posting_id },
+    });
+  } else throw new UserNotWriterError();
+}
+
 // TODO 채팅
-export { AllMatch, AddMatch, MatchInfo };
+export { AllMatch, AddMatch, MatchInfo, DeleteMatch };
