@@ -1,5 +1,5 @@
 import express from "express";
-import { getCourt, addCourt } from "../court/court";
+import { getCourt, addCourt, reportCourt } from "../court/court";
 import { CourtAlreadyExistError, NoCourtExistError } from "../court/error";
 import { handleErrors } from "../ErrorHandler";
 const courtRouter = express.Router();
@@ -39,6 +39,19 @@ courtRouter.post("/", async (req, res) => {
       handleErrors<CourtAlreadyExistError>(err, res);
     } else if (err instanceof Error) {
       handleErrors<Error>(err, res);
+    }
+  }
+});
+
+courtRouter.delete("/:id", async (req, res) => {
+  try {
+    await reportCourt(+req.params.id);
+    res.status(202).send();
+  } catch (err) {
+    if (err instanceof NoCourtExistError) {
+      handleErrors(err, res);
+    } else if (err instanceof Error) {
+      handleErrors(err, res);
     }
   }
 });
