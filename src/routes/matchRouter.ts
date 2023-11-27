@@ -15,8 +15,8 @@ import {
 } from "../match/error";
 import { handleErrors } from "../ErrorHandler";
 
-const parentDirectory = path.join(__dirname, "../../..");
-const uploadsDirectory = path.join(parentDirectory, "image/match");
+const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
+const uploadsDirectory = path.join(parentDirectory, "image/match"); // ~~~/image/match 주소. 해당 변수는 주소에 대한 값(?)을 저장하는 것
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: multer.diskStorage({
@@ -30,7 +30,7 @@ const upload = multer({
       cb(null, path.basename(file.originalname, ext) + Date.now() + ext);
     },
   }),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 파일 크기 제한 5mb
 });
 
 const matchRouter = express.Router();
@@ -71,10 +71,11 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   } catch (err) {
     // 파일을 먼저 저장하고 메서드가 실행되기 때문에 메서드 중간에 에러나면 저장된 파일 삭제
     if (req.files && +req.files.length > 0) {
-      const files = req.files as Array<Express.Multer.File>;
+      const files = req.files as Array<Express.Multer.File>; // File 배열이라고 명시
       files.forEach((file: any) => {
-        const filePath = path.join(uploadsDirectory, file.filename);
+        const filePath = path.join(uploadsDirectory, file.filename); // 업로드 폴더의 파일 지정
         fs.unlink(filePath, (unlinkErr: any) => {
+          // 해당 파일 삭제
           if (unlinkErr) {
             console.error("Error deleting file:", unlinkErr);
           }
