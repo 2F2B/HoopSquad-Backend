@@ -10,6 +10,7 @@ import {
   UserNotExistError,
 } from "../auth/error";
 import { handleErrors } from "../ErrorHandler";
+import alarmRouter from "./alarmRouter";
 
 const authRouter = express.Router();
 
@@ -108,4 +109,4 @@ authRouter.post("/delete", async (req, res) => {
   }
 });
 
-module.exports = authRouter;
+export default alarmRouter;

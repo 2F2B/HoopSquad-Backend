@@ -100,4 +100,4 @@ matchRouter.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = matchRouter;
+export default matchRouter;

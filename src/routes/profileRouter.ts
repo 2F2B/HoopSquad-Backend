@@ -34,4 +34,4 @@ profileRouter.post("/user", async (req, res) => {
   }
 });
 
-module.exports = profileRouter;
+export default profileRouter;
