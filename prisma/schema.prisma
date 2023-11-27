@@ -105,11 +105,11 @@ model Profile {
   Height     Float?     @db.Float
   Introduce  String?    @db.VarChar(45)
   Location   String?    @db.VarChar(45)
-  Overall    Int        @default(50)
+  Overall    Int
   Team_id    Int?
   Weight     Int?
   Year       Int?
-  Profile_id Int        @id
+  Profile_id Int        @id @default(autoincrement())
   GameType   GameType[]
   Image      Image[]
   User       User       @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Profile_User")
@@ -203,7 +203,9 @@ model GameType {
 }
 
 model Report {
-  id       Int    @id @default(autoincrement())
+  id       Int   @id @default(autoincrement())
   Court_id Int
-  Court    Court? @relation(fields: [Court_id], references: [Court_id], onDelete: Cascade, onUpdate: NoAction)
+  Court    Court @relation(fields: [Court_id], references: [Court_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([Court_id], map: "Report_Court_id_fkey")
 }

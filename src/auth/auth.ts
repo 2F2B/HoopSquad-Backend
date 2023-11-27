@@ -36,6 +36,11 @@ async function Register(
           Password: req.body.Password,
         },
       },
+      Profile: {
+        create: {
+          Overall: 50,
+        },
+      },
     },
   });
   const newToken = await GenerateToken(
@@ -91,6 +96,6 @@ async function Login(
       User_id: isExist.User_id,
     },
   });
-  return { token: newToken.Access_Token, Name: user?.Name };
+  return { token: newToken.Access_Token, Id: user?.User_id };
 }
 export { Register, Login };
