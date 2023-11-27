@@ -18,6 +18,7 @@ import path from "path";
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/match");
 fs.readdir(uploadsDirectory, (error) => {
+  // 디렉토리를 읽어서 해당하는 디렉토리가 없으면 해당 디렉토리를 생성
   if (error) {
     fs.mkdirSync(uploadsDirectory);
   }
@@ -226,6 +227,7 @@ async function AddMatch(
 
   const files = request.files as Array<Express.Multer.File>;
   files.map(async (file: any) => {
+    // 이미지 테이블에는 이미지 제목을 저장
     await prisma.image.create({
       data: {
         Posting: { connect: { Posting_id: posting?.Posting_id } },
