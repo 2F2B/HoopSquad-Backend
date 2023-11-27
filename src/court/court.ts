@@ -42,20 +42,6 @@ async function getCourt(id?: number) {
   }
 }
 
-function getCurrentDate() {
-  const currentDate = new Date(Date.now());
-
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
-  const day = String(currentDate.getDate()).padStart(2, "0");
-  const hours = String(currentDate.getHours()).padStart(2, "0");
-  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
-  const seconds = String(currentDate.getSeconds()).padStart(2, "0");
-
-  const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  return formattedDate;
-}
-
 async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
   const Location = await LatLngToAddress(req.Lat, req.Lng);
   const IsExist = await prisma.court.findMany({
@@ -82,7 +68,7 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
 
-  return { TimeStamp: getCurrentDate() };
+  return { TimeStamp: getISOTime() };
 }
 
 async function reportCourt(id: number) {
