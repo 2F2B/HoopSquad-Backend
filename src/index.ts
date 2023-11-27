@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 const httpServer = http.createServer(app);
 const teamRouter = require("./routes/teamRouter");
 const authRouter = require("./routes/authRouter");
-const courtRouter = require("./routes/courtRouter");
+import courtRouter from "./routes/courtRouter";
 const alarmRouter = require("./routes/alarmRouter");
 const { socketIOHandler } = require("./routes/chatRouter");
 const matchRouter = require("./routes/matchRouter");
