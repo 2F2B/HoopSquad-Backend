@@ -9,14 +9,14 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
-const teamRouter = require("./routes/teamRouter");
-const authRouter = require("./routes/authRouter");
+import teamRouter from "./routes/teamRouter";
+import authRouter from "./routes/authRouter";
 import courtRouter from "./routes/courtRouter";
-const alarmRouter = require("./routes/alarmRouter");
-const { socketIOHandler } = require("./routes/chatRouter");
-const matchRouter = require("./routes/matchRouter");
-const profileRouter = require("./routes/profileRouter");
-const imageRouter = require("./routes/imageRouter");
+import alarmRouter from "./routes/alarmRouter";
+import socketIOHandler from "./routes/chatRouter";
+import matchRouter from "./routes/matchRouter";
+import profileRouter from "./routes/profileRouter";
+import imageRouter from "./routes/imageRouter";
 
 const parentDirectory = path.join(__dirname, "../../");
 

@@ -117,4 +117,4 @@ teamRouter.delete(
   },
 );
 
-module.exports = teamRouter;
+export default teamRouter;

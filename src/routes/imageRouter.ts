@@ -9,4 +9,4 @@ imageRouter.use("/match", express.static(path.join(imageDirectory, "match")));
 imageRouter.use("/user", express.static(path.join(imageDirectory, "user")));
 imageRouter.use("/team", express.static(path.join(imageDirectory, "team")));
 
-module.exports = imageRouter;
+export default imageRouter;
