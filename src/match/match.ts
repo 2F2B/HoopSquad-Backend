@@ -210,7 +210,7 @@ async function AddMatch(
           },
           WriteDate: Time,
           PlayTime: playTime / 1000,
-          Location: Location.result[0],
+          Location: Location.result,
           RecruitAmount: req.RecruitAmount,
           CurrentAmount: req.CurrentAmount,
           Introduce: req.Introduce,
