@@ -140,16 +140,16 @@ async function AllMatch( // 게시글 전체 조회
       filter = "Location";
       return SearchMatchByTitleAndLocation(filter, sort, input);
     case "GameType":
-      (await isTrue(request.query?.One)) ? (one = true) : (one = null);
-      (await isTrue(request.query?.Three)) ? (three = true) : (three = null);
-      (await isTrue(request.query?.Five)) ? (five = true) : (five = null);
+      (await isTrue(request.query?.One)) ? (one = true) : (one = false);
+      (await isTrue(request.query?.Three)) ? (three = true) : (three = false);
+      (await isTrue(request.query?.Five)) ? (five = true) : (five = false);
 
       const typePostingId = await prisma.gameType.findMany({
         // 검색 조건에 맞는 GameType 테이블을 먼저 검색
         where: {
-          OneOnOne: one ? true : undefined,
-          ThreeOnThree: three ? true : undefined,
-          FiveOnFive: five ? true : undefined,
+          OneOnOne: one ? true : false,
+          ThreeOnThree: three ? true : false,
+          FiveOnFive: five ? true : false,
         },
         select: {
           Posting_id: true,
