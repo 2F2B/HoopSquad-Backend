@@ -10,6 +10,7 @@ import {
   UserNotFoundError,
   PostingNotFoundError,
   UserNotWriterError,
+  LocationNotFoundError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -41,14 +42,16 @@ function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   else throw new Error("String Is Not Boolean");
 }
 
-async function SearchMatchByTitleAndLocation(
+async function SearchMatchByTitle(
   filter: string,
+  location: string,
   sort: string,
   input: any,
 ) {
   // 제목, 주소 기반 검색
   return await prisma.posting.findMany({
     where: {
+      Location: { contains: location },
       [filter]: {
         contains: input ? input : "",
       },
@@ -80,10 +83,15 @@ async function SearchMatchByTitleAndLocation(
   });
 }
 
-async function SearchMatchByType(typePostingId: number[], sort: string) {
+async function SearchMatchByType(
+  typePostingId: number[],
+  sort: string,
+  location: string,
+) {
   // 게임 유형에 따라 검사
   return await prisma.posting.findMany({
     where: {
+      Location: { contains: location },
       Posting_id: {
         in: typePostingId,
       },
@@ -128,17 +136,14 @@ async function AllMatch( // 게시글 전체 조회
   // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
   const sort = request.query.Sort?.toString();
   const input = request.query.Input;
-  let filter;
+  const location = request.query.Location?.toString();
   let one, three, five;
+  if (!location) throw new LocationNotFoundError();
   if (!sort) throw new SortNotFoundError(); //  정렬 정보 없을때
 
   switch (request.query.Filter) {
     case "Title":
-      filter = "Title";
-      return SearchMatchByTitleAndLocation(filter, sort, input);
-    case "Location":
-      filter = "Location";
-      return SearchMatchByTitleAndLocation(filter, sort, input);
+      return SearchMatchByTitle("Title", location, sort, input);
     case "GameType":
       (await isTrue(request.query?.One)) ? (one = true) : (one = false);
       (await isTrue(request.query?.Three)) ? (three = true) : (three = false);
@@ -147,9 +152,10 @@ async function AllMatch( // 게시글 전체 조회
       const typePostingId = await prisma.gameType.findMany({
         // 검색 조건에 맞는 GameType 테이블을 먼저 검색
         where: {
-          OneOnOne: one ? true : false,
-          ThreeOnThree: three ? true : false,
-          FiveOnFive: five ? true : false,
+          Posting_id: { not: null },
+          ...(one ? { OneOnOne: true } : {}),
+          ...(three ? { ThreeOnThree: true } : {}),
+          ...(five ? { FiveOnFive: true } : {}),
         },
         select: {
           Posting_id: true,
@@ -163,7 +169,7 @@ async function AllMatch( // 게시글 전체 조회
               throw new Posting_idNotFoundError();
             })(),
       );
-      return await SearchMatchByType(postingIds, sort);
+      return await SearchMatchByType(postingIds, sort, location);
   }
 }
 

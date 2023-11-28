@@ -7,6 +7,13 @@ export class SortNotFoundError extends ErrorWithStatusCode {
     this.name = "SortNotFoundError";
   }
 }
+export class LocationNotFoundError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("Location Not Found");
+    this.name = "LocationNotFoundError";
+  }
+}
 export class GameTypeNotFoundError extends ErrorWithStatusCode {
   statusCode: number = 400;
   constructor() {
