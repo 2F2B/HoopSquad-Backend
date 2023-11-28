@@ -140,7 +140,7 @@ const socketIOHandler = (
   });
 };
 
-module.exports = { socketIOHandler };
+export default socketIOHandler;
 
 async function getRoom(hostId: string, guestId: string) {
   return await prisma.chatRoom.findFirst({

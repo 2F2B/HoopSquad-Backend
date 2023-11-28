@@ -27,4 +27,4 @@ alarmRouter.post("/match", async (req, res) => {
   }
 });
 
-module.exports = alarmRouter;
+export default alarmRouter;

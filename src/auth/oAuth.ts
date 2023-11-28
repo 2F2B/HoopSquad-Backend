@@ -58,7 +58,9 @@ async function LoginKakao(code: any) {
           },
         },
         Profile: {
-          create: { Overall: 50 },
+          create: {
+            Overall: 50,
+          },
         },
       },
       include: {

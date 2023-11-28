@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { LatLngToAddress } from "../google-maps/googleMaps";
+import { CourtAlreadyExistError, NoCourtExistError } from "./error";
+import { getISOTime } from "../match/match";
 
 const prisma = new PrismaClient();
 
@@ -8,24 +10,9 @@ const prisma = new PrismaClient();
  * @param id
  * @returns
  */
-async function getCourt(id?: number): Promise<
-  | {
-      Court_id: number;
-      Name: string;
-      Location: string;
-      Map: {
-        Lat: number;
-        Lng: number;
-      };
-    }[]
-  | {
-      Court_id: number;
-      Name: string;
-      Location: string;
-    }[]
-> {
+async function getCourt(id?: number) {
   if (id) {
-    const court = await prisma.court.findMany({
+    const court = await prisma.court.findFirst({
       where: {
         Court_id: id,
       },
@@ -41,7 +28,7 @@ async function getCourt(id?: number): Promise<
         },
       },
     });
-    prisma.$disconnect();
+    if (!court) throw new NoCourtExistError();
     return court;
   } else {
     const court = await prisma.court.findMany({
@@ -51,7 +38,6 @@ async function getCourt(id?: number): Promise<
         Location: true,
       },
     });
-    prisma.$disconnect();
     return court;
   }
 }
@@ -66,16 +52,11 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
       ],
     },
   });
-  if (IsExist.length != 0) {
-    return {
-      Code: 400,
-      TimeStamp: Date.now().toString(),
-    };
-  }
+  if (IsExist.length != 0) throw new CourtAlreadyExistError();
   await prisma.court.create({
     data: {
       Name: req.Name,
-      Date: Date.now().toString(),
+      Date: getISOTime(),
       Location: Location.result[0],
       Map: {
         create: {
@@ -87,10 +68,23 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
 
-  return {
-    Code: 200,
-    TimeStamp: Date.now().toString(),
-  };
+  return { TimeStamp: getISOTime() };
 }
 
-export { getCourt, addCourt };
+async function reportCourt(id: number) {
+  const court = await prisma.court.findFirst({
+    where: {
+      Court_id: id,
+    },
+  });
+
+  if (!court) throw new NoCourtExistError();
+
+  await prisma.report.create({
+    data: {
+      Court_id: id,
+    },
+  });
+}
+
+export { getCourt, addCourt, reportCourt };

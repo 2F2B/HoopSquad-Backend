@@ -108,4 +108,4 @@ authRouter.post("/delete", async (req, res) => {
   }
 });
 
-module.exports = authRouter;
+export default authRouter;
