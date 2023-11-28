@@ -26,11 +26,20 @@ async function LatLngToAddress(lat: number, lng: number) {
     `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.gMap}&language=ko`,
   );
 
-  const formattedAddress = fetchedData.data.results.map(
+  let formattedAddress = fetchedData.data.results.map(
     (result: { formatted_address: any }) => result.formatted_address,
   ) as string[];
 
-  return { result: formattedAddress };
+  formattedAddress = formattedAddress.filter((address) => {
+    return !address.includes("+");
+  });
+
+  let longestAddress: string = "";
+  formattedAddress.every((address) => {
+    if (address.length > longestAddress.length) longestAddress = address;
+  });
+
+  return { result: longestAddress };
 }
 
 export { AddressToLatLng, LatLngToAddress };
