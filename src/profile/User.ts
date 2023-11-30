@@ -4,6 +4,8 @@ import { Request } from "express";
 import { ParsedQs } from "qs";
 import path from "path";
 import fs from "fs";
+import { ProfileNotFoundError } from "./error";
+import { UserNotFoundError } from "../match/error";
 
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/user");
@@ -51,7 +53,7 @@ async function getUserProfile(userId: number) {
       },
     },
   });
-  if (!Profile) throw new Error("Profile Not Found");
+  if (!Profile) throw new ProfileNotFoundError();
   return { ...Profile, Profile: Profile?.Profile[0], Name: Profile?.Name };
 }
 
@@ -64,7 +66,7 @@ async function setUserProfile(
     },
   });
 
-  if (!isUser) throw new Error("User Not Exists");
+  if (!isUser) throw new UserNotFoundError();
 
   const profile = await prisma.profile.findFirst({
     where: {
