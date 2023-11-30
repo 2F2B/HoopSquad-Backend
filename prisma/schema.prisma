@@ -93,6 +93,7 @@ model Posting {
   Map_id        Int
   GameType      GameType[]
   Image         Image[]
+  memeber       member[]
   Map           Map        @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
@@ -157,6 +158,7 @@ model User {
   Alarm       Alarm[]
   ChatRoom    ChatRoom[]
   Message     Message[]
+  Member      member[]
   OAuthToken  OAuthToken[]
   Posting     Posting[]
   Profile     Profile[]
@@ -208,4 +210,16 @@ model Report {
   Court    Court @relation(fields: [Court_id], references: [Court_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([Court_id], map: "Report_Court_id_fkey")
+}
+
+model member {
+  id    Int   @id @default(autoincrement())
+  Posting_id  Int
+  User_id   Int
+  IsHost  Boolean @default(false)
+  Posting Posting @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_Posting")
+  User    User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_member_user")
+
+  @@index([Posting_id], map:"fk_member_Posting")
+  @@index([User_id], map: "fk_member_User")
 }
