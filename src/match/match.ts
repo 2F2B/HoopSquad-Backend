@@ -242,15 +242,17 @@ async function AddMatch(
   });
 
   const files = request.files as Array<Express.Multer.File>;
-  files.map(async (file: any) => {
-    // 이미지 테이블에는 이미지 제목을 저장
-    await prisma.image.create({
-      data: {
-        Posting: { connect: { Posting_id: posting?.Posting_id } },
-        ImageData: file.filename,
-      },
+  if (files) {
+    files.map(async (file: any) => {
+      // 이미지 테이블에는 이미지 제목을 저장
+      await prisma.image.create({
+        data: {
+          Posting: { connect: { Posting_id: posting?.Posting_id } },
+          ImageData: file.filename,
+        },
+      });
     });
-  });
+  }
 
   return {
     TimeStamp: Date.now().toString(),
