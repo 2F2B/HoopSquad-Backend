@@ -2,7 +2,7 @@ import express from "express";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
-import { LatLngToAddress } from "../google-maps/googleMaps";
+import { LatLngToAddress, AddressToLatLng } from "../google-maps/googleMaps";
 import {
   SortNotFoundError,
   GameTypeNotFoundError,
@@ -11,6 +11,7 @@ import {
   PostingNotFoundError,
   UserNotWriterError,
   LocationNotFoundError,
+  idNotFoundError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -189,7 +190,7 @@ async function AddMatch(
   if (!user) throw new UserNotFoundError();
 
   const req = request.body.data;
-  const Location = await LatLngToAddress(req.Lat, req.Lng);
+  const Location = await AddressToLatLng(req.Address);
   const playTime = new Date(req.PlayTime).getTime();
 
   const one = isTrue(req.One) ? true : false,
@@ -200,8 +201,8 @@ async function AddMatch(
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
-      Lat: parseFloat(req.Lat),
-      Lng: parseFloat(req.Lng),
+      Lat: Location.lat,
+      Lng: Location.lng,
       Posting: {
         create: {
           User: { connect: { User_id: user.User_id } },
@@ -216,7 +217,7 @@ async function AddMatch(
           },
           WriteDate: Time,
           PlayTime: playTime / 1000,
-          Location: Location.result,
+          Location: req.Address,
           RecruitAmount: req.RecruitAmount,
           CurrentAmount: req.CurrentAmount,
           Introduce: req.Introduce,
@@ -228,6 +229,14 @@ async function AddMatch(
   const posting = await prisma.posting.findFirst({
     where: {
       Map_id: newMap.Map_id,
+    },
+  });
+
+  await prisma.member.create({
+    data: {
+      User: { connect: { User_id: user.User_id } },
+      Posting: { connect: { Posting_id: posting?.Posting_id } },
+      IsHost: true,
     },
   });
 
@@ -330,5 +339,17 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
   } else throw new UserNotWriterError();
 }
 
+async function JoinMatch(Posting_id: number, User_id: number) {
+  if (
+    !(await prisma.member.create({
+      data: {
+        Posting: { connect: { Posting_id: Posting_id } },
+        User: { connect: { User_id: User_id } },
+      },
+    }))
+  )
+    throw new idNotFoundError();
+}
+
 // TODO 채팅
-export { AllMatch, AddMatch, MatchInfo, DeleteMatch };
+export { AllMatch, AddMatch, MatchInfo, DeleteMatch, JoinMatch };
