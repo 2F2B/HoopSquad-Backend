@@ -3,6 +3,7 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import http from "http";
 import { PrismaClient } from "@prisma/client";
 import { UserNotExistError } from "../auth/error";
+import fs from "fs";
 
 //CHECKLIST
 //[x]: 닉네임 설정
@@ -23,9 +24,9 @@ type SocketIO = SocketIO.Server<
 
 type chatRoomsType = {
   nickname: string;
-  image: Blob;
+  image?: Buffer;
   lastChatMessage: string;
-  lastChatTime: number;
+  lastChatTime: string;
   unreadMessageAmount: number;
   roomName: string;
 };
@@ -71,23 +72,62 @@ const socketIOHandler = (
       done();
     });
 
-    socket.on("joinAllRooms", async (user_id: number, done: () => void) => {
-      const chatRoomList = await findAllChatRoom(user_id);
+    socket.on(
+      "joinAllRooms",
+      async (user_id: number, done: (chatRooms: chatRoomsType[]) => void) => {
+        const chatRoomList = await findAllChatRoom(user_id);
 
-      const chatRooms: chatRoomsType[] = [];
-      chatRoomList.forEach(async (room) => {
-        socket.join(`${room.RoomName}`);
-        const opponent = await prisma.profile.findFirst({
-          where: {
-            User_id: getUserIdFromChatroomName(user_id, room.RoomName),
-          },
+        const chatRooms: chatRoomsType[] = [];
+        chatRoomList.forEach(async (room) => {
+          socket.join(`${room.RoomName}`);
+          const opponent = await prisma.user.findFirst({
+            where: {
+              User_id: getUserIdFromChatroomName(user_id, room.RoomName),
+            },
+          });
+
+          if (!opponent) throw new UserNotExistError();
+
+          const lastChat = await getLastChat(room.Room_id);
+
+          if (!lastChat) throw new Error("Chat Not Exist");
+
+          const unreadMessages = await prisma.message.findMany({
+            where: {
+              AND: [{ IsRead: false }, { Room_id: room.Room_id }],
+            },
+            select: {
+              Msg: true,
+            },
+          });
+
+          const userImage = await prisma.image.findFirst({
+            where: {
+              Profile_id: opponent.User_id,
+            },
+            select: {
+              ImageData: true,
+            },
+          });
+
+          const imageData = fs.readFileSync(
+            `../../../image/user/${userImage?.ImageData}`,
+          );
+
+          chatRooms.push({
+            nickname: opponent.Name,
+            lastChatMessage: lastChat.Msg,
+            image: imageData,
+            lastChatTime: lastChat.ChatTime.toISOString(),
+            unreadMessageAmount: unreadMessages.length,
+            roomName: room.RoomName,
+          });
+          //TODO: joinAllRooms 구현
         });
 
-        //TODO: joinAllRooms 구현
-      });
-
-      done();
-    });
+        done(chatRooms);
+      },
+    );
 
     socket.on(
       "makeRoom",
@@ -143,13 +183,13 @@ const socketIOHandler = (
         return;
       }
 
-      const roomId = await getRoom(hostId, guestId);
+      const roomId = await getRoomId(hostId, guestId);
 
       await prisma.message.create({
         data: {
           Msg: payload,
           User_id: socket["userId"],
-          Room_id: roomId?.Room_id!!,
+          Room_id: roomId,
         },
       });
     });
@@ -158,8 +198,8 @@ const socketIOHandler = (
 
 export default socketIOHandler;
 
-async function getRoom(hostId: string, guestId: string) {
-  return await prisma.chatRoom.findFirst({
+async function getRoomId(hostId: string, guestId: string) {
+  const chatRoom = await prisma.chatRoom.findFirst({
     where: {
       RoomName: getRoomName(+hostId, +guestId),
     },
@@ -167,23 +207,14 @@ async function getRoom(hostId: string, guestId: string) {
       Room_id: true,
     },
   });
+
+  return chatRoom?.Room_id!!;
 }
 
 async function findAllChatRoom(user_id: number) {
   return await prisma.chatRoom.findMany({
     where: {
-      OR: [
-        {
-          Host_id: user_id,
-        },
-        {
-          Message: {
-            some: {
-              User_id: user_id,
-            },
-          },
-        },
-      ],
+      User_id: user_id,
     },
   });
 }
@@ -236,15 +267,22 @@ async function createMessageOffline({
 async function createRoom(hostId: number, guestId: number) {
   const isChatRoomExist = await prisma.chatRoom.findMany({
     where: {
-      AND: [{ Host_id: hostId }, { RoomName: getRoomName(hostId, guestId) }],
+      AND: [{ User_id: hostId }, { RoomName: getRoomName(hostId, guestId) }],
     },
   });
   if (isChatRoomExist.length == 0) {
-    await prisma.chatRoom.create({
-      data: {
-        Host_id: hostId,
-        RoomName: getRoomName(hostId, guestId),
-      },
+    await prisma.chatRoom.createMany({
+      data: [
+        {
+          User_id: hostId,
+          IsHost: true,
+          RoomName: getRoomName(hostId, guestId),
+        },
+        {
+          User_id: guestId,
+          RoomName: getRoomName(hostId, guestId),
+        },
+      ],
     });
   }
 }

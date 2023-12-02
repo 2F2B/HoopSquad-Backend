@@ -20,16 +20,13 @@ model Alarm {
 }
 
 model ChatRoom {
-  Room_id    Int       @id @default(autoincrement())
-  Host_id    Int
-  Guest_id   Int
-  Time       DateTime  @default(now()) @db.Timestamp(0)
-  RoomName   String
-  User_Host  User      @relation("ChatRoomByHost", fields: [Host_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-  User_Guest User      @relation("ChatRoomByGuest", fields: [Guest_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Chatroom_Guest")
-  Message    Message[]
-
-  @@index([Host_id], map: "ChatRoom_Host_id_fkey")
+  Room_id  Int       @id @default(autoincrement())
+  User_id  Int
+  IsHost   Boolean   @default(false)
+  Time     DateTime  @default(now()) @db.Timestamp(0)
+  RoomName String
+  User     User      @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Message  Message[]
 }
 
 model Court {
@@ -159,20 +156,19 @@ model TeamRelay {
 }
 
 model User {
-  User_id         Int           @id @default(autoincrement())
-  Name            String        @db.VarChar(45)
-  Alarm           Alarm[]
-  ChatRoomByHost  ChatRoom[]    @relation("ChatRoomByHost")
-  ChatRoomByGuest ChatRoom[]    @relation("ChatRoomByGuest")
-  Message         Message[]
-  OAuthToken      OAuthToken[]
-  Posting         Posting[]
-  Profile         Profile[]
-  Review          Review[]
-  TeamProfile     TeamProfile[]
-  TeamRelay       TeamRelay[]
-  UserData        UserData[]
-  Member          Member[]
+  User_id     Int           @id @default(autoincrement())
+  Name        String        @db.VarChar(45)
+  Alarm       Alarm[]
+  ChatRoom    ChatRoom[]
+  Message     Message[]
+  OAuthToken  OAuthToken[]
+  Posting     Posting[]
+  Profile     Profile[]
+  Review      Review[]
+  TeamProfile TeamProfile[]
+  TeamRelay   TeamRelay[]
+  UserData    UserData[]
+  Member      Member[]
 }
 
 model Image {
