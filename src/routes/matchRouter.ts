@@ -58,14 +58,6 @@ matchRouter.get("/", async (req, res) => {
   }
 });
 
-matchRouter.post("/:id", async (req, res) => {
-  try {
-    const result = await JoinMatch(+req.params.id, +req.query.User_id!!);
-    res.status(200);
-    res.send(result);
-  } catch (err) {}
-});
-
 matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
