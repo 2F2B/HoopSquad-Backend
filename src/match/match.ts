@@ -2,7 +2,7 @@ import express from "express";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
-import { LatLngToAddress } from "../google-maps/googleMaps";
+import { LatLngToAddress, AddressToLatLng } from "../google-maps/googleMaps";
 import {
   SortNotFoundError,
   GameTypeNotFoundError,
@@ -10,6 +10,8 @@ import {
   UserNotFoundError,
   PostingNotFoundError,
   UserNotWriterError,
+  LocationNotFoundError,
+  idNotFoundError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -41,14 +43,16 @@ function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   else throw new Error("String Is Not Boolean");
 }
 
-async function SearchMatchByTitleAndLocation(
+async function SearchMatchByTitle(
   filter: string,
+  location: string,
   sort: string,
   input: any,
 ) {
   // 제목, 주소 기반 검색
   return await prisma.posting.findMany({
     where: {
+      Location: { contains: location },
       [filter]: {
         contains: input ? input : "",
       },
@@ -80,10 +84,15 @@ async function SearchMatchByTitleAndLocation(
   });
 }
 
-async function SearchMatchByType(typePostingId: number[], sort: string) {
+async function SearchMatchByType(
+  typePostingId: number[],
+  sort: string,
+  location: string,
+) {
   // 게임 유형에 따라 검사
   return await prisma.posting.findMany({
     where: {
+      Location: { contains: location },
       Posting_id: {
         in: typePostingId,
       },
@@ -128,28 +137,26 @@ async function AllMatch( // 게시글 전체 조회
   // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
   const sort = request.query.Sort?.toString();
   const input = request.query.Input;
-  let filter;
+  const location = request.query.Location?.toString();
   let one, three, five;
+  if (!location) throw new LocationNotFoundError();
   if (!sort) throw new SortNotFoundError(); //  정렬 정보 없을때
 
   switch (request.query.Filter) {
     case "Title":
-      filter = "Title";
-      return SearchMatchByTitleAndLocation(filter, sort, input);
-    case "Location":
-      filter = "Location";
-      return SearchMatchByTitleAndLocation(filter, sort, input);
+      return SearchMatchByTitle("Title", location, sort, input);
     case "GameType":
-      (await isTrue(request.query?.One)) ? (one = true) : (one = null);
-      (await isTrue(request.query?.Three)) ? (three = true) : (three = null);
-      (await isTrue(request.query?.Five)) ? (five = true) : (five = null);
+      (await isTrue(request.query?.One)) ? (one = true) : (one = false);
+      (await isTrue(request.query?.Three)) ? (three = true) : (three = false);
+      (await isTrue(request.query?.Five)) ? (five = true) : (five = false);
 
       const typePostingId = await prisma.gameType.findMany({
         // 검색 조건에 맞는 GameType 테이블을 먼저 검색
         where: {
-          OneOnOne: one ? true : undefined,
-          ThreeOnThree: three ? true : undefined,
-          FiveOnFive: five ? true : undefined,
+          Posting_id: { not: null },
+          ...(one ? { OneOnOne: true } : {}),
+          ...(three ? { ThreeOnThree: true } : {}),
+          ...(five ? { FiveOnFive: true } : {}),
         },
         select: {
           Posting_id: true,
@@ -163,7 +170,7 @@ async function AllMatch( // 게시글 전체 조회
               throw new Posting_idNotFoundError();
             })(),
       );
-      return await SearchMatchByType(postingIds, sort);
+      return await SearchMatchByType(postingIds, sort, location);
   }
 }
 
@@ -183,7 +190,7 @@ async function AddMatch(
   if (!user) throw new UserNotFoundError();
 
   const req = request.body.data;
-  const Location = await LatLngToAddress(req.Lat, req.Lng);
+  const Location = await AddressToLatLng(req.Address);
   const playTime = new Date(req.PlayTime).getTime();
 
   const one = isTrue(req.One) ? true : false,
@@ -194,8 +201,8 @@ async function AddMatch(
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
-      Lat: parseFloat(req.Lat),
-      Lng: parseFloat(req.Lng),
+      Lat: Location.lat,
+      Lng: Location.lng,
       Posting: {
         create: {
           User: { connect: { User_id: user.User_id } },
@@ -210,7 +217,7 @@ async function AddMatch(
           },
           WriteDate: Time,
           PlayTime: playTime / 1000,
-          Location: Location.result[0],
+          Location: req.Address,
           RecruitAmount: req.RecruitAmount,
           CurrentAmount: req.CurrentAmount,
           Introduce: req.Introduce,
@@ -222,6 +229,14 @@ async function AddMatch(
   const posting = await prisma.posting.findFirst({
     where: {
       Map_id: newMap.Map_id,
+    },
+  });
+
+  await prisma.member.create({
+    data: {
+      User: { connect: { User_id: user.User_id } },
+      Posting: { connect: { Posting_id: posting?.Posting_id } },
+      IsHost: true,
     },
   });
 
@@ -324,5 +339,17 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
   } else throw new UserNotWriterError();
 }
 
+async function JoinMatch(Posting_id: number, User_id: number) {
+  if (
+    !(await prisma.member.create({
+      data: {
+        Posting: { connect: { Posting_id: Posting_id } },
+        User: { connect: { User_id: User_id } },
+      },
+    }))
+  )
+    throw new idNotFoundError();
+}
+
 // TODO 채팅
-export { AllMatch, AddMatch, MatchInfo, DeleteMatch };
+export { AllMatch, AddMatch, MatchInfo, DeleteMatch, JoinMatch };
