@@ -59,7 +59,11 @@ function getUserIdFromChatroomName(user_id: number, roomName: string) {
 const socketIOHandler = (
   server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>,
 ) => {
-  const io = new SocketIO.Server(server);
+  const io = new SocketIO.Server(server, {
+    cors: {
+      origin: "*",
+    },
+  });
   io.on("connection", (s) => {
     const socket = s as Socket;
 
@@ -87,9 +91,7 @@ const socketIOHandler = (
           });
 
           if (!opponent) throw new UserNotExistError();
-
           const lastChat = await getLastChat(room.Room_id);
-
           if (!lastChat) throw new Error("Chat Not Exist");
 
           const unreadMessages = await prisma.message.findMany({
