@@ -52,6 +52,6 @@ app.get("/", async (_req, res) => {
   }
 });
 
-httpServer.listen(3000, () => {
+httpServer.listen(3010, () => {
   console.log("Server started on Port 3000");
 });
