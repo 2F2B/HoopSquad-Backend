@@ -37,7 +37,6 @@ export class Posting_idNotFoundError extends ErrorWithStatusCode {
     this.name = "Posting_idNotFoundError";
   }
 }
-
 export class PostingNotFoundError extends ErrorWithStatusCode {
   statusCode: number = 404;
   constructor() {
@@ -45,11 +44,17 @@ export class PostingNotFoundError extends ErrorWithStatusCode {
     this.name = "PostingNotFoundError";
   }
 }
-
 export class UserNotWriterError extends ErrorWithStatusCode {
   statusCode: number = 401;
   constructor() {
     super("User Not Writer");
     this.name = "UserNotWriterError";
+  }
+}
+export class idNotFoundError extends ErrorWithStatusCode {
+  statusCode: number = 404;
+  constructor() {
+    super("id Not Found");
+    this.name = "idNotFoundError";
   }
 }

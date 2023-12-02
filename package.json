@@ -2,7 +2,7 @@
   "name": "hoopsquad-backend",
   "version": "1.0.0",
   "description": "HoopSquad 백엔드 서버",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
