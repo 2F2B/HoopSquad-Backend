@@ -3,11 +3,17 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
 import path from "path";
-import multer from "multer";
+import rateLimit from "express-rate-limit";
+
+let limiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5분간
+  max: 100, // 100개 request 가능
+});
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(limiter);
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
