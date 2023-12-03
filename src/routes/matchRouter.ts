@@ -68,8 +68,8 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
     res.send(add);
   } catch (err) {
     // 파일을 먼저 저장하고 메서드가 실행되기 때문에 메서드 중간에 에러나면 저장된 파일 삭제
-    if (req.files && +req.files.length > 0) {
-      const files = req.files as Array<Express.Multer.File>; // File 배열이라고 명시
+    if (req.files && Array.isArray(req.files) && +req.files.length > 0) {
+      const files = req.files;
       files.forEach((file: any) => {
         const filePath = path.join(uploadsDirectory, file.filename); // 업로드 폴더의 파일 지정
         fs.unlink(filePath, (unlinkErr: any) => {
