@@ -79,7 +79,15 @@ async function Login(
   const newToken = await GenerateToken(
     JSON.stringify({ Auth_id: isExist.User_id }),
   );
-  await prisma.oAuthToken.create({
+  const tokenId = await prisma.oAuthToken.findFirst({
+    where: {
+      User_id: isExist.User_id,
+    },
+  });
+  await prisma.oAuthToken.update({
+    where: {
+      id: tokenId?.id,
+    },
     data: {
       User_id: isExist.User_id,
       AccessToken: newToken.Access_Token,
