@@ -64,10 +64,7 @@ const socketIOHandler = (
 
     socket.on(
       "joinAllRooms",
-      async (
-        user_id: number,
-        done: (chatRooms: chatRoomsType[]) => Promise<void>,
-      ) => {
+      async (user_id: number, done: (chatRooms: chatRoomsType[]) => void) => {
         const chatRoomList = await findAllChatRoom(user_id);
 
         const chatRooms = await Promise.all(
