@@ -2,6 +2,11 @@ import { PrismaClient } from "@prisma/client";
 import { Request } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
+import {
+  NotProvidedError,
+  AccessTokenNotValidateError,
+  RefreshTokenNotValidateError,
+} from "./error";
 
 const prisma = new PrismaClient();
 
@@ -33,7 +38,7 @@ async function Validation(
 ) {
   if (!request.body.access_token) {
     // A/T 가 안넘어옴
-    throw new Error("Body Not Exist");
+    throw new NotProvidedError("Body");
   }
 
   const token = await prisma.oAuthToken.findFirst({
@@ -46,8 +51,10 @@ async function Validation(
     if (AccessVerify(token.AccessToken)) {
       return { result: "success", User_id: token.User_id };
     } // A/T O
-    if (!AccessVerify(token.AccessToken)) throw new Error("Token Not Correct"); // A/T 틀림
-    if (!AccessVerify(token.RefreshToken)) throw new Error(""); // A/T X, R/T X
+    if (!AccessVerify(token.AccessToken))
+      throw new AccessTokenNotValidateError(); // A/T 만료
+    if (!AccessVerify(token.RefreshToken))
+      throw new RefreshTokenNotValidateError(); // A/T 만료 & R/T 만료
 
     if (isTokenValidMoreThanAWeek(token)) {
       const newToken = AccessRefresh(token.Auth_id);
@@ -58,7 +65,7 @@ async function Validation(
 
       return { access_token: newToken.Access_Token, User_id: token.User_id };
     }
-  } else throw new Error("Token Not Exists");
+  } else throw new NotProvidedError("Token");
 }
 
 export { Validation };
