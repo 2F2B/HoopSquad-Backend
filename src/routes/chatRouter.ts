@@ -67,15 +67,21 @@ const socketIOHandler = (
   io.on("connection", (s) => {
     const socket = s as Socket;
 
-    socket.on("setNickname", (nick: string, done: () => void) => {
-      console.log(nick);
-      socket["nickname"] = nick;
+    socket.on("setNickname", async (nick: string, done: () => void) => {
+      const setNicknamePromise = new Promise<void>((resolve) => {
+        socket["nickname"] = nick;
+        resolve();
+      });
+      await setNicknamePromise;
       done();
     });
 
-    socket.on("setUserId", (id: number, done: () => void) => {
-      console.log(id);
-      socket["userId"] = id;
+    socket.on("setUserId", async (id: number, done: () => void) => {
+      const setUserIdPromise = new Promise<void>((resolve) => {
+        socket["userId"] = id;
+        resolve();
+      });
+      await setUserIdPromise;
       done();
     });
 
