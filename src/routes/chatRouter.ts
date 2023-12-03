@@ -144,9 +144,9 @@ const socketIOHandler = (
             Posting_id: post_id,
           },
         });
-        const guestId = post?.User_id;
-        if (!guestId) throw new UserNotExistError();
-        const hostId = socket["userId"];
+        const hostId = post?.User_id;
+        if (!hostId) throw new UserNotExistError();
+        const guestId = socket["userId"];
         await createRoom(hostId, guestId);
         await joinRoom({
           socket: socket,
