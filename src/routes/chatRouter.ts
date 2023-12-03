@@ -68,11 +68,13 @@ const socketIOHandler = (
     const socket = s as Socket;
 
     socket.on("setNickname", (nick: string, done: () => void) => {
+      console.log(nick);
       socket["nickname"] = nick;
       done();
     });
 
     socket.on("setUserId", (id: number, done: () => void) => {
+      console.log(id);
       socket["userId"] = id;
       done();
     });
