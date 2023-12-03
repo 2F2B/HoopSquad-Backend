@@ -1,4 +1,4 @@
-import SocketIO from "socket.io";
+import SocketIO, { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import http from "http";
 import { PrismaClient } from "@prisma/client";
@@ -33,11 +33,6 @@ type chatRoomsType = {
 
 const prisma = new PrismaClient();
 
-class Socket extends SocketIO.Socket {
-  nickname!: string;
-  userId!: number;
-}
-
 type createMessageOfflineType = {
   payload: string;
   writerId: number;
@@ -66,24 +61,6 @@ const socketIOHandler = (
   });
   io.on("connection", (s) => {
     const socket = s as Socket;
-
-    socket.on("setNickname", async (nick: string, done: () => void) => {
-      const setNicknamePromise = new Promise<void>((resolve) => {
-        socket["nickname"] = nick;
-        resolve();
-      });
-      await setNicknamePromise;
-      done();
-    });
-
-    socket.on("setUserId", async (id: number, done: () => void) => {
-      const setUserIdPromise = new Promise<void>((resolve) => {
-        socket["userId"] = id;
-        resolve();
-      });
-      await setUserIdPromise;
-      done();
-    });
 
     socket.on(
       "joinAllRooms",
@@ -146,8 +123,11 @@ const socketIOHandler = (
 
     socket.on(
       "makeRoom",
-      async (guestId: number, done: (roomName: string) => void) => {
-        const hostId = socket["userId"];
+      async (
+        hostId: number,
+        guestId: number,
+        done: (roomName: string) => void,
+      ) => {
         await createRoom(hostId, guestId);
         await joinRoom({
           socket: socket,
@@ -194,20 +174,20 @@ const socketIOHandler = (
       },
     );
 
-    socket.on("disconnecting", () => {
-      socket.rooms.forEach((room) =>
-        socket.to(room).emit("broadcastDisconnect", socket["nickname"]),
-      );
-    });
-
     socket.on(
       "send",
-      async (payload: string, currentRoom: string, done: () => void) => {
+      async (
+        nickname: string,
+        userId: number,
+        payload: string,
+        currentRoom: string,
+        done: () => void,
+      ) => {
         const hostId = currentRoom.split("_")[0];
         const guestId = currentRoom.split("_")[1];
 
         socket.to(currentRoom).emit("send", {
-          nickname: socket["nickname"],
+          nickname: nickname,
           payload,
           createdAt: Date.now(),
         });
@@ -233,7 +213,7 @@ const socketIOHandler = (
         await prisma.message.create({
           data: {
             Msg: payload,
-            User_id: socket["userId"],
+            User_id: userId,
             Room_id: roomId,
           },
         });
@@ -342,12 +322,14 @@ async function createRoom(hostId: number, guestId: number) {
  */
 async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
   socket.join(getRoomName(hostId, guestId)); //joinRoom의 주체는 언제나 호스트
-  io.sockets.sockets.forEach((sock) => {
-    const user = sock as Socket;
-    if (user["userId"] == guestId) {
-      const guest = user;
-      guest.join(getRoomName(hostId, guestId));
-    }
+  io.sockets.sockets.forEach((socket) => {
+    const user = socket;
+    user.emit("getUserId", (id: number) => {
+      if (id == guestId) {
+        const guest = user;
+        guest.join(getRoomName(hostId, guestId));
+      }
+    });
   });
 }
 
@@ -359,11 +341,12 @@ async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
  */
 async function checkUserOffline(io: SocketIO.Server, userId: number) {
   let isOnline;
-  io.sockets.sockets.forEach((s) => {
-    const socket = s as Socket;
-    if (socket["userId"] == userId) {
-      return (isOnline = true);
-    }
+  io.sockets.sockets.forEach((socket) => {
+    socket.emit("getUserId", (id: number) => {
+      if (id == userId) {
+        return (isOnline = true);
+      }
+    });
   });
   if (isOnline == true) return false;
   else return true;
