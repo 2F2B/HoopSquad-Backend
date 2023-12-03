@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
 import path from "path";
+import multer from "multer";
 
 const app = express();
 app.use(cors());
@@ -21,6 +22,7 @@ import socketIOHandler from "./routes/chatRouter";
 import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
+import weatherRouter from "./routes/weatherRouter";
 
 const parentDirectory = path.join(__dirname, "../../");
 
@@ -30,6 +32,7 @@ app.use("/team", teamRouter);
 app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
+app.use("/weather", weatherRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -55,7 +58,6 @@ app.get("/", async (_req, res) => {
     return console.error(err);
   }
 });
-
 httpServer.listen(3000, () => {
   console.log("Server started on Port 3000");
 });

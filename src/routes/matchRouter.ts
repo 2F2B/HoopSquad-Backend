@@ -58,7 +58,7 @@ matchRouter.get("/", async (req, res) => {
   }
 });
 
-matchRouter.post("/", async (req, res) => {
+matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
