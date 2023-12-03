@@ -58,25 +58,13 @@ matchRouter.get("/", async (req, res) => {
   }
 });
 
-matchRouter.post("/:id", async (req, res) => {
+matchRouter.post("/", async (req, res) => {
   try {
-    const result = await JoinMatch(+req.params.id, +req.query.User_id!!);
-    res.status(200);
-    res.send(result);
-  } catch (err) {}
-});
-
-matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
-  try {
-    // console.log(image);
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
-    const add = await AddMatch(req);
+    const add = await AddMatch(req, token);
     res.status(201);
-    if (req.file) {
-      storage._removeFile(req, req.file, (err) => {
-        if (err) throw new Error("File Deletion Failed");
-      });
-    }
     res.send(add);
   } catch (err) {
     // 파일을 먼저 저장하고 메서드가 실행되기 때문에 메서드 중간에 에러나면 저장된 파일 삭제
