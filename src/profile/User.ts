@@ -55,7 +55,12 @@ async function getUserProfile(userId: number) {
     },
   });
   if (!Profile) throw new ProfileNotFoundError();
-  return { ...Profile, Profile: Profile?.Profile[0], Name: Profile?.Name };
+  return {
+    ...Profile.Profile[0],
+    GameType: Profile.Profile[0].GameType[0],
+    Image: Profile.Profile[0].Image[0],
+    Name: Profile?.Name,
+  };
 }
 
 async function setUserProfile(
