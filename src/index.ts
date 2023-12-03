@@ -8,6 +8,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
 const httpServer = http.createServer(app);
 import teamRouter from "./routes/teamRouter";
 import authRouter from "./routes/authRouter";
