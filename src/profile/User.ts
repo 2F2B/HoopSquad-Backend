@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs";
 import { ProfileNotFoundError } from "./error";
 import { UserNotFoundError } from "../match/error";
+import sanitize from "sanitize-filename";
 
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/user");
@@ -104,10 +105,11 @@ async function setUserProfile(
         },
       });
     }
+    const fileName = sanitize(req.file.filename);
     image = await prisma.image.update({
       where: { Image_id: image?.Image_id },
       data: {
-        ImageData: req.file.filename,
+        ImageData: fileName,
       },
     });
   }
