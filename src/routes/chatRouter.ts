@@ -138,15 +138,8 @@ const socketIOHandler = (
 
     socket.on(
       "makeRoom",
-      async (post_id: number, done: (roomName: string) => void) => {
-        const post = await prisma.posting.findFirst({
-          where: {
-            Posting_id: post_id,
-          },
-        });
-        const hostId = post?.User_id;
-        if (!hostId) throw new UserNotExistError();
-        const guestId = socket["userId"];
+      async (guestId: number, done: (roomName: string) => void) => {
+        const hostId = socket["userId"];
         await createRoom(hostId, guestId);
         await joinRoom({
           socket: socket,
@@ -311,7 +304,7 @@ async function createMessageOffline({
 async function createRoom(hostId: number, guestId: number) {
   const isChatRoomExist = await prisma.chatRoom.findMany({
     where: {
-      AND: [{ User_id: hostId }, { RoomName: getRoomName(hostId, guestId) }],
+      RoomName: getRoomName(hostId, guestId),
     },
   });
   if (isChatRoomExist.length == 0) {
@@ -339,7 +332,7 @@ async function createRoom(hostId: number, guestId: number) {
  * @param io
  */
 async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
-  socket.join(getRoomName(hostId, guestId));
+  socket.join(getRoomName(hostId, guestId)); //joinRoom의 주체는 언제나 호스트
   io.sockets.sockets.forEach((sock) => {
     const user = sock as Socket;
     if (user["userId"] == guestId) {
@@ -347,7 +340,6 @@ async function joinRoom({ socket, hostId, guestId, io }: joinRoomType) {
       guest.join(getRoomName(hostId, guestId));
     }
   });
-  socket.emit("getRoomName", getRoomName(hostId, guestId));
 }
 
 /**
