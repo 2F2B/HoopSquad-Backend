@@ -35,3 +35,19 @@ export class PasswordNotMatchError extends ErrorWithStatusCode {
     this.name = "PasswordNotMatch";
   }
 }
+
+export class AccessTokenNotValidateError extends ErrorWithStatusCode {
+  statusCode: number = 401;
+  constructor() {
+    super("Access Token Not Validate");
+    this.name = "AccessTokenNotValidate";
+  }
+}
+
+export class RefreshTokenNotValidateError extends ErrorWithStatusCode {
+  statusCode: number = 401;
+  constructor() {
+    super("Refresh Token Not Validate");
+    this.name = "RefreshTokenNotValidate";
+  }
+}

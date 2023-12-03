@@ -72,7 +72,7 @@ const socketIOHandler = (
       done();
     });
 
-    socket.on("setUserId", async (id: number, done: () => void) => {
+    socket.on("setUserId", (id: number, done: () => void) => {
       socket["userId"] = id;
       done();
     });
@@ -147,6 +147,7 @@ const socketIOHandler = (
           guestId: guestId,
           io: io,
         });
+        console.log(`RoomName: ${getRoomName(hostId, guestId)}`);
         done(getRoomName(hostId, guestId));
       },
     );
@@ -265,7 +266,7 @@ async function findAllChatRoom(user_id: number) {
  * @returns
  */
 function getRoomName(hostId: number, guestId: number) {
-  return `${guestId}_${hostId}`;
+  return `${hostId}_${guestId}`;
 }
 
 /**
