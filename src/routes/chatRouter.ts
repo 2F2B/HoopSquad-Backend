@@ -189,21 +189,9 @@ const socketIOHandler = (
           createdAt: Date.now(),
         });
 
-        if (await checkUserOffline(io, +hostId)) {
-          createMessageOffline({
-            payload: payload,
-            writerId: +guestId,
-            roomName: currentRoom,
-          });
-          return;
-        } else if (await checkUserOffline(io, +guestId)) {
-          createMessageOffline({
-            payload: payload,
-            writerId: +hostId,
-            roomName: currentRoom,
-          });
-          return;
-        }
+        // if (await checkUserOffline(io, +hostId)) {
+        // } else if (await checkUserOffline(io, +guestId)) {
+        // }
 
         const roomId = await getRoomId(hostId, guestId);
 
@@ -252,34 +240,6 @@ async function findAllChatRoom(user_id: number) {
  */
 function getRoomName(hostId: number, guestId: number) {
   return `${hostId}_${guestId}`;
-}
-
-/**
- * 유저가 오프라인인 상대에게 메시지를 보내는 함수
- * @param payload
- * @param writerId
- * @param roomName
- */
-async function createMessageOffline({
-  payload,
-  writerId,
-  roomName,
-}: createMessageOfflineType): Promise<void> {
-  const room = await prisma.chatRoom.findFirst({
-    where: {
-      RoomName: roomName,
-    },
-    select: {
-      Room_id: true,
-    },
-  });
-  await prisma.message.create({
-    data: {
-      Msg: payload,
-      User_id: writerId,
-      Room_id: room?.Room_id!!,
-    },
-  });
 }
 
 /**
