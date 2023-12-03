@@ -25,8 +25,8 @@ type SocketIO = SocketIO.Server<
 type chatRoomsType = {
   nickname: string;
   image?: Buffer;
-  lastChatMessage: string;
-  lastChatTime: string;
+  lastChatMessage?: string;
+  lastChatTime?: string;
   unreadMessageAmount: number;
   roomName: string;
 };
@@ -67,8 +67,9 @@ const socketIOHandler = (
   io.on("connection", (s) => {
     const socket = s as Socket;
 
-    socket.on("setNickname", (nick: string) => {
+    socket.on("setNickname", (nick: string, done: () => void) => {
       socket["nickname"] = nick;
+      done();
     });
 
     socket.on("setUserId", async (id: number, done: () => void) => {
@@ -78,54 +79,58 @@ const socketIOHandler = (
 
     socket.on(
       "joinAllRooms",
-      async (user_id: number, done: (chatRooms: chatRoomsType[]) => void) => {
+      async (
+        user_id: number,
+        done: (chatRooms: chatRoomsType[]) => Promise<void>,
+      ) => {
         const chatRoomList = await findAllChatRoom(user_id);
 
-        const chatRooms: chatRoomsType[] = [];
-        chatRoomList.forEach(async (room) => {
-          socket.join(`${room.RoomName}`);
-          const opponent = await prisma.user.findFirst({
-            where: {
-              User_id: getUserIdFromChatroomName(user_id, room.RoomName),
-            },
-          });
+        const chatRooms = await Promise.all(
+          chatRoomList.map(async (room) => {
+            socket.join(`${room.RoomName}`);
+            const opponent = await prisma.user.findFirst({
+              where: {
+                User_id: getUserIdFromChatroomName(user_id, room.RoomName),
+              },
+            });
 
-          if (!opponent) throw new UserNotExistError();
-          const lastChat = await getLastChat(room.Room_id);
-          if (!lastChat) throw new Error("Chat Not Exist");
+            if (!opponent) throw new UserNotExistError();
+            const lastChat = await getLastChat(room.Room_id);
 
-          const unreadMessages = await prisma.message.findMany({
-            where: {
-              AND: [{ IsRead: false }, { Room_id: room.Room_id }],
-            },
-            select: {
-              Msg: true,
-            },
-          });
+            const unreadMessages = await prisma.message.findMany({
+              where: {
+                AND: [{ IsRead: false }, { Room_id: room.Room_id }],
+              },
+              select: {
+                Msg: true,
+              },
+            });
 
-          const userImage = await prisma.image.findFirst({
-            where: {
-              Profile_id: opponent.User_id,
-            },
-            select: {
-              ImageData: true,
-            },
-          });
+            const userImage = await prisma.image.findFirst({
+              where: {
+                Profile_id: opponent.User_id,
+              },
+              select: {
+                ImageData: true,
+              },
+            });
+            let imageData: Buffer | undefined;
+            if (userImage?.ImageData) {
+              imageData = fs.readFileSync(
+                `../image/user/${userImage?.ImageData}`,
+              );
+            } else imageData = undefined;
 
-          const imageData = fs.readFileSync(
-            `../../../image/user/${userImage?.ImageData}`,
-          );
-
-          chatRooms.push({
-            nickname: opponent.Name,
-            lastChatMessage: lastChat.Msg,
-            image: imageData,
-            lastChatTime: lastChat.ChatTime.toISOString(),
-            unreadMessageAmount: unreadMessages.length,
-            roomName: room.RoomName,
-          });
-          //TODO: joinAllRooms 구현
-        });
+            return {
+              nickname: opponent.Name,
+              lastChatMessage: lastChat?.Msg,
+              image: imageData,
+              lastChatTime: lastChat?.ChatTime.toISOString(),
+              unreadMessageAmount: unreadMessages.length,
+              roomName: room.RoomName,
+            };
+          }),
+        );
 
         done(chatRooms);
       },
@@ -149,7 +154,41 @@ const socketIOHandler = (
           guestId: guestId,
           io: io,
         });
-        done(`${hostId}_${guestId}`);
+        done(getRoomName(hostId, guestId));
+      },
+    );
+
+    socket.on(
+      "enterRoom",
+      async (
+        roomName: string,
+        done: (
+          chatList: {
+            Message_id: number;
+            Room_id: number;
+            Msg: string;
+            ChatTime: Date;
+            User_id: number;
+            IsRead: boolean;
+          }[],
+        ) => void,
+      ) => {
+        const roomId = await prisma.chatRoom.findFirst({
+          where: {
+            RoomName: roomName,
+          },
+          select: {
+            Room_id: true,
+          },
+        });
+        if (!roomId) throw new Error("Room Not Found");
+        const chatList = await prisma.message.findMany({
+          where: {
+            Room_id: roomId.Room_id,
+          },
+        });
+
+        done(chatList);
       },
     );
 
@@ -159,42 +198,47 @@ const socketIOHandler = (
       );
     });
 
-    socket.on("send", async (payload: string, currentRoom: string) => {
-      const hostId = currentRoom.split("_")[1];
-      const guestId = currentRoom.split("_")[0];
+    socket.on(
+      "send",
+      async (payload: string, currentRoom: string, done: () => void) => {
+        const hostId = currentRoom.split("_")[0];
+        const guestId = currentRoom.split("_")[1];
 
-      socket.to(currentRoom).emit("send", {
-        nickname: socket["nickname"],
-        payload,
-        createdAt: Date.now(),
-      });
-
-      if (await checkUserOffline(io, +hostId)) {
-        createMessageOffline({
-          payload: payload,
-          writerId: +guestId,
-          roomName: currentRoom,
+        socket.to(currentRoom).emit("send", {
+          nickname: socket["nickname"],
+          payload,
+          createdAt: Date.now(),
         });
-        return;
-      } else if (await checkUserOffline(io, +guestId)) {
-        createMessageOffline({
-          payload: payload,
-          writerId: +hostId,
-          roomName: currentRoom,
+
+        if (await checkUserOffline(io, +hostId)) {
+          createMessageOffline({
+            payload: payload,
+            writerId: +guestId,
+            roomName: currentRoom,
+          });
+          return;
+        } else if (await checkUserOffline(io, +guestId)) {
+          createMessageOffline({
+            payload: payload,
+            writerId: +hostId,
+            roomName: currentRoom,
+          });
+          return;
+        }
+
+        const roomId = await getRoomId(hostId, guestId);
+
+        await prisma.message.create({
+          data: {
+            Msg: payload,
+            User_id: socket["userId"],
+            Room_id: roomId,
+          },
         });
-        return;
-      }
 
-      const roomId = await getRoomId(hostId, guestId);
-
-      await prisma.message.create({
-        data: {
-          Msg: payload,
-          User_id: socket["userId"],
-          Room_id: roomId,
-        },
-      });
-    });
+        done();
+      },
+    );
   });
 };
 
@@ -242,11 +286,9 @@ async function createMessageOffline({
   writerId,
   roomName,
 }: createMessageOfflineType): Promise<void> {
-  const hostId = +roomName.split("_")[0];
-  const guestId = +roomName.split("_")[1];
   const room = await prisma.chatRoom.findFirst({
     where: {
-      RoomName: getRoomName(hostId, guestId),
+      RoomName: roomName,
     },
     select: {
       Room_id: true,
