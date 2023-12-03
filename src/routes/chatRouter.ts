@@ -13,7 +13,7 @@ import fs from "fs";
 //[x]: 메시지 전송
 //[x]: 연결 끊기
 //[x]: 데이터베이스 연동
-//[ ]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
+//[x]: 재접속 시 소켓 방 참가 로직 구현 및 테스트
 
 type SocketIO = SocketIO.Server<
   DefaultEventsMap,
