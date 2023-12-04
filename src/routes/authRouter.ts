@@ -81,9 +81,7 @@ authRouter.get("/kakao/register", async (req, res) => {
 
 authRouter.post("/validation", async (req, res) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.slice(7);
-    const result = await Validation(token);
+    const result = await Validation(req);
     if (result?.access_token) res.status(201); //Created
     else res.status(200); //OK
     res.send(result);

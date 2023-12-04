@@ -34,15 +34,17 @@ function isTokenValidMoreThanAWeek(token: Token) {
   else return false;
 }
 
-async function Validation(AccessToken: any) {
-  if (AccessToken) {
+async function Validation(
+  request: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  if (!request.body.access_token) {
     // A/T 가 안넘어옴
     throw new NotProvidedError("Body");
   }
 
   const token = await prisma.oAuthToken.findFirst({
     where: {
-      AccessToken: AccessToken,
+      AccessToken: request.body.access_token,
     },
   });
 
