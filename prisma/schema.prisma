@@ -105,7 +105,7 @@ model Posting {
   Map_id        Int
   GameType      GameType[]
   Image         Image[]
-  memeber       Member[]
+  Member        Member[]
   Map           Map        @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
