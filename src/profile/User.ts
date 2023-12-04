@@ -66,58 +66,14 @@ async function getUserProfile(userId: number) {
 async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  const isUser = await prisma.oAuthToken.findFirst({
-    where: {
-      AccessToken: req.body.access_token,
-    },
-  });
-
-  if (!isUser) throw new UserNotFoundError();
-
-  const profile = await prisma.profile.findFirst({
-    where: {
-      User_id: isUser.User_id,
-    },
-  });
+  const isUser = await validateUser(req);
+  const { profile, updatedProfile } = await updateProfile(isUser, req);
+  let image = await createOrUpdateUserImage(profile, req);
 
   const one = isTrue(req.body.One) ? true : false,
     three = isTrue(req.body.Three) ? true : false,
     five = isTrue(req.body.Five) ? true : false;
 
-  const updatedProfile = await prisma.profile.update({
-    where: {
-      Profile_id: profile?.Profile_id,
-    },
-    data: {
-      Height: parseFloat(req.body.Height),
-      Weight: parseInt(req.body.Weight),
-      Year: parseInt(req.body.Year),
-      Introduce: req.body.Introduce,
-      Location: req.body.Location,
-    },
-  });
-
-  let image = await prisma.image.findFirst({
-    where: { Profile_id: profile?.Profile_id },
-  });
-
-  if (req.file) {
-    if (!image) {
-      await prisma.image.create({
-        data: {
-          Profile: { connect: { Profile_id: profile?.Profile_id } },
-          ImageData: "",
-        },
-      });
-    }
-    const fileName = sanitize(req.file.filename);
-    image = await prisma.image.update({
-      where: { Image_id: image?.Image_id },
-      data: {
-        ImageData: fileName,
-      },
-    });
-  }
   const type = await prisma.gameType.findFirst({
     where: {
       Profile_id: profile?.Profile_id,
@@ -126,23 +82,26 @@ async function setUserProfile(
       GameType_id: true,
     },
   });
+  let updatedType: {
+    OneOnOne: boolean;
+    ThreeOnThree: boolean;
+    FiveOnFive: boolean;
+  };
   if (!type) {
-    const updatedType = await prisma.gameType.create({
-      data: {
-        Profile: { connect: { Profile_id: profile?.Profile_id } },
-        OneOnOne: one,
-        ThreeOnThree: three,
-        FiveOnFive: five,
-      },
-      select: {
-        OneOnOne: true,
-        ThreeOnThree: true,
-        FiveOnFive: true,
-      },
-    });
-    return { ...updatedProfile, GameType: updatedType, Image: image };
+    updatedType = await createGameType(profile, one, three, five);
+  } else {
+    updatedType = await updateGameType(type, one, three, five);
   }
-  const updatedType = await prisma.gameType.update({
+  return { ...updatedProfile, GameType: updatedType, Image: image };
+}
+
+async function updateGameType(
+  type: { GameType_id: number },
+  one: boolean,
+  three: boolean,
+  five: boolean,
+) {
+  return await prisma.gameType.update({
     where: {
       GameType_id: type?.GameType_id,
     },
@@ -157,7 +116,124 @@ async function setUserProfile(
       FiveOnFive: true,
     },
   });
-  return { ...updatedProfile, GameType: updatedType, Image: image };
+}
+
+async function createGameType(
+  profile: {
+    User_id: number;
+    Height: number | null;
+    Introduce: string | null;
+    Location: string | null;
+    Overall: number;
+    Team_id: number | null;
+    Weight: number | null;
+    Year: number | null;
+    Profile_id: number;
+  } | null,
+  one: boolean,
+  three: boolean,
+  five: boolean,
+) {
+  return await prisma.gameType.create({
+    data: {
+      Profile: { connect: { Profile_id: profile?.Profile_id } },
+      OneOnOne: one,
+      ThreeOnThree: three,
+      FiveOnFive: five,
+    },
+    select: {
+      OneOnOne: true,
+      ThreeOnThree: true,
+      FiveOnFive: true,
+    },
+  });
+}
+
+async function createOrUpdateUserImage(
+  profile: {
+    User_id: number;
+    Height: number | null;
+    Introduce: string | null;
+    Location: string | null;
+    Overall: number;
+    Team_id: number | null;
+    Weight: number | null;
+    Year: number | null;
+    Profile_id: number;
+  } | null,
+  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  let image = await prisma.image.findFirst({
+    where: { Profile_id: profile?.Profile_id },
+  });
+
+  if (req.file) {
+    const fileName = sanitize(req.file.filename);
+    if (!image) {
+      image = await prisma.image.create({
+        data: {
+          Profile: { connect: { Profile_id: profile?.Profile_id } },
+          ImageData: fileName,
+        },
+      });
+    } else {
+      image = await prisma.image.update({
+        where: { Image_id: image.Image_id },
+        data: {
+          ImageData: fileName,
+        },
+      });
+    }
+  }
+  return image;
+}
+
+async function updateProfile(
+  isUser: {
+    id: number;
+    User_id: number;
+    AccessToken: string;
+    RefreshToken: string;
+    AToken_CreatedAt: string;
+    RToken_CreatedAt: string;
+    AToken_Expires: number;
+    RToken_Expires: number;
+    Auth_id: string;
+  },
+  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  const profile = await prisma.profile.findFirst({
+    where: {
+      User_id: isUser.User_id,
+    },
+  });
+
+  const updatedProfile = await prisma.profile.update({
+    where: {
+      Profile_id: profile!!.Profile_id,
+    },
+    data: {
+      Height: parseFloat(req.body.Height),
+      Weight: parseInt(req.body.Weight),
+      Year: parseInt(req.body.Year),
+      Introduce: req.body.Introduce,
+      Location: req.body.Location,
+    },
+  });
+  return { profile, updatedProfile };
+}
+
+async function validateUser(
+  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+) {
+  const isUser = await prisma.oAuthToken.findFirst({
+    where: {
+      AccessToken: req.body.access_token,
+    },
+  });
+
+  if (!isUser) throw new UserNotFoundError();
+  return isUser;
 }
 
 async function setOverall(
