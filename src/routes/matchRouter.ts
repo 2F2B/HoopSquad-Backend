@@ -88,7 +88,9 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
 
 matchRouter.delete("/:id", async (req, res) => {
   try {
-    await DeleteMatch(+req.params.id, req.body.access_token);
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.slice(7);
+    await DeleteMatch(+req.params.id, token);
     res.status(204).send();
   } catch (err) {
     if (err instanceof UserNotFoundError) {

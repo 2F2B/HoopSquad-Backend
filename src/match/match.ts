@@ -335,10 +335,12 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
         Posting_id: posting.Posting_id,
       },
     });
-    images.forEach((file: any) => {
-      const filePath = path.join(uploadsDirectory, file.ImageData);
-      fs.unlink(filePath, (unlinkErr: any) => {});
-    });
+    if (images) {
+      images.forEach((file: any) => {
+        const filePath = path.join(uploadsDirectory, file.ImageData);
+        fs.unlink(filePath, (unlinkErr: any) => {});
+      });
+    }
   } else throw new UserNotWriterError();
 }
 
