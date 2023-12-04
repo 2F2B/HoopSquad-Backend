@@ -8,6 +8,7 @@ import {
   UserAlreadyExistError,
   UserNotExistError,
 } from "./error";
+import { getUserProfile } from "../profile/User";
 
 const prisma = new PrismaClient();
 
@@ -99,11 +100,7 @@ async function Login(
       Auth_id: isExist.User_id.toString(),
     },
   });
-  const user = await prisma.user.findFirst({
-    where: {
-      User_id: isExist.User_id,
-    },
-  });
-  return { token: newToken.Access_Token, Id: user?.User_id };
+  const profile = await getUserProfile(isExist.User_id);
+  return { token: newToken.Access_Token, profile };
 }
 export { Register, Login };
