@@ -33,12 +33,6 @@ type chatRoomsType = {
 
 const prisma = new PrismaClient();
 
-type createMessageOfflineType = {
-  payload: string;
-  writerId: number;
-  roomName: string;
-};
-
 type joinRoomType = {
   socket: Socket;
   hostId: number;
@@ -254,16 +248,19 @@ async function createRoom(hostId: number, guestId: number) {
     },
   });
   if (isChatRoomExist.length == 0) {
+    const newChatRoom = await prisma.chatRoomList.create({});
     await prisma.chatRoom.createMany({
       data: [
         {
           User_id: hostId,
           IsHost: true,
           RoomName: getRoomName(hostId, guestId),
+          Room_id: newChatRoom.Room_id,
         },
         {
           User_id: guestId,
           RoomName: getRoomName(hostId, guestId),
+          Room_id: newChatRoom.Room_id,
         },
       ],
     });
