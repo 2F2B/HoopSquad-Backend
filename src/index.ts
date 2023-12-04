@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
-import path from "path";
 import rateLimit from "express-rate-limit";
 
 let limiter = rateLimit({
@@ -30,8 +29,6 @@ import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 
-const parentDirectory = path.join(__dirname, "../../");
-
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
 app.use("/team", teamRouter);
@@ -45,6 +42,8 @@ app.use(
     limit: "10mb",
   }),
 );
+
+export type SocketIoServerType = typeof httpServer;
 
 try {
   socketIOHandler(httpServer);
