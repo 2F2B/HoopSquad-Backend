@@ -34,23 +34,22 @@ function isTokenValidMoreThanAWeek(token: Token) {
   else return false;
 }
 
-async function Validation(
-  request: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
-  if (!request.body.access_token) {
+async function Validation(AccessToken: any) {
+  if (!AccessToken) {
     // A/T 가 안넘어옴
     throw new NotProvidedError("Body");
   }
 
   const token = await prisma.oAuthToken.findFirst({
     where: {
-      AccessToken: request.body.access_token,
+      AccessToken: AccessToken,
     },
   });
 
   if (token) {
     if (AccessVerify(token.AccessToken)) {
-      return { result: "success", User_id: token.User_id };
+      const profile = await getUserProfile(token.User_id);
+      return { profile };
     } // A/T O
     if (!AccessVerify(token.AccessToken))
       throw new AccessTokenNotValidateError(); // A/T 만료
@@ -59,11 +58,11 @@ async function Validation(
 
     if (isTokenValidMoreThanAWeek(token)) {
       const newToken = AccessRefresh(token.Auth_id);
-      const profile = getUserProfile(token.User_id);
+      const profile = await getUserProfile(token.User_id);
       return { access_token: newToken.Access_Token, Profile: profile };
     } else {
       const newToken = GenerateToken(token.Auth_id);
-      const profile = getUserProfile(token.User_id);
+      const profile = await getUserProfile(token.User_id);
       return { access_token: newToken.Access_Token, Profile: profile };
     }
   } else throw new NotProvidedError("Token");
