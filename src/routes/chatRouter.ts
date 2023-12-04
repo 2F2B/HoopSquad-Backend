@@ -117,9 +117,10 @@ const socketIOHandler = (
       async (
         hostId: number,
         guestId: number,
+        postingId: number,
         done: (roomName: string) => void,
       ) => {
-        await createRoom(hostId, guestId);
+        await createRoom(hostId, guestId, postingId);
         await joinRoom({
           socket: socket,
           hostId: hostId,
@@ -241,7 +242,7 @@ function getRoomName(hostId: number, guestId: number) {
  * @param hostId
  * @param guestId
  */
-async function createRoom(hostId: number, guestId: number) {
+async function createRoom(hostId: number, guestId: number, postingId: number) {
   const isChatRoomExist = await prisma.chatRoom.findMany({
     where: {
       RoomName: getRoomName(hostId, guestId),
@@ -256,11 +257,13 @@ async function createRoom(hostId: number, guestId: number) {
           IsHost: true,
           RoomName: getRoomName(hostId, guestId),
           Room_id: newChatRoom.Room_id,
+          Posting_id: postingId,
         },
         {
           User_id: guestId,
           RoomName: getRoomName(hostId, guestId),
           Room_id: newChatRoom.Room_id,
+          Posting_id: postingId,
         },
       ],
     });
