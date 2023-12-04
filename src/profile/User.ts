@@ -160,4 +160,22 @@ async function setUserProfile(
   return { ...updatedProfile, GameType: updatedType, Image: image };
 }
 
+async function setOverall(
+  AccessToken: any,
+  isJoin: boolean,
+  isPositive: boolean,
+  comment: string,
+) {
+  const userId = await prisma.oAuthToken.findFirst({
+    where: {
+      AccessToken: AccessToken,
+    },
+  });
+  if (!userId) throw new UserNotFoundError();
+
+  let score = 0;
+  isJoin ? (score += 3) : (score -= 5);
+  isPositive ? (score += 5) : (score -= 3);
+}
+
 export { getUserProfile, setUserProfile };
