@@ -6,6 +6,7 @@ import {
   NotProvidedError,
   AccessTokenNotValidateError,
   RefreshTokenNotValidateError,
+  TokenNotProvidedError,
 } from "./error";
 import { getUserProfile } from "../profile/User";
 
@@ -65,7 +66,7 @@ async function Validation(AccessToken: any) {
       const profile = await getUserProfile(token.User_id);
       return { access_token: newToken.Access_Token, Profile: profile };
     }
-  } else throw new NotProvidedError("Token");
+  } else throw new TokenNotProvidedError();
 }
 
 export { Validation };
