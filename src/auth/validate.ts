@@ -4,7 +4,6 @@ import { ParsedQs } from "qs";
 import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 import {
   NotProvidedError,
-  AccessTokenNotValidateError,
   RefreshTokenNotValidateError,
   TokenNotProvidedError,
 } from "./error";
@@ -52,8 +51,6 @@ async function Validation(AccessToken: any) {
       const profile = await getUserProfile(token.User_id);
       return { profile };
     } // A/T O
-    if (!AccessVerify(token.AccessToken))
-      throw new AccessTokenNotValidateError(); // A/T 만료
     if (!AccessVerify(token.RefreshToken))
       throw new RefreshTokenNotValidateError(); // A/T 만료 & R/T 만료
 

@@ -44,14 +44,6 @@ export class PasswordNotMatchError extends ErrorWithStatusCode {
   }
 }
 
-export class AccessTokenNotValidateError extends ErrorWithStatusCode {
-  statusCode: number = 401;
-  constructor() {
-    super("Access Token Not Validate");
-    this.name = "AccessTokenNotValidate";
-  }
-}
-
 export class RefreshTokenNotValidateError extends ErrorWithStatusCode {
   statusCode: number = 401;
   constructor() {
