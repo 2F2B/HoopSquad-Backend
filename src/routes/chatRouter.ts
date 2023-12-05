@@ -127,12 +127,28 @@ const socketIOHandler = (server: SocketIoServerType) => {
           },
         });
 
+        const chatRoomId = await prisma.chatRoom.findFirstOrThrow({
+          where: {
+            Posting_id: postingId,
+          },
+          select: {
+            Room_id: true,
+          },
+        });
+
+        const entireMessagesAmount = await prisma.message.count({
+          where: {
+            Room_id: chatRoomId.Room_id,
+          },
+        });
+
         socket.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
+          entireMessagesAmount: entireMessagesAmount,
         });
 
         // if (await checkUserOffline(io, +hostId)) {
