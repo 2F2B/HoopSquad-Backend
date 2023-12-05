@@ -241,21 +241,24 @@ async function createRoom(hostId: number, guestId: number, postingId: number) {
     },
   });
   if (!isChatRoomExist) {
-    const newChatRoom = await prisma.chatRoomList.create({});
-    await prisma.chatRoom.createMany({
-      data: [
-        {
-          User_id: hostId,
-          IsHost: true,
-          Room_id: newChatRoom.Room_id,
-          Posting_id: postingId,
+    await prisma.chatRoomList.create({
+      data: {
+        ChatRoom: {
+          createMany: {
+            data: [
+              {
+                User_id: hostId,
+                IsHost: true,
+                Posting_id: postingId,
+              },
+              {
+                User_id: guestId,
+                Posting_id: postingId,
+              },
+            ],
+          },
         },
-        {
-          User_id: guestId,
-          Room_id: newChatRoom.Room_id,
-          Posting_id: postingId,
-        },
-      ],
+      },
     });
   }
 }
