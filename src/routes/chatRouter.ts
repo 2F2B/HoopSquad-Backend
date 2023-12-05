@@ -130,7 +130,6 @@ const socketIOHandler = (server: SocketIoServerType) => {
         socket.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
-          image: await findUserImage(userId),
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
@@ -184,9 +183,11 @@ async function joinAllRooms(
   return await Promise.all(
     chatRoomList.map(async (room) => {
       socket.join(getRoomName(room.Posting_id));
-      const { opponent, opponentName } = await findOpponentInfo(room, user_id);
+      const opponentName = await findOpponentInfo(room, user_id);
       const lastChat = await getLastChat(room.Room_id);
-      let imageData: Buffer | undefined = await findUserImage(opponent.User_id);
+      let imageData: Buffer | undefined = await findPostingImage(
+        room.Posting_id,
+      );
       const postingName = await findPostingName(room);
 
       return {
@@ -215,18 +216,18 @@ async function findPostingName(room: { Room_id: number; Posting_id: number }) {
   return postingName;
 }
 
-async function findUserImage(userId: number) {
-  const userImage = await prisma.image.findFirst({
+async function findPostingImage(postingId: number) {
+  const postImage = await prisma.image.findFirst({
     where: {
-      Profile_id: userId,
+      Posting_id: postingId,
     },
     select: {
       ImageData: true,
     },
   });
   let imageData: Buffer | undefined;
-  if (userImage) {
-    imageData = fs.readFileSync(`../image/user/${userImage?.ImageData}`);
+  if (postImage) {
+    imageData = fs.readFileSync(`../image/match/${postImage.ImageData}`);
   } else imageData = undefined;
   return imageData;
 }
@@ -251,7 +252,7 @@ async function findOpponentInfo(
     },
   });
   if (!opponentName) throw new UserNotExistError();
-  return { opponent, opponentName };
+  return opponentName;
 }
 
 async function findAllChatRoom(user_id: number) {
