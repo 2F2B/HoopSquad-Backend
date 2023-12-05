@@ -15,8 +15,8 @@ export class NotProvidedError extends ErrorWithStatusCode {
 export class TokenNotProvidedError extends ErrorWithStatusCode {
   statusCode: number = 401;
   constructor() {
-    super("Not Provided");
-    this.name = "NotProvided";
+    super("Token Not Provided");
+    this.name = "TokenNotProvided";
   }
 }
 

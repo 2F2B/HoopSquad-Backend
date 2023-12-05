@@ -30,17 +30,12 @@ async function getAlarm(id: number) {
  */
 
 async function applyMatch(body: { Alarm_id: number; IsApply: number }) {
-  await prisma.alarm.update({
+  const result = await prisma.alarm.update({
     where: {
       Alarm_id: body.Alarm_id,
     },
     data: {
       IsApply: body.IsApply,
-    },
-  });
-  const result = await prisma.alarm.findFirst({
-    where: {
-      Alarm_id: body.Alarm_id,
     },
   });
 
