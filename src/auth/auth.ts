@@ -21,7 +21,7 @@ function NameGen(): string {
 async function Register(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (req.body.Email == undefined) throw new NotProvidedError();
+  if (req.body.Email == undefined) throw new NotProvidedError("Email");
   const isExist = await prisma.userData.findFirst({
     // 유저가 이미 가입했는지 확인
     where: { Email: req.body.Email },

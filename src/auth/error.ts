@@ -12,6 +12,14 @@ export class NotProvidedError extends ErrorWithStatusCode {
   }
 }
 
+export class TokenNotProvidedError extends ErrorWithStatusCode {
+  statusCode: number = 401;
+  constructor() {
+    super("Not Provided");
+    this.name = "NotProvided";
+  }
+}
+
 export class UserAlreadyExistError extends ErrorWithStatusCode {
   statusCode: number = 409;
   constructor() {
