@@ -147,28 +147,7 @@ const chatServerHandler = (
           },
         });
 
-        // if (await checkUserOffline(io, +hostId)) {
-        // } else if (await checkUserOffline(io, +guestId)) {
-        // }
-
-        const room = await findRoomByPostingId(postingId);
-        const newMessage = await prisma.message.create({
-          data: {
-            Msg: payload,
-            User_id: userId,
-            Room_id: room.Room_id,
-          },
-        });
-
-        io.to(getRoomName(postingId)).emit("send", {
-          Message_id: newMessage.Message_id,
-          Posting_id: postingId,
-          Msg: payload,
-          ChatTime: currentTimestamp,
-          User_id: userId,
-        });
-
-        io.to(getRoomName(postingId)).emit("updateChatRoom", {
+        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
