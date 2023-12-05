@@ -15,8 +15,8 @@ export class NotProvidedError extends ErrorWithStatusCode {
 export class TokenNotProvidedError extends ErrorWithStatusCode {
   statusCode: number = 401;
   constructor() {
-    super("Not Provided");
-    this.name = "NotProvided";
+    super("Token Not Provided");
+    this.name = "TokenNotProvided";
   }
 }
 
@@ -41,14 +41,6 @@ export class PasswordNotMatchError extends ErrorWithStatusCode {
   constructor() {
     super("Password Not Match");
     this.name = "PasswordNotMatch";
-  }
-}
-
-export class AccessTokenNotValidateError extends ErrorWithStatusCode {
-  statusCode: number = 401;
-  constructor() {
-    super("Access Token Not Validate");
-    this.name = "AccessTokenNotValidate";
   }
 }
 
