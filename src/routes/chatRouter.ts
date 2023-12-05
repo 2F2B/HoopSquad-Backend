@@ -227,7 +227,9 @@ async function findPostingImage(postingId: number) {
   });
   let imageData: Buffer | undefined;
   if (postImage) {
-    imageData = fs.readFileSync(`../image/match/${postImage.ImageData}`);
+    imageData = fs.readFileSync(
+      `/home/ubuntu/image/match/${postImage.ImageData}`,
+    );
   } else imageData = undefined;
   return imageData;
 }

@@ -6,6 +6,7 @@ import { Validation } from "../auth/validate";
 import {
   NotProvidedError,
   PasswordNotMatchError,
+  TokenNotProvidedError,
   UserAlreadyExistError,
   UserNotExistError,
 } from "../auth/error";
@@ -88,10 +89,10 @@ authRouter.post("/validation", async (req, res) => {
     else res.status(200); //OK
     res.send(result);
   } catch (err) {
-    if (err instanceof Error) {
-      res.status(400);
-      console.log(err);
-      res.send({ error: err.message });
+    if (err instanceof TokenNotProvidedError) {
+      handleErrors(err, res);
+    } else if (err instanceof Error) {
+      handleErrors(err, res);
     }
   }
 });
@@ -102,10 +103,11 @@ authRouter.post("/delete", async (req, res) => {
     res.status(200);
     res.send(result);
   } catch (err) {
+    if (err instanceof UserNotExistError) {
+      handleErrors(err, res);
+    }
     if (err instanceof Error) {
-      res.status(400);
-      console.log(err);
-      res.send({ error: err.message });
+      handleErrors(err, res);
     }
   }
 });

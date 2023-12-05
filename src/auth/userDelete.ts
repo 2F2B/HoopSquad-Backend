@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { Express, Request } from "express";
+import { Request } from "express";
 import { ParsedQs } from "qs";
+import { UserNotExistError } from "./error";
 
 const prisma = new PrismaClient();
 
@@ -21,7 +22,7 @@ async function UserDelete(
       },
     });
     return { result: "success" };
-  } else throw new Error("User Not Exists");
+  } else throw new UserNotExistError();
 }
 
 export { UserDelete };
