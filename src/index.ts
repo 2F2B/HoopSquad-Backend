@@ -6,7 +6,7 @@ import rateLimit from "express-rate-limit";
 import SocketIO from "socket.io";
 
 let limiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5분간
+  windowMs: 1 * 60 * 1000, // 5분간
   max: 100, // 100개 request 가능
 });
 
