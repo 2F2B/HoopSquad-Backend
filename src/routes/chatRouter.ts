@@ -80,7 +80,6 @@ const socketIOHandler = (server: SocketIoServerType) => {
           io: io,
           postingId: postingId,
         });
-        console.log(`RoomName: ${postingId}`);
         done();
       },
     );
@@ -152,6 +151,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
           postingId: postingId,
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount.length,
+          test: "test",
         });
 
         // if (await checkUserOffline(io, +hostId)) {
