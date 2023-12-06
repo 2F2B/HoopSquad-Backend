@@ -2,8 +2,6 @@ import SocketIO, { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { PrismaClient } from "@prisma/client";
 import { UserNotExistError } from "../auth/error";
-import fs from "fs";
-import { SocketIoServerType } from "..";
 
 //CHECKLIST
 //[x]: 닉네임 설정
@@ -48,14 +46,17 @@ type joinRoomType = {
   postingId: number;
 };
 
-const socketIOHandler = (server: SocketIoServerType) => {
-  const io = new SocketIO.Server(server, {
-    cors: {
-      origin: "*",
-    },
-  });
+const expoPushTokens = new Map<string, string>();
 
+const chatServerHandler = (
+  io: SocketIO.Server,
+  notificationServer: SocketIO.Namespace,
+) => {
   io.on("connection", (socket) => {
+    socket.on("registerExpoPushToken", (expoPushToken) => {
+      expoPushTokens.set(socket.id, expoPushToken);
+    });
+
     socket.on(
       "joinAllRooms",
       async (user_id: number, done: (chatRooms: chatRoomsType[]) => void) => {
@@ -64,6 +65,10 @@ const socketIOHandler = (server: SocketIoServerType) => {
         done(chatRooms);
       },
     );
+
+    socket.on("disconnect", () => {
+      expoPushTokens.delete(socket.id);
+    });
 
     socket.on(
       "makeRoom",
@@ -145,6 +150,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
+
         const room = await findRoomByPostingId(postingId);
         const newMessage = await prisma.message.create({
           data: {
@@ -170,12 +176,61 @@ const socketIOHandler = (server: SocketIoServerType) => {
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount.length,
         });
+
+        sendPushNotification(
+          io,
+          postingId,
+          socket,
+          notificationServer,
+          nickname,
+          post,
+          payload,
+        );
       },
     );
   });
 };
 
-export default socketIOHandler;
+export default chatServerHandler;
+
+function sendPushNotification(
+  io: SocketIO.Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  postingId: number,
+  socket: SocketIO.Socket<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  notificationServer: SocketIO.Namespace<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  nickname: string,
+  post: { Title: string },
+  payload: string,
+) {
+  const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
+
+  socketsInRooms?.forEach(async (socketId) => {
+    if (socketId != socket.id && (await checkUserOffline(io, socketId))) {
+      notificationServer.emit(
+        "newMessageNotification",
+        expoPushTokens.get(socketId)!!,
+        nickname,
+        post.Title,
+        payload,
+      );
+    }
+  });
+}
 
 function getCurrentTimestamp() {
   return Date.now();
@@ -344,24 +399,22 @@ function getRoomName(postingId: number): string {
   return `${postingId}`;
 }
 
-// /**
-//  * 유저가 오프라인인지 체크하는 함수
-//  * @param io
-//  * @param userId
-//  * @returns
-//  */
-// async function checkUserOffline(io: SocketIO.Server, userId: number) {
-//   let isOnline;
-//   io.sockets.sockets.forEach((socket) => {
-//     socket.emit("getUserId", (id: number) => {
-//       if (id == userId) {
-//         return (isOnline = true);
-//       }
-//     });
-//   });
-//   if (isOnline == true) return false;
-//   else return true;
-// }
+/**
+ * 유저가 오프라인인지 체크하는 함수
+ * @param io
+ * @param socketId
+ * @returns
+ */
+async function checkUserOffline(io: SocketIO.Server, socketId: string) {
+  let isOnline;
+  io.sockets.sockets.forEach((socket) => {
+    if (socket.id == socketId) {
+      return (isOnline = true);
+    }
+  });
+  if (isOnline == true) return false;
+  else return true;
+}
 
 async function getLastChat(room_id: number) {
   return await prisma.message.findFirst({
