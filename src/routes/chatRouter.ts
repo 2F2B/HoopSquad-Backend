@@ -179,22 +179,7 @@ const chatServerHandler = (
           },
         });
 
-        io.to(getRoomName(postingId)).emit("send", {
-          Message_id: newMessage.Message_id,
-          Posting_id: postingId,
-          Msg: payload,
-          ChatTime: currentTimestamp,
-          User_id: userId,
-        });
-
-        io.to(getRoomName(postingId)).emit("updateChatRoom", {
-          nickname: nickname,
-          lastChatMessage: payload,
-          lastChatTime: currentTimestamp,
-          postingId: postingId,
-          postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount,
-        });
+        done();
       },
     );
   });
