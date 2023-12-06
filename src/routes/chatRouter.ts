@@ -56,6 +56,7 @@ const chatServerHandler = (
   io.on("connection", (socket) => {
     socket.on("registerExpoPushToken", (expoPushToken) => {
       expoPushTokens.set(socket.id, expoPushToken);
+      console.log(expoPushToken);
     });
 
     socket.on(
@@ -211,15 +212,15 @@ function sendPushNotification(
   const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
 
   socketsInRooms?.forEach(async (opponentId) => {
-    if (await checkUserOffline(opponentId)) {
-      notificationServer.emit(
-        "newMessageNotification",
-        expoPushTokens.get(opponentId)!!,
-        nickname,
-        post.Title,
-        payload,
-      );
-    }
+    // if (await checkUserOffline(opponentId)) {
+    notificationServer.emit(
+      "newMessageNotification",
+      expoPushTokens.get(opponentId)!!,
+      nickname,
+      post.Title,
+      payload,
+    );
+    // }
   });
 }
 
