@@ -220,7 +220,7 @@ function sendPushNotification(
   const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
 
   socketsInRooms?.forEach(async (socketId) => {
-    if (socketId != socket.id && (await checkUserOffline(io, socket.id))) {
+    if (socketId != socket.id && (await checkUserOffline(io, socketId))) {
       notificationServer.emit(
         "newMessageNotification",
         expoPushTokens.get(socketId)!!,
