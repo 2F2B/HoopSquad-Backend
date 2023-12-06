@@ -53,19 +53,46 @@ async function getUserProfile(userId: number) {
       },
     },
   });
+
+  const teams = await prisma.teamRelay.findMany({
+    where: {
+      User_id: userId,
+    },
+    select: {
+      TeamProfile: {
+        select: {
+          Name: true,
+          TeamImage: true,
+          Introduce: true,
+        },
+      },
+    },
+  });
+  const sortedTeam = await Promise.all(
+    teams.map(async (team) => {
+      return {
+        Name: team.TeamProfile.Name,
+        TeamImage: team.TeamProfile.TeamImage,
+        Introduce: team.TeamProfile.Introduce,
+      };
+    }),
+  );
+
   if (!Profile) throw new NotFoundError("Profile");
   return {
     ...Profile.Profile[0],
     GameType: Profile.Profile[0].GameType[0],
     Image: Profile.Profile[0].Image[0],
     Name: Profile?.Name,
+    Team: sortedTeam,
   };
 }
 
 async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+  AccessToken: string,
 ) {
-  const isUser = await validateUser(req);
+  const isUser = await validateUser(AccessToken);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
 
@@ -222,12 +249,10 @@ async function updateProfile(
   return { profile, updatedProfile };
 }
 
-async function validateUser(
-  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
+async function validateUser(AccessToken: string) {
   const isUser = await prisma.oAuthToken.findFirst({
     where: {
-      AccessToken: req.body.access_token,
+      AccessToken: AccessToken,
     },
   });
 

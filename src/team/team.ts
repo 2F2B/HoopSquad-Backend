@@ -5,6 +5,8 @@ import {
   TeamNotFoundError,
   UserAlreadyInTeamError,
 } from "./error";
+import path from "path";
+import fs from "fs";
 import { CreateTeamType } from "../routes/teamRouter";
 
 const prisma = new PrismaClient();
@@ -90,10 +92,11 @@ async function createTeam({
 }: CreateTeamType) {
   const newTeam = await prisma.teamProfile.create({
     data: {
-      Admin_id: Admin_id,
+      Admin_id: +Admin_id,
       Name: Name,
       Location: Location,
       Introduce: Introduce,
+      ...(TeamImage ? { TeamImage: TeamImage } : {}),
     },
   });
 
