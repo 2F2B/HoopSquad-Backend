@@ -113,7 +113,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
-        socket.to(getRoomName(postingId)).emit("send", {
+        io.to(getRoomName(postingId)).emit("send", {
           nickname: nickname,
           payload,
           createdAt: currentTimestamp,
@@ -128,7 +128,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
           },
         });
 
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
+        io.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
