@@ -142,17 +142,6 @@ const socketIOHandler = (server: SocketIoServerType) => {
           },
         });
 
-        console.log(entireMessagesAmount.length);
-
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
-          //nickname: nickname,
-          lastChatMessage: payload,
-          lastChatTime: currentTimestamp,
-          postingId: postingId,
-          postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount.length,
-        });
-
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
@@ -179,6 +168,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
+          entireMessagesAmount: entireMessagesAmount,
         });
       },
     );
