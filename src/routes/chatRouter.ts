@@ -120,7 +120,6 @@ const chatServerHandler = (
         userId: number,
         payload: string,
         postingId: number,
-        done: () => void,
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
@@ -179,8 +178,6 @@ const chatServerHandler = (
             Room_id: room.Room_id,
           },
         });
-
-        done();
       },
     );
   });
