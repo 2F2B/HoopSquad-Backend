@@ -147,24 +147,6 @@ const chatServerHandler = (
           },
         });
 
-        console.log(
-          nickname,
-          payload,
-          currentTimestamp,
-          postingId,
-          post.Title,
-          entireMessagesAmount.length,
-        );
-
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
-          nickname: nickname,
-          lastChatMessage: payload,
-          lastChatTime: currentTimestamp,
-          postingId: postingId,
-          postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount.length,
-        });
-
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
