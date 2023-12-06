@@ -180,8 +180,6 @@ const chatServerHandler = (
             );
           }
         });
-
-        done();
       },
     );
   });
