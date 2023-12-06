@@ -4,8 +4,7 @@ import { Request } from "express";
 import { ParsedQs } from "qs";
 import path from "path";
 import fs from "fs";
-import { ProfileNotFoundError } from "./error";
-import { UserNotFoundError } from "../match/error";
+import { NotFoundError, TypeNotBooleanError } from "./error";
 import sanitize from "sanitize-filename";
 
 const parentDirectory = path.join(__dirname, "../../..");
@@ -22,7 +21,7 @@ function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   // true, false string을 boolean으로 변환
   if (Type === "true") return true;
   else if (Type === "false") return false;
-  else throw new Error("String Is Not Boolean");
+  else throw new TypeNotBooleanError();
 }
 
 async function getUserProfile(userId: number) {
@@ -54,7 +53,7 @@ async function getUserProfile(userId: number) {
       },
     },
   });
-  if (!Profile) throw new ProfileNotFoundError();
+  if (!Profile) throw new NotFoundError("Profile");
   return {
     ...Profile.Profile[0],
     GameType: Profile.Profile[0].GameType[0],
@@ -232,7 +231,7 @@ async function validateUser(
     },
   });
 
-  if (!isUser) throw new UserNotFoundError();
+  if (!isUser) throw new NotFoundError("User");
   return isUser;
 }
 
@@ -247,7 +246,7 @@ async function setOverall(
       AccessToken: AccessToken,
     },
   });
-  if (!userId) throw new UserNotFoundError();
+  if (!userId) throw new NotFoundError("User");
 
   let score = 0;
   isJoin ? (score += 3) : (score -= 5);

@@ -28,6 +28,7 @@ import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
+import reviewRouter from "./routes/reviewRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -36,6 +37,7 @@ app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
+app.use("/review", reviewRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
