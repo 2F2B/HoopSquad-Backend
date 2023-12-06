@@ -46,6 +46,8 @@ type joinRoomType = {
   postingId: number;
 };
 
+const expoPushTokens = new Map<string, string>();
+
 const chatServerHandler = (
   io: SocketIO.Server,
   notificationServer: SocketIO.Namespace,
@@ -146,9 +148,29 @@ const chatServerHandler = (
           },
         });
 
+        const socketsInRooms = io.sockets.adapter.rooms.get(
+          getRoomName(postingId),
+        );
+
+        socketsInRooms?.forEach(async (socketId) => {
+          if (
+            socketId != socket.id &&
+            (await checkUserOffline(io, socket.id))
+          ) {
+            notificationServer.emit(
+              "newMessageNotification",
+              expoPushTokens.get(socketId)!!,
+              nickname,
+              post.Title,
+              payload,
+            );
+          }
+        });
+
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
+
         const room = await findRoomByPostingId(postingId);
         const newMessage = await prisma.message.create({
           data: {
