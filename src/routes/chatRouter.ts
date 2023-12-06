@@ -20,6 +20,14 @@ type SocketIO = SocketIO.Server<
   any
 >;
 
+type enterRoomType = {
+  Message_id: number;
+  Posting_id: number;
+  Msg: string;
+  ChatTime: Date;
+  User_id: number;
+};
+
 type chatRoomsType = {
   nickname: string;
   lastChatMessage: string | undefined;
@@ -84,26 +92,25 @@ const chatServerHandler = (
 
     socket.on(
       "enterRoom",
-      async (
-        postingId: number,
-        done: (
-          chatList: {
-            Message_id: number;
-            Room_id: number;
-            Msg: string;
-            ChatTime: Date;
-            User_id: number;
-          }[],
-        ) => void,
-      ) => {
+      async (postingId: number, done: (chatList: enterRoomType[]) => void) => {
         const room = await findRoomByPostingId(postingId);
         const chatList = await prisma.message.findMany({
           where: {
             Room_id: room.Room_id,
           },
+          select: {
+            Message_id: true,
+            Msg: true,
+            ChatTime: true,
+            User_id: true,
+          },
         });
 
-        done(chatList);
+        const chatListWithPostingId = chatList.map((chat) => ({
+          ...chat,
+          Posting_id: postingId,
+        }));
+        done(chatListWithPostingId);
       },
     );
 
@@ -117,12 +124,6 @@ const chatServerHandler = (
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
-        socket.to(getRoomName(postingId)).emit("send", {
-          nickname: nickname,
-          payload,
-          createdAt: currentTimestamp,
-        });
-
         const post = await prisma.posting.findFirstOrThrow({
           where: {
             Posting_id: postingId,
@@ -132,12 +133,28 @@ const chatServerHandler = (
           },
         });
 
+        const chatRoomId = await prisma.chatRoom.findFirstOrThrow({
+          where: {
+            Posting_id: postingId,
+          },
+          select: {
+            Room_id: true,
+          },
+        });
+
+        const entireMessagesAmount = await prisma.message.count({
+          where: {
+            Room_id: chatRoomId.Room_id,
+          },
+        });
+
         socket.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
+          entireMessagesAmount: entireMessagesAmount,
         });
 
         const socketsInRooms = io.sockets.adapter.rooms.get(
@@ -164,12 +181,28 @@ const chatServerHandler = (
         // }
 
         const room = await findRoomByPostingId(postingId);
-        await prisma.message.create({
+        const newMessage = await prisma.message.create({
           data: {
             Msg: payload,
             User_id: userId,
             Room_id: room.Room_id,
           },
+        });
+
+        io.to(getRoomName(postingId)).emit("send", {
+          Message_id: newMessage.Message_id,
+          Posting_id: postingId,
+          Msg: payload,
+          ChatTime: currentTimestamp,
+          User_id: userId,
+        });
+
+        io.to(getRoomName(postingId)).emit("updateChatRoom", {
+          nickname: nickname,
+          lastChatMessage: payload,
+          lastChatTime: currentTimestamp,
+          postingId: postingId,
+          postingTitle: post.Title,
         });
       },
     );

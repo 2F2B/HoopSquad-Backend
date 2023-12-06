@@ -4,14 +4,10 @@ import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress, AddressToLatLng } from "../google-maps/googleMaps";
 import {
-  SortNotFoundError,
-  GameTypeNotFoundError,
-  Posting_idNotFoundError,
-  UserNotFoundError,
-  PostingNotFoundError,
+  NotFoundError,
   UserNotWriterError,
-  LocationNotFoundError,
-  idNotFoundError,
+  TypeNotBooleanError,
+  MatchJoinError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -26,8 +22,6 @@ fs.readdir(uploadsDirectory, (error) => {
   }
 });
 
-const KR_TIME_DIFF = 10 * 9 * 60 * 60 * 1000;
-
 const prisma = new PrismaClient();
 
 function getCurrentTime() {
@@ -40,7 +34,7 @@ function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   // true, false string을 boolean으로 변환
   if (Type === "true") return true;
   else if (Type === "false") return false;
-  else throw new Error("String Is Not Boolean");
+  else throw new TypeNotBooleanError();
 }
 
 async function SearchMatchByTitle(
@@ -139,8 +133,8 @@ async function AllMatch( // 게시글 전체 조회
   const input = request.query.Input;
   const location = request.query.Location?.toString();
   let one, three, five;
-  if (!location) throw new LocationNotFoundError();
-  if (!sort) throw new SortNotFoundError(); //  정렬 정보 없을때
+  if (!location) throw new NotFoundError("Location");
+  if (!sort) throw new NotFoundError("Sort"); //  정렬 정보 없을때
 
   switch (request.query.Filter) {
     case "Title":
@@ -162,12 +156,12 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      if (!typePostingId) throw new GameTypeNotFoundError();
+      if (!typePostingId) throw new NotFoundError("GameType");
       const postingIds: number[] = typePostingId.map((item) =>
         item.Posting_id
           ? item.Posting_id
           : (() => {
-              throw new Posting_idNotFoundError();
+              throw new NotFoundError("Posting_id");
             })(),
       );
       return await SearchMatchByType(postingIds, sort, location);
@@ -188,7 +182,7 @@ async function AddMatch(
     },
   });
 
-  if (!user) throw new UserNotFoundError();
+  if (!user) throw new NotFoundError("User");
 
   const req = request.body.data;
   const Location = await AddressToLatLng(req.Address);
@@ -198,7 +192,7 @@ async function AddMatch(
     three = isTrue(req.Three) ? true : false,
     five = isTrue(req.Five) ? true : false,
     isTeam = isTrue(req.IsTeam) ? true : false;
-  const Time = getISOTime();
+  // const Time = getISOTime();
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
@@ -216,7 +210,6 @@ async function AddMatch(
               FiveOnFive: five,
             },
           },
-          WriteDate: Time,
           PlayTime: playTime / 1000,
           Location: req.Address,
           RecruitAmount: req.RecruitAmount,
@@ -260,17 +253,17 @@ async function AddMatch(
   };
 }
 
-export function getISOTime() {
-  const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
+// export function getISOTime() {
+//   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
 
-  const Time = new Date(utc + KR_TIME_DIFF);
-  return Time.toISOString();
-}
+//   const Time = new Date(utc);
+//   return Time.toISOString();
+// }
 
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (!request.query.Posting_id) throw new Posting_idNotFoundError();
+  if (!request.query.Posting_id) throw new NotFoundError("Posting_id");
   const map = await prisma.posting.findFirst({
     where: {
       Posting_id: parseInt(request.query?.Posting_id.toString()),
@@ -279,8 +272,8 @@ async function MatchInfo(
       Map_id: true,
     },
   });
-  if (!map) throw new PostingNotFoundError();
-  const match = await prisma.map.findFirst({
+  if (!map) throw new NotFoundError("Posting");
+  const match = await prisma.map.findFirstOrThrow({
     where: {
       Map_id: map.Map_id,
     },
@@ -300,14 +293,77 @@ async function MatchInfo(
           RecruitAmount: true,
           CurrentAmount: true,
           Introduce: true,
-          GameType: true,
-          Image: true,
+          GameType: {
+            select: {
+              OneOnOne: true,
+              ThreeOnThree: true,
+              FiveOnFive: true,
+            },
+          },
+          Image: {
+            select: {
+              ImageData: true,
+            },
+          },
         },
       },
     },
   });
-  if (!match) throw new PostingNotFoundError();
-  return match;
+  const writerImage = await getWriterImage(match);
+  const result = {
+    ...match.Posting[0],
+    LocationName: match.LocationName,
+    Lat: match.Lat,
+    Lng: match.Lng,
+    GameType: match.Posting[0].GameType,
+    Image: match.Posting[0].Image,
+    WriterImage: writerImage.Profile[0].Image[0],
+  };
+  if (!match) throw new NotFoundError("Posting");
+  return result;
+}
+
+async function getWriterImage(match: {
+  LocationName: string;
+  Lat: number;
+  Lng: number;
+  Posting: {
+    Posting_id: number;
+    User_id: number;
+    IsTeam: boolean;
+    Title: string;
+    WriteDate: Date;
+    PlayTime: number;
+    Location: string;
+    RecruitAmount: string;
+    CurrentAmount: string;
+    Introduce: string | null;
+    GameType: {
+      OneOnOne: boolean;
+      ThreeOnThree: boolean;
+      FiveOnFive: boolean;
+    }[];
+    Image: {
+      ImageData: string;
+    }[];
+  }[];
+}) {
+  return await prisma.user.findFirstOrThrow({
+    where: {
+      User_id: match.Posting[0].User_id,
+    },
+    select: {
+      Profile: {
+        select: {
+          Image: {
+            select: {
+              ImageData: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 async function DeleteMatch(Posting_id: number, access_token: any) {
@@ -318,7 +374,7 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
     },
     select: { User_id: true },
   });
-  if (!user) throw new UserNotFoundError();
+  if (!user) throw new NotFoundError("User");
 
   const posting = await prisma.posting.findFirst({
     where: {
@@ -353,7 +409,7 @@ async function JoinMatch(Posting_id: number, User_id: number) {
       },
     }))
   )
-    throw new idNotFoundError();
+    throw new MatchJoinError();
 }
 
 // TODO 채팅
