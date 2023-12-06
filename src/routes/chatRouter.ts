@@ -120,7 +120,6 @@ const chatServerHandler = (
         userId: number,
         payload: string,
         postingId: number,
-        done: () => void,
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
@@ -170,7 +169,21 @@ const chatServerHandler = (
           },
         });
 
-        done();
+        io.to(getRoomName(postingId)).emit("send", {
+          Message_id: newMessage.Message_id,
+          Posting_id: postingId,
+          Msg: payload,
+          ChatTime: currentTimestamp,
+          User_id: userId,
+        });
+
+        io.to(getRoomName(postingId)).emit("updateChatRoom", {
+          nickname: nickname,
+          lastChatMessage: payload,
+          lastChatTime: currentTimestamp,
+          postingId: postingId,
+          postingTitle: post.Title,
+        });
       },
     );
   });
