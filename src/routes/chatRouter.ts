@@ -160,8 +160,6 @@ const chatServerHandler = (
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount,
         });
-
-        done();
       },
     );
   });
