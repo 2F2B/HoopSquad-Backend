@@ -114,9 +114,10 @@ const socketIOHandler = (server: SocketIoServerType) => {
         const currentTimestamp = getCurrentTimestamp();
 
         io.to(getRoomName(postingId)).emit("send", {
-          nickname: nickname,
+          userId,
+          postingId,
           payload,
-          createdAt: currentTimestamp,
+          currentTimestamp,
         });
 
         const post = await prisma.posting.findFirstOrThrow({
