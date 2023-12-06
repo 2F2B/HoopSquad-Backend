@@ -53,6 +53,19 @@ async function getUserProfile(userId: number) {
     },
   });
 
+  const sortedTeam = await getUserTeams(userId);
+
+  if (!Profile) throw new NotFoundError("Profile");
+  return {
+    ...Profile.Profile[0],
+    GameType: Profile.Profile[0].GameType[0],
+    Image: Profile.Profile[0].Image[0],
+    Name: Profile?.Name,
+    Team: sortedTeam,
+  };
+}
+
+async function getUserTeams(userId: number) {
   const teams = await prisma.teamRelay.findMany({
     where: {
       User_id: userId,
@@ -76,15 +89,7 @@ async function getUserProfile(userId: number) {
       };
     }),
   );
-
-  if (!Profile) throw new NotFoundError("Profile");
-  return {
-    ...Profile.Profile[0],
-    GameType: Profile.Profile[0].GameType[0],
-    Image: Profile.Profile[0].Image[0],
-    Name: Profile?.Name,
-    Team: sortedTeam,
-  };
+  return sortedTeam;
 }
 
 async function getUserTeams(userId: number) {
