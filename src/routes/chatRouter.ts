@@ -38,11 +38,17 @@ type joinRoomType = {
   postingId: number;
 };
 
+const expoPushTokens = new Map<string, string>();
+
 const chatServerHandler = (
   io: SocketIO.Server,
   notificationServer: SocketIO.Namespace,
 ) => {
   io.on("connection", (socket) => {
+    socket.on("registerExpoPushToken", (expoPushToken) => {
+      expoPushTokens.set(socket.id, expoPushToken);
+    });
+
     socket.on(
       "joinAllRooms",
       async (user_id: number, done: (chatRooms: chatRoomsType[]) => void) => {
@@ -51,6 +57,10 @@ const chatServerHandler = (
         done(chatRooms);
       },
     );
+
+    socket.on("disconnect", () => {
+      expoPushTokens.delete(socket.id);
+    });
 
     socket.on(
       "makeRoom",
@@ -130,9 +140,29 @@ const chatServerHandler = (
           postingTitle: post.Title,
         });
 
+        const socketsInRooms = io.sockets.adapter.rooms.get(
+          getRoomName(postingId),
+        );
+
+        socketsInRooms?.forEach(async (socketId) => {
+          if (
+            socketId != socket.id &&
+            (await checkUserOffline(io, socket.id))
+          ) {
+            notificationServer.emit(
+              "newMessageNotification",
+              expoPushTokens.get(socketId)!!,
+              nickname,
+              post.Title,
+              payload,
+            );
+          }
+        });
+
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
+
         const room = await findRoomByPostingId(postingId);
         await prisma.message.create({
           data: {
@@ -315,24 +345,22 @@ function getRoomName(postingId: number): string {
   return `${postingId}`;
 }
 
-// /**
-//  * 유저가 오프라인인지 체크하는 함수
-//  * @param io
-//  * @param userId
-//  * @returns
-//  */
-// async function checkUserOffline(io: SocketIO.Server, userId: number) {
-//   let isOnline;
-//   io.sockets.sockets.forEach((socket) => {
-//     socket.emit("getUserId", (id: number) => {
-//       if (id == userId) {
-//         return (isOnline = true);
-//       }
-//     });
-//   });
-//   if (isOnline == true) return false;
-//   else return true;
-// }
+/**
+ * 유저가 오프라인인지 체크하는 함수
+ * @param io
+ * @param socketId
+ * @returns
+ */
+async function checkUserOffline(io: SocketIO.Server, socketId: string) {
+  let isOnline;
+  io.sockets.sockets.forEach((socket) => {
+    if (socket.id == socketId) {
+      return (isOnline = true);
+    }
+  });
+  if (isOnline == true) return false;
+  else return true;
+}
 
 async function getLastChat(room_id: number) {
   return await prisma.message.findFirst({
