@@ -4,14 +4,10 @@ import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { LatLngToAddress, AddressToLatLng } from "../google-maps/googleMaps";
 import {
-  SortNotFoundError,
-  GameTypeNotFoundError,
-  Posting_idNotFoundError,
-  UserNotFoundError,
-  PostingNotFoundError,
+  NotFoundError,
   UserNotWriterError,
-  LocationNotFoundError,
-  idNotFoundError,
+  TypeNotBooleanError,
+  MatchJoinError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -38,7 +34,7 @@ function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   // true, false string을 boolean으로 변환
   if (Type === "true") return true;
   else if (Type === "false") return false;
-  else throw new Error("String Is Not Boolean");
+  else throw new TypeNotBooleanError();
 }
 
 async function SearchMatchByTitle(
@@ -137,8 +133,8 @@ async function AllMatch( // 게시글 전체 조회
   const input = request.query.Input;
   const location = request.query.Location?.toString();
   let one, three, five;
-  if (!location) throw new LocationNotFoundError();
-  if (!sort) throw new SortNotFoundError(); //  정렬 정보 없을때
+  if (!location) throw new NotFoundError("Location");
+  if (!sort) throw new NotFoundError("Sort"); //  정렬 정보 없을때
 
   switch (request.query.Filter) {
     case "Title":
@@ -160,12 +156,12 @@ async function AllMatch( // 게시글 전체 조회
           Posting_id: true,
         },
       });
-      if (!typePostingId) throw new GameTypeNotFoundError();
+      if (!typePostingId) throw new NotFoundError("GameType");
       const postingIds: number[] = typePostingId.map((item) =>
         item.Posting_id
           ? item.Posting_id
           : (() => {
-              throw new Posting_idNotFoundError();
+              throw new NotFoundError("Posting_id");
             })(),
       );
       return await SearchMatchByType(postingIds, sort, location);
@@ -186,7 +182,7 @@ async function AddMatch(
     },
   });
 
-  if (!user) throw new UserNotFoundError();
+  if (!user) throw new NotFoundError("User");
 
   const req = request.body.data;
   const Location = await AddressToLatLng(req.Address);
@@ -267,7 +263,7 @@ async function AddMatch(
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {
-  if (!request.query.Posting_id) throw new Posting_idNotFoundError();
+  if (!request.query.Posting_id) throw new NotFoundError("Posting_id");
   const map = await prisma.posting.findFirst({
     where: {
       Posting_id: parseInt(request.query?.Posting_id.toString()),
@@ -276,7 +272,7 @@ async function MatchInfo(
       Map_id: true,
     },
   });
-  if (!map) throw new PostingNotFoundError();
+  if (!map) throw new NotFoundError("Posting");
   const match = await prisma.map.findFirst({
     where: {
       Map_id: map.Map_id,
@@ -303,7 +299,7 @@ async function MatchInfo(
       },
     },
   });
-  if (!match) throw new PostingNotFoundError();
+  if (!match) throw new NotFoundError("Posting");
   return match;
 }
 
@@ -315,7 +311,7 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
     },
     select: { User_id: true },
   });
-  if (!user) throw new UserNotFoundError();
+  if (!user) throw new NotFoundError("User");
 
   const posting = await prisma.posting.findFirst({
     where: {
@@ -350,7 +346,7 @@ async function JoinMatch(Posting_id: number, User_id: number) {
       },
     }))
   )
-    throw new idNotFoundError();
+    throw new MatchJoinError();
 }
 
 // TODO 채팅
