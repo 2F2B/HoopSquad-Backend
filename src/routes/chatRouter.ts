@@ -193,6 +193,8 @@ const chatServerHandler = (
             Room_id: room.Room_id,
           },
         });
+
+        done();
       },
     );
   });
