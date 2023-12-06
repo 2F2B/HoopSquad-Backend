@@ -11,14 +11,7 @@ import { BodyParser } from "body-parser";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import {
-  SortNotFoundError,
-  GameTypeNotFoundError,
-  Posting_idNotFoundError,
-  UserNotFoundError,
-  PostingNotFoundError,
-  UserNotWriterError,
-} from "../match/error";
+import { NotFoundError, UserNotWriterError } from "../match/error";
 import { ErrorWithStatusCode, handleErrors } from "../ErrorHandler";
 
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
@@ -80,8 +73,10 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
         });
       });
     }
-    if (err instanceof UserNotFoundError) {
-      handleErrors(err, res);
+    if (err instanceof NotFoundError) {
+      handleErrors<NotFoundError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
@@ -93,10 +88,12 @@ matchRouter.delete("/:id", async (req, res) => {
     await DeleteMatch(+req.params.id, token);
     res.status(204).send();
   } catch (err) {
-    if (err instanceof UserNotFoundError) {
-      handleErrors(err, res);
+    if (err instanceof NotFoundError) {
+      handleErrors<NotFoundError>(err, res);
     } else if (err instanceof UserNotWriterError) {
-      handleErrors(err, res);
+      handleErrors<UserNotWriterError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
