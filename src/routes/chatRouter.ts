@@ -173,7 +173,7 @@ const chatServerHandler = (
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount,
+          entireMessagesAmount: entireMessagesAmount.length,
         });
       },
     );
