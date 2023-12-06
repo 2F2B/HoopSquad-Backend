@@ -147,24 +147,6 @@ const chatServerHandler = (
           },
         });
 
-        console.log(
-          nickname,
-          payload,
-          currentTimestamp,
-          postingId,
-          post.Title,
-          entireMessagesAmount.length,
-        );
-
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
-          nickname: nickname,
-          lastChatMessage: payload,
-          lastChatTime: currentTimestamp,
-          postingId: postingId,
-          postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount.length,
-        });
-
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
@@ -192,25 +174,6 @@ const chatServerHandler = (
           postingId: postingId,
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount,
-        });
-
-        const socketsInRooms = io.sockets.adapter.rooms.get(
-          getRoomName(postingId),
-        );
-
-        socketsInRooms?.forEach(async (socketId) => {
-          if (
-            socketId != socket.id &&
-            (await checkUserOffline(io, socket.id))
-          ) {
-            notificationServer.emit(
-              "newMessageNotification",
-              expoPushTokens.get(socketId)!!,
-              nickname,
-              post.Title,
-              payload,
-            );
-          }
         });
       },
     );
