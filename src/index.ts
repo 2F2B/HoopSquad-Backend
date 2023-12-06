@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import http from "http";
 import rateLimit from "express-rate-limit";
+import SocketIO from "socket.io";
 
 let limiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5분간
@@ -22,12 +23,12 @@ const httpServer = http.createServer(app);
 import teamRouter from "./routes/teamRouter";
 import authRouter from "./routes/authRouter";
 import courtRouter from "./routes/courtRouter";
-import alarmRouter from "./routes/alarmRouter";
-import socketIOHandler from "./routes/chatRouter";
+import chatServerHandler from "./routes/chatRouter";
 import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
+import notificationServerHandler from "./routes/alarmRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -36,6 +37,7 @@ app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
+app.use("/team", teamRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -43,17 +45,16 @@ app.use(
   }),
 );
 
-export type SocketIoServerType = typeof httpServer;
+const chatServer = new SocketIO.Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
 
-try {
-  socketIOHandler(httpServer);
-} catch (err) {
-  if (err instanceof Error) {
-    console.error(err);
-  }
-}
-app.use("/team", teamRouter);
-app.use("/notification", alarmRouter);
+const notificationServer = chatServer.of("/notification");
+
+chatServerHandler(chatServer, notificationServer);
+notificationServerHandler(notificationServer, chatServer);
 
 app.get("/", async (_req, res) => {
   try {

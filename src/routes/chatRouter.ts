@@ -2,8 +2,6 @@ import SocketIO, { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { PrismaClient } from "@prisma/client";
 import { UserNotExistError } from "../auth/error";
-import fs from "fs";
-import { SocketIoServerType } from "..";
 
 //CHECKLIST
 //[x]: 닉네임 설정
@@ -40,13 +38,10 @@ type joinRoomType = {
   postingId: number;
 };
 
-const socketIOHandler = (server: SocketIoServerType) => {
-  const io = new SocketIO.Server(server, {
-    cors: {
-      origin: "*",
-    },
-  });
-
+const chatServerHandler = (
+  io: SocketIO.Server,
+  notificationServer: SocketIO.Namespace,
+) => {
   io.on("connection", (socket) => {
     socket.on(
       "joinAllRooms",
@@ -151,7 +146,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
   });
 };
 
-export default socketIOHandler;
+export default chatServerHandler;
 
 function getCurrentTimestamp() {
   return Date.now();
