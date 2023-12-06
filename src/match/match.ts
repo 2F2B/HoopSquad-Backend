@@ -315,7 +315,7 @@ async function MatchInfo(
     LocationName: match.LocationName,
     Lat: match.Lat,
     Lng: match.Lng,
-    GameType: match.Posting[0].GameType,
+    GameType: match.Posting[0].GameType[0],
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile[0].Image[0],
   };
