@@ -46,9 +46,6 @@ type joinRoomType = {
   postingId: number;
 };
 
-const offlineUserList: string[] = []; // socket.id, Set of rooms
-const expoPushTokens = new Map<string, string>(); // socket.id, expo tokens
-
 const chatServerHandler = (
   io: SocketIO.Server,
   notificationServer: SocketIO.Namespace,
@@ -185,45 +182,6 @@ const chatServerHandler = (
 };
 
 export default chatServerHandler;
-
-function sendPushNotification(
-  io: SocketIO.Server<
-    DefaultEventsMap,
-    DefaultEventsMap,
-    DefaultEventsMap,
-    any
-  >,
-  postingId: number,
-  socket: SocketIO.Socket<
-    DefaultEventsMap,
-    DefaultEventsMap,
-    DefaultEventsMap,
-    any
-  >,
-  notificationServer: SocketIO.Namespace<
-    DefaultEventsMap,
-    DefaultEventsMap,
-    DefaultEventsMap,
-    any
-  >,
-  nickname: string,
-  post: { Title: string },
-  payload: string,
-) {
-  const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
-
-  socketsInRooms?.forEach(async (opponentId) => {
-    // if (await checkUserOffline(opponentId)) {
-    notificationServer.emit(
-      "newMessageNotification",
-      expoPushTokens.get(opponentId)!!,
-      nickname,
-      post.Title,
-      payload,
-    );
-    // }
-  });
-}
 
 function getCurrentTimestamp() {
   return Date.now();
