@@ -30,7 +30,7 @@ import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
-import notificationServerHandler from "./routes/notificationRouter";
+import notificationServerHandler from "./routes/alarmRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -56,7 +56,7 @@ const chatServer = new SocketIO.Server(httpServer, {
 const notificationServer = chatServer.of("/notification");
 
 chatServerHandler(chatServer, notificationServer);
-notificationServerHandler(notificationServer);
+notificationServerHandler(notificationServer, chatServer);
 
 app.get("/", async (_req, res) => {
   try {
