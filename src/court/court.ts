@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
  */
 async function getCourt(id?: number) {
   if (id) {
-    const court = await prisma.court.findFirst({
+    const court = await prisma.court.findFirstOrThrow({
       where: {
         Court_id: id,
       },
@@ -27,7 +27,6 @@ async function getCourt(id?: number) {
         },
       },
     });
-    if (!court) throw new NoCourtExistError();
     return court;
   } else {
     const court = await prisma.court.findMany({
@@ -52,7 +51,8 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
   if (IsExist.length != 0) throw new CourtAlreadyExistError();
-  const court = await prisma.court.create({
+
+  await prisma.court.create({
     data: {
       Name: req.Name,
       Location: Location.result[0],
@@ -70,13 +70,11 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
 }
 
 async function reportCourt(id: number) {
-  const court = await prisma.court.findFirst({
+  await prisma.court.findFirstOrThrow({
     where: {
       Court_id: id,
     },
   });
-
-  if (!court) throw new NoCourtExistError();
 
   await prisma.report.create({
     data: {
