@@ -85,7 +85,6 @@ const chatServerHandler = (
           io: io,
           postingId: postingId,
         });
-        console.log(`RoomName: ${postingId}`);
         done();
       },
     );
@@ -157,6 +156,7 @@ const chatServerHandler = (
           postingId: postingId,
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount.length,
+          test: "test",
         });
 
         // if (await checkUserOffline(io, +hostId)) {
