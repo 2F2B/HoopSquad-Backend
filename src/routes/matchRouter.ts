@@ -11,14 +11,7 @@ import { BodyParser } from "body-parser";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import {
-  SortNotFoundError,
-  GameTypeNotFoundError,
-  Posting_idNotFoundError,
-  UserNotFoundError,
-  PostingNotFoundError,
-  UserNotWriterError,
-} from "../match/error";
+import { NotFoundError, UserNotWriterError } from "../match/error";
 import { ErrorWithStatusCode, handleErrors } from "../ErrorHandler";
 
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
@@ -40,7 +33,10 @@ const upload = multer({
 });
 
 const matchRouter = express.Router();
-
+/*
+ * 전체 매치 조회
+ * header: all => 전체조회 / header: info => 상세 조회
+ */
 matchRouter.get("/", async (req, res) => {
   try {
     let result;
@@ -57,7 +53,9 @@ matchRouter.get("/", async (req, res) => {
     }
   }
 });
-
+/*
+ * 매치 추가
+ */
 matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
@@ -80,12 +78,16 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
         });
       });
     }
-    if (err instanceof UserNotFoundError) {
-      handleErrors(err, res);
+    if (err instanceof NotFoundError) {
+      handleErrors<NotFoundError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
-
+/*
+ * 전체 매치 삭제
+ */
 matchRouter.delete("/:id", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
@@ -93,12 +95,16 @@ matchRouter.delete("/:id", async (req, res) => {
     await DeleteMatch(+req.params.id, token);
     res.status(204).send();
   } catch (err) {
-    if (err instanceof UserNotFoundError) {
-      handleErrors(err, res);
+    if (err instanceof NotFoundError) {
+      handleErrors<NotFoundError>(err, res);
     } else if (err instanceof UserNotWriterError) {
-      handleErrors(err, res);
+      handleErrors<UserNotWriterError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
+
+matchRouter.post("/");
 
 export default matchRouter;

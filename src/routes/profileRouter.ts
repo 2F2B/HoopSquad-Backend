@@ -4,6 +4,8 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 import sanitize from "sanitize-filename";
+import { NotFoundError, TypeNotBooleanError } from "../profile/error";
+import { handleErrors } from "../ErrorHandler";
 
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
 const uploadsDirectory = path.join(parentDirectory, "image/user"); // ~~~/image/match 주소. 해당 변수는 주소에 대한 값(?)을 저장하는 것
@@ -48,21 +50,21 @@ profileRouter.post("/user", upload.single("Image"), async (req, res) => {
     res.status(201);
     res.send(result);
   } catch (err) {
-    if (err instanceof Error) {
-      if (req.file) {
-        const filePath = sanitize(
-          path.join(uploadsDirectory, req.file.filename),
-        ); // 업로드 폴더의 파일 지정
-        fs.unlink(filePath, (unlinkErr: any) => {
-          // 해당 파일 삭제
-          if (unlinkErr) {
-            console.error("Error deleting file:", unlinkErr);
-          }
-        });
-      }
-      res.status(401);
-      console.log(err);
-      res.send({ error: err.message });
+    if (req.file) {
+      const filePath = sanitize(path.join(uploadsDirectory, req.file.filename)); // 업로드 폴더의 파일 지정
+      fs.unlink(filePath, (unlinkErr: any) => {
+        // 해당 파일 삭제
+        if (unlinkErr) {
+          console.error("Error deleting file:", unlinkErr);
+        }
+      });
+    }
+    if (err instanceof NotFoundError) {
+      handleErrors<NotFoundError>(err, res);
+    } else if (err instanceof TypeNotBooleanError) {
+      handleErrors<TypeNotBooleanError>(err, res);
+    } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   }
 });
