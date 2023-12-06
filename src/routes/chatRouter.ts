@@ -151,19 +151,14 @@ const chatServerHandler = (
           getRoomName(postingId),
         );
 
-        socketsInRooms?.forEach(async (socketId) => {
-          if (
-            socketId != socket.id &&
-            (await checkUserOffline(io, socket.id))
-          ) {
-            notificationServer.emit(
-              "newMessageNotification",
-              expoPushTokens.get(socketId)!!,
-              nickname,
-              post.Title,
-              payload,
-            );
-          }
+        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
+          nickname: nickname,
+          lastChatMessage: payload,
+          lastChatTime: currentTimestamp,
+          postingId: postingId,
+          postingTitle: post.Title,
+          entireMessagesAmount: entireMessagesAmount.length,
+          test: "test",
         });
 
         // if (await checkUserOffline(io, +hostId)) {
