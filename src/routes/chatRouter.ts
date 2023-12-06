@@ -109,13 +109,15 @@ const socketIOHandler = (server: SocketIoServerType) => {
         userId: number,
         payload: string,
         postingId: number,
+        done: () => void,
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
-        socket.to(getRoomName(postingId)).emit("send", {
-          nickname: nickname,
+        io.to(getRoomName(postingId)).emit("send", {
+          userId,
+          postingId,
           payload,
-          createdAt: currentTimestamp,
+          currentTimestamp,
         });
 
         const post = await prisma.posting.findFirstOrThrow({
@@ -127,7 +129,7 @@ const socketIOHandler = (server: SocketIoServerType) => {
           },
         });
 
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
+        io.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
@@ -146,6 +148,8 @@ const socketIOHandler = (server: SocketIoServerType) => {
             Room_id: room.Room_id,
           },
         });
+
+        done();
       },
     );
   });
