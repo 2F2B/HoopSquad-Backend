@@ -5,10 +5,7 @@ import Expo from "expo-server-sdk";
 const expo = new Expo();
 const expoPushTokens = new Map<string, string>();
 
-const notificationServerHandler = (
-  io: SocketIO.Namespace,
-  chatServer: SocketIO.Server,
-) => {
+const notificationServerHandler = (io: SocketIO.Namespace) => {
   io.on("connection", (socket) => {
     socket.on("registerExpoPushToken", (expoPushToken) => {
       expoPushTokens.set(socket.id, expoPushToken);
