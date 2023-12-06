@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { LatLngToAddress } from "../google-maps/googleMaps";
 import { CourtAlreadyExistError, NoCourtExistError } from "./error";
-import { getISOTime } from "../match/match";
 
 const prisma = new PrismaClient();
 
@@ -53,10 +52,9 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
   if (IsExist.length != 0) throw new CourtAlreadyExistError();
-  await prisma.court.create({
+  const court = await prisma.court.create({
     data: {
       Name: req.Name,
-      Date: getISOTime(),
       Location: Location.result[0],
       Map: {
         create: {
@@ -68,7 +66,7 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
 
-  return { TimeStamp: getISOTime() };
+  return { TimeStamp: court.Date };
 }
 
 async function reportCourt(id: number) {
