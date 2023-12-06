@@ -116,7 +116,6 @@ const socketIOHandler = (server: SocketIoServerType) => {
         userId: number,
         payload: string,
         postingId: number,
-        done: () => void,
       ) => {
         const currentTimestamp = getCurrentTimestamp();
 
@@ -156,8 +155,6 @@ const socketIOHandler = (server: SocketIoServerType) => {
           postingId: postingId,
           postingTitle: post.Title,
         });
-
-        done();
       },
     );
   });
