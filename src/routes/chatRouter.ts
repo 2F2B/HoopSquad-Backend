@@ -143,6 +143,8 @@ const socketIOHandler = (server: SocketIoServerType) => {
           },
         });
 
+        console.log(entireMessagesAmount);
+
         socket.to(getRoomName(postingId)).emit("updateChatRoom", {
           nickname: nickname,
           lastChatMessage: payload,
