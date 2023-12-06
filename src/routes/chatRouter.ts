@@ -46,7 +46,8 @@ type joinRoomType = {
   postingId: number;
 };
 
-const expoPushTokens = new Map<string, string>();
+const offlineUserList: string[] = []; // socket.id, Set of rooms
+const expoPushTokens = new Map<string, string>(); // socket.id, expo tokens
 
 const chatServerHandler = (
   io: SocketIO.Server,
@@ -67,7 +68,7 @@ const chatServerHandler = (
     );
 
     socket.on("disconnect", () => {
-      expoPushTokens.delete(socket.id);
+      offlineUserList.push(socket.id);
     });
 
     socket.on(
@@ -209,11 +210,11 @@ function sendPushNotification(
 ) {
   const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
 
-  socketsInRooms?.forEach(async (socketId) => {
-    if (socketId != socket.id && (await checkUserOffline(io, socketId))) {
+  socketsInRooms?.forEach(async (opponentId) => {
+    if (await checkUserOffline(opponentId)) {
       notificationServer.emit(
         "newMessageNotification",
-        expoPushTokens.get(socketId)!!,
+        expoPushTokens.get(opponentId)!!,
         nickname,
         post.Title,
         payload,
@@ -395,14 +396,13 @@ function getRoomName(postingId: number): string {
  * @param socketId
  * @returns
  */
-async function checkUserOffline(io: SocketIO.Server, socketId: string) {
-  let isOnline;
-  io.sockets.sockets.forEach((socket) => {
-    if (socket.id == socketId) {
-      return (isOnline = true);
-    }
-  });
-  if (isOnline == true) return false;
+async function checkUserOffline(socketId: string) {
+  if (
+    offlineUserList.some((element) => {
+      return element == socketId;
+    })
+  )
+    return false;
   else return true;
 }
 
