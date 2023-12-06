@@ -273,7 +273,7 @@ async function MatchInfo(
     },
   });
   if (!map) throw new NotFoundError("Posting");
-  const match = await prisma.map.findFirst({
+  const match = await prisma.map.findFirstOrThrow({
     where: {
       Map_id: map.Map_id,
     },
@@ -299,8 +299,67 @@ async function MatchInfo(
       },
     },
   });
+  const writerImage = await getWriterImage(match);
+  const result = {
+    ...match.Posting[0],
+    LocationName: match.LocationName,
+    Lat: match.Lat,
+    Lng: match.Lng,
+    GameType: match.Posting[0].GameType[0],
+    Image: match.Posting[0].Image[0],
+    WriterImage: writerImage.Profile[0].Image[0],
+  };
   if (!match) throw new NotFoundError("Posting");
-  return match;
+  return result;
+}
+
+async function getWriterImage(match: {
+  LocationName: string;
+  Lat: number;
+  Lng: number;
+  Posting: {
+    Posting_id: number;
+    User_id: number;
+    IsTeam: boolean;
+    Title: string;
+    WriteDate: Date;
+    PlayTime: number;
+    Location: string;
+    RecruitAmount: string;
+    CurrentAmount: string;
+    Introduce: string | null;
+    GameType: {
+      GameType_id: number;
+      Posting_id: number | null;
+      OneOnOne: boolean;
+      ThreeOnThree: boolean;
+      FiveOnFive: boolean;
+      Profile_id: number | null;
+    }[];
+    Image: {
+      Image_id: number;
+      ImageData: string;
+      Posting_id: number | null;
+      Profile_id: number | null;
+    }[];
+  }[];
+}) {
+  return await prisma.user.findFirstOrThrow({
+    where: {
+      User_id: match.Posting[0].User_id,
+    },
+    select: {
+      Profile: {
+        select: {
+          Image: {
+            select: {
+              ImageData: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 async function DeleteMatch(Posting_id: number, access_token: any) {
