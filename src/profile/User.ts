@@ -53,7 +53,29 @@ async function getUserProfile(userId: number) {
     },
   });
 
-  const sortedTeam = await getUserTeams(userId);
+  const teams = await prisma.teamRelay.findMany({
+    where: {
+      User_id: userId,
+    },
+    select: {
+      TeamProfile: {
+        select: {
+          Name: true,
+          TeamImage: true,
+          Introduce: true,
+        },
+      },
+    },
+  });
+  const sortedTeam = await Promise.all(
+    teams.map(async (team) => {
+      return {
+        Name: team.TeamProfile.Name,
+        TeamImage: team.TeamProfile.TeamImage,
+        Introduce: team.TeamProfile.Introduce,
+      };
+    }),
+  );
 
   if (!Profile) throw new NotFoundError("Profile");
   return {
