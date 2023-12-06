@@ -30,8 +30,7 @@ import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
-import reviewRouter from "./routes/reviewRouter";
-import notificationServerHandler from "./routes/notificationRouter";
+import notificationServerHandler from "./routes/alarmRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -40,7 +39,7 @@ app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
-app.use("/review", reviewRouter);
+app.use("/team", teamRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -57,7 +56,7 @@ const chatServer = new SocketIO.Server(httpServer, {
 const notificationServer = chatServer.of("/notification");
 
 chatServerHandler(chatServer, notificationServer);
-notificationServerHandler(notificationServer);
+notificationServerHandler(notificationServer, chatServer);
 
 app.get("/", async (_req, res) => {
   try {
