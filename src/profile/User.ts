@@ -38,7 +38,6 @@ async function getUserProfile(userId: number) {
           Introduce: true,
           Location: true,
           Overall: true,
-          Team_id: true,
           Weight: true,
           Year: true,
           GameType: {
@@ -53,19 +52,53 @@ async function getUserProfile(userId: number) {
       },
     },
   });
+
+  const sortedTeam = await getUserTeams(userId);
+
   if (!Profile) throw new NotFoundError("Profile");
   return {
     ...Profile.Profile[0],
     GameType: Profile.Profile[0].GameType[0],
     Image: Profile.Profile[0].Image[0],
     Name: Profile?.Name,
+    Team: sortedTeam,
   };
+}
+
+async function getUserTeams(userId: number) {
+  const teams = await prisma.teamRelay.findMany({
+    where: {
+      User_id: userId,
+    },
+    select: {
+      TeamProfile: {
+        select: {
+          Team_id: true,
+          Name: true,
+          TeamImage: true,
+          Introduce: true,
+        },
+      },
+    },
+  });
+  const sortedTeam = await Promise.all(
+    teams.map(async (team) => {
+      return {
+        TeamId: team.TeamProfile.Team_id,
+        Name: team.TeamProfile.Name,
+        TeamImage: team.TeamProfile.TeamImage,
+        Introduce: team.TeamProfile.Introduce,
+      };
+    }),
+  );
+  return sortedTeam;
 }
 
 async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+  AccessToken: string,
 ) {
-  const isUser = await validateUser(req);
+  const isUser = await validateUser(AccessToken);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
 
@@ -222,12 +255,10 @@ async function updateProfile(
   return { profile, updatedProfile };
 }
 
-async function validateUser(
-  req: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
+async function validateUser(AccessToken: string) {
   const isUser = await prisma.oAuthToken.findFirst({
     where: {
-      AccessToken: req.body.access_token,
+      AccessToken: AccessToken,
     },
   });
 
