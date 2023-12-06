@@ -183,6 +183,45 @@ const chatServerHandler = (
 
 export default chatServerHandler;
 
+function sendPushNotification(
+  io: SocketIO.Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  postingId: number,
+  socket: SocketIO.Socket<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  notificationServer: SocketIO.Namespace<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  nickname: string,
+  post: { Title: string },
+  payload: string,
+) {
+  const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
+
+  socketsInRooms?.forEach(async (socketId) => {
+    if (socketId != socket.id && (await checkUserOffline(io, socketId))) {
+      notificationServer.emit(
+        "newMessageNotification",
+        expoPushTokens.get(socketId)!!,
+        nickname,
+        post.Title,
+        payload,
+      );
+    }
+  });
+}
+
 function getCurrentTimestamp() {
   return Date.now();
 }
