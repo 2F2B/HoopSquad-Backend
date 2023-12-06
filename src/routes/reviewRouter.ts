@@ -1,6 +1,6 @@
 import express from "express";
 import { getWeather } from "../weather/weather";
-import { getPlayers } from "../review/review";
+import { getPlayers, setUserReview } from "../review/review";
 import { handleErrors } from "../ErrorHandler";
 import { NotFoundError } from "../review/error";
 
@@ -15,6 +15,18 @@ reviewRouter.get("/:id", async (req, res) => {
     if (err instanceof NotFoundError) {
       handleErrors<NotFoundError>(err, res);
     } else if (err instanceof Error) {
+      handleErrors<Error>(err, res);
+    }
+  }
+});
+
+reviewRouter.post("/", async (req, res) => {
+  try {
+    const result = setUserReview(req.body);
+    res.status(201);
+    res.send(req.body);
+  } catch (err) {
+    if (err instanceof Error) {
       handleErrors<Error>(err, res);
     }
   }

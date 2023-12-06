@@ -10,14 +10,19 @@ async function getPlayers(Posting_id: number) {
     },
   });
   if (!players) throw new NotFoundError("players");
-  const playersProfiles = getPlayerNameAndImage(players);
+  const playersProfiles = await getPlayerNameAndImage(players);
 
   return playersProfiles;
 }
 
-export { getPlayers };
+async function setUserReview(players: object[]) {
+  // {Player_id, isLike, Comment}
+  players.map((player) => {});
+}
 
-function getPlayerNameAndImage(
+export { getPlayers, setUserReview };
+
+async function getPlayerNameAndImage(
   players: {
     id: number;
     Posting_id: number;
@@ -25,25 +30,28 @@ function getPlayerNameAndImage(
     IsHost: boolean;
   }[],
 ) {
-  return players.map(async (player) => {
-    const profile = await prisma.user.findFirstOrThrow({
-      where: {
-        User_id: player.User_id,
-      },
-      select: {
-        Name: true,
-        Profile: {
-          select: {
-            Image: {
-              select: {
-                ImageData: true,
+  const profile = await Promise.all(
+    players.map(async (player) => {
+      const profile = await prisma.user.findFirstOrThrow({
+        where: {
+          User_id: player.User_id,
+        },
+        select: {
+          Name: true,
+          Profile: {
+            select: {
+              Image: {
+                select: {
+                  ImageData: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    return { ...profile?.Profile[0].Image[0], Name: profile?.Name };
-  });
+      return { ...profile?.Profile[0].Image[0], Name: profile?.Name };
+    }),
+  );
+  return profile;
 }

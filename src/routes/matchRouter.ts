@@ -57,6 +57,9 @@ matchRouter.get("/", async (req, res) => {
     }
   }
 });
+/*
+ * 매치 참여
+ */
 matchRouter.post("/:id", async (req, res) => {
   try {
     const result = await JoinMatch(+req.params.id, +req.query.User_id!!);
