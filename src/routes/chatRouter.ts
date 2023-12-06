@@ -132,6 +132,21 @@ const chatServerHandler = (
           },
         });
 
+        const chatRoomId = await prisma.chatRoom.findFirstOrThrow({
+          where: {
+            Posting_id: postingId,
+          },
+          select: {
+            Room_id: true,
+          },
+        });
+
+        const entireMessagesAmount = await prisma.message.count({
+          where: {
+            Room_id: chatRoomId.Room_id,
+          },
+        });
+
         // if (await checkUserOffline(io, +hostId)) {
         // } else if (await checkUserOffline(io, +guestId)) {
         // }
@@ -160,27 +175,6 @@ const chatServerHandler = (
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount,
         });
-
-        const socketsInRooms = io.sockets.adapter.rooms.get(
-          getRoomName(postingId),
-        );
-
-        socketsInRooms?.forEach(async (socketId) => {
-          if (
-            socketId != socket.id &&
-            (await checkUserOffline(io, socket.id))
-          ) {
-            notificationServer.emit(
-              "newMessageNotification",
-              expoPushTokens.get(socketId)!!,
-              nickname,
-              post.Title,
-              payload,
-            );
-          }
-        });
-
-        done();
       },
     );
   });
