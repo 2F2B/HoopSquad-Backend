@@ -10,8 +10,10 @@ const notificationServerHandler = (
   chatServer: SocketIO.Server,
 ) => {
   io.on("connection", (socket) => {
-    socket.on("registerExpoPushToken", (expoPushToken) => {
+    socket.on("registerExpoPushToken", (expoPushToken: string) => {
+      console.log(expoPushToken);
       expoPushTokens.set(socket.id, expoPushToken);
+      console.log(expoPushTokens);
     });
 
     socket.on("disconnect", () => {
