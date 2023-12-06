@@ -144,7 +144,7 @@ model TeamProfile {
   Team_id    Int         @id @default(autoincrement())
   Admin_id   Int
   Name       String      @db.VarChar(45)
-  TeamImage  Bytes?      @db.Blob
+  TeamImage  String?      @db.VarChar(100)
   Location   String      @db.VarChar(45)
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
@@ -160,8 +160,8 @@ model TeamRelay {
   IsAdmin      Boolean
   User_id      Int
   TeamRelay_id Int         @id @default(autoincrement())
-  User         User        @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction)
-  TeamProfile  TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
+  User         User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  TeamProfile  TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
 
   @@index([Team_id], map: "fk_TeamRelay_TeamProfile")
   @@index([User_id], map: "TeamRelay_User_id_fkey")
