@@ -150,13 +150,12 @@ const chatServerHandler = (
         console.log(entireMessagesAmount.length);
 
         socket.to(getRoomName(postingId)).emit("updateChatRoom", {
-          nickname: nickname,
+          //nickname: nickname,
           lastChatMessage: payload,
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount.length,
-          test: "test",
         });
 
         // if (await checkUserOffline(io, +hostId)) {
