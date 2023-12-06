@@ -85,7 +85,6 @@ const chatServerHandler = (
           io: io,
           postingId: postingId,
         });
-        console.log(`RoomName: ${postingId}`);
         done();
       },
     );
@@ -142,38 +141,10 @@ const chatServerHandler = (
           },
         });
 
-        const entireMessagesAmount = await prisma.message.count({
+        const entireMessagesAmount = await prisma.message.findMany({
           where: {
             Room_id: chatRoomId.Room_id,
           },
-        });
-
-        socket.to(getRoomName(postingId)).emit("updateChatRoom", {
-          nickname: nickname,
-          lastChatMessage: payload,
-          lastChatTime: currentTimestamp,
-          postingId: postingId,
-          postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount,
-        });
-
-        const socketsInRooms = io.sockets.adapter.rooms.get(
-          getRoomName(postingId),
-        );
-
-        socketsInRooms?.forEach(async (socketId) => {
-          if (
-            socketId != socket.id &&
-            (await checkUserOffline(io, socket.id))
-          ) {
-            notificationServer.emit(
-              "newMessageNotification",
-              expoPushTokens.get(socketId)!!,
-              nickname,
-              post.Title,
-              payload,
-            );
-          }
         });
 
         // if (await checkUserOffline(io, +hostId)) {
@@ -203,13 +174,63 @@ const chatServerHandler = (
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
+          entireMessagesAmount: entireMessagesAmount.length,
         });
+
+        sendPushNotification(
+          io,
+          postingId,
+          socket,
+          notificationServer,
+          nickname,
+          post,
+          payload,
+        );
       },
     );
   });
 };
 
 export default chatServerHandler;
+
+function sendPushNotification(
+  io: SocketIO.Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  postingId: number,
+  socket: SocketIO.Socket<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  notificationServer: SocketIO.Namespace<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  nickname: string,
+  post: { Title: string },
+  payload: string,
+) {
+  const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
+
+  socketsInRooms?.forEach(async (socketId) => {
+    if (socketId != socket.id && (await checkUserOffline(io, socket.id))) {
+      notificationServer.emit(
+        "newMessageNotification",
+        expoPushTokens.get(socketId)!!,
+        nickname,
+        post.Title,
+        payload,
+      );
+    }
+  });
+}
 
 function getCurrentTimestamp() {
   return Date.now();
