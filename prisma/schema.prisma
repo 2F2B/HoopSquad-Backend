@@ -154,7 +154,7 @@ model TeamProfile {
   Team_id    Int         @id @default(autoincrement())
   Admin_id   Int
   Name       String      @db.VarChar(45)
-  TeamImage  String?     @db.VarChar(100)
+  TeamImage  String?      @db.VarChar(100)
   Location   String      @db.VarChar(45)
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
