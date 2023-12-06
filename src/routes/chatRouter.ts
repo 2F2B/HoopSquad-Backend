@@ -46,8 +46,6 @@ type joinRoomType = {
   postingId: number;
 };
 
-const expoPushTokens = new Map<string, string>();
-
 const chatServerHandler = (
   io: SocketIO.Server,
   notificationServer: SocketIO.Namespace,
