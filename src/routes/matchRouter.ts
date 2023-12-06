@@ -33,7 +33,10 @@ const upload = multer({
 });
 
 const matchRouter = express.Router();
-
+/*
+ * 전체 매치 조회
+ * header: all => 전체조회 / header: info => 상세 조회
+ */
 matchRouter.get("/", async (req, res) => {
   try {
     let result;
@@ -50,7 +53,9 @@ matchRouter.get("/", async (req, res) => {
     }
   }
 });
-
+/*
+ * 매치 추가
+ */
 matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
@@ -80,7 +85,9 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
     }
   }
 });
-
+/*
+ * 전체 매치 삭제
+ */
 matchRouter.delete("/:id", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
@@ -97,5 +104,7 @@ matchRouter.delete("/:id", async (req, res) => {
     }
   }
 });
+
+matchRouter.post("/");
 
 export default matchRouter;

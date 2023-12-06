@@ -293,8 +293,18 @@ async function MatchInfo(
           RecruitAmount: true,
           CurrentAmount: true,
           Introduce: true,
-          GameType: true,
-          Image: true,
+          GameType: {
+            select: {
+              OneOnOne: true,
+              ThreeOnThree: true,
+              FiveOnFive: true,
+            },
+          },
+          Image: {
+            select: {
+              ImageData: true,
+            },
+          },
         },
       },
     },
@@ -329,18 +339,12 @@ async function getWriterImage(match: {
     CurrentAmount: string;
     Introduce: string | null;
     GameType: {
-      GameType_id: number;
-      Posting_id: number | null;
       OneOnOne: boolean;
       ThreeOnThree: boolean;
       FiveOnFive: boolean;
-      Profile_id: number | null;
     }[];
     Image: {
-      Image_id: number;
       ImageData: string;
-      Posting_id: number | null;
-      Profile_id: number | null;
     }[];
   }[];
 }) {
