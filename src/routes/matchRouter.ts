@@ -11,7 +11,11 @@ import { BodyParser } from "body-parser";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { NotFoundError, UserNotWriterError } from "../match/error";
+import {
+  MatchJoinError,
+  NotFoundError,
+  UserNotWriterError,
+} from "../match/error";
 import { ErrorWithStatusCode, handleErrors } from "../ErrorHandler";
 
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
@@ -50,6 +54,17 @@ matchRouter.get("/", async (req, res) => {
       handleErrors(err, res);
     } else if (err instanceof Error) {
       handleErrors(err, res);
+    }
+  }
+});
+matchRouter.post("/:id", async (req, res) => {
+  try {
+    const result = await JoinMatch(+req.params.id, +req.query.User_id!!);
+    res.status(201);
+    res.send(result);
+  } catch (err) {
+    if (err instanceof MatchJoinError) {
+      handleErrors<MatchJoinError>(err, res);
     }
   }
 });
@@ -104,7 +119,5 @@ matchRouter.delete("/:id", async (req, res) => {
     }
   }
 });
-
-matchRouter.post("/");
 
 export default matchRouter;
