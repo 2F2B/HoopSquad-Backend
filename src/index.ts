@@ -41,6 +41,7 @@ app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
 app.use("/team", teamRouter);
+app.use("/review", reviewRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -57,7 +58,7 @@ const chatServer = new SocketIO.Server(httpServer, {
 const notificationServer = chatServer.of("/notification");
 
 chatServerHandler(chatServer, notificationServer);
-notificationServerHandler(notificationServer, chatServer);
+notificationServerHandler(notificationServer);
 
 app.get("/", async (_req, res) => {
   try {
