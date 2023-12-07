@@ -31,7 +31,7 @@ import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import reviewRouter from "./routes/reviewRouter";
-import notificationServerHandler from "./routes/alarmRouter";
+import notificationServerHandler from "./routes/notificationRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);

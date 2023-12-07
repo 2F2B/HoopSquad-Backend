@@ -16,7 +16,7 @@ async function getPlayers(Posting_id: number) {
 }
 
 async function setUserReview(players: object[]) {
-  // {Player_id, isLike, Comment}
+  // {Player_id, isPositive, Comment}
   players.map((player) => {});
 }
 
