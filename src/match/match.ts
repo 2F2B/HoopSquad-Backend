@@ -402,7 +402,7 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
 }
 
 async function JoinMatch(Posting_id: number, User_id: number) {
-  const isJoining = await prisma.member.findFirstOrThrow({
+  const isJoining = await prisma.member.findFirst({
     where: {
       User_id: User_id,
     },

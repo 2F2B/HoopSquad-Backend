@@ -133,7 +133,7 @@ model Profile {
 
 model Review {
   Review_id  Int     @id @default(autoincrement())
-  User_id    Int    
+  Receiver_id    Int    
   IsPositive Boolean
   Comment    String  @db.VarChar(100)
   ReviewRelay ReviewRelay[]

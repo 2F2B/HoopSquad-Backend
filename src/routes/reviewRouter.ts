@@ -6,7 +6,7 @@ import { NotFoundError } from "../review/error";
 
 const reviewRouter = express.Router();
 export interface CreateReviewType {
-  Player_id: number;
+  Receiver_id: number;
   isPositive: boolean;
   isJoin: boolean;
   Comment: string;

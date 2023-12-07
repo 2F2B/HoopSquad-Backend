@@ -27,7 +27,7 @@ async function setUserReview(Reviews: CreateReviewType[], AccessToken: string) {
       data: {
         IsPositive: review.isPositive,
         Comment: review.Comment,
-        User_id: review.Player_id,
+        Receiver_id: review.Receiver_id,
         ReviewRelay: {
           create: {
             User: { connect: { User_id: user.User_id } },
@@ -39,17 +39,24 @@ async function setUserReview(Reviews: CreateReviewType[], AccessToken: string) {
     await prisma.reviewRelay.create({
       data: {
         Review: { connect: { Review_id: temp.Review_id } },
-        User: { connect: { User_id: review.Player_id } },
+        User: { connect: { User_id: review.Receiver_id } },
         IsReceiver: true,
       },
     });
     let score = 0;
-    score += review.isPositive ? 5 : -3;
-    score += review.isJoin ? 3 : -10;
+    switch (review.isJoin) {
+      case true:
+        score += review.isPositive ? 5 : -3;
+        score += review.isJoin ? 3 : -10;
+        break;
+      case false: {
+        score = -10;
+      }
+    }
 
     await prisma.profile.update({
       where: {
-        User_id: review.Player_id,
+        User_id: review.Receiver_id,
       },
       data: {
         Overall: {
