@@ -32,3 +32,11 @@ export class MatchJoinError extends ErrorWithStatusCode {
     this.name = "Match Join Error";
   }
 }
+
+export class UserAlreadyJoinError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("User Already Join");
+    this.name = "UserAlreadyJoin";
+  }
+}

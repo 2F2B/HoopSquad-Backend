@@ -8,6 +8,7 @@ import {
   UserNotWriterError,
   TypeNotBooleanError,
   MatchJoinError,
+  UserAlreadyJoinError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -401,15 +402,19 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
 }
 
 async function JoinMatch(Posting_id: number, User_id: number) {
-  if (
-    !(await prisma.member.create({
+  const isJoining = await prisma.member.findFirst({
+    where: {
+      User_id: User_id,
+    },
+  });
+  if (!isJoining) {
+    await prisma.member.create({
       data: {
         Posting: { connect: { Posting_id: Posting_id } },
         User: { connect: { User_id: User_id } },
       },
-    }))
-  )
-    throw new MatchJoinError();
+    });
+  } else throw new UserAlreadyJoinError();
 }
 
 // TODO 채팅

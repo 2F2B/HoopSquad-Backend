@@ -93,7 +93,6 @@ async function getUserTeams(userId: number) {
   );
   return sortedTeam;
 }
-
 async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
