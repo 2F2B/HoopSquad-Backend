@@ -32,7 +32,6 @@ import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import notificationServerHandler from "./routes/notificationRouter";
 import reviewRouter from "./routes/reviewRouter";
-import notificationServerHandler from "./routes/alarmRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);

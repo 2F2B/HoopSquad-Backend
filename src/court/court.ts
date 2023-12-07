@@ -51,8 +51,7 @@ async function addCourt(req: { Name: string; Lat: number; Lng: number }) {
     },
   });
   if (IsExist.length != 0) throw new CourtAlreadyExistError();
-
-  await prisma.court.create({
+  const court = await prisma.court.create({
     data: {
       Name: req.Name,
       Location: Location.result[0],

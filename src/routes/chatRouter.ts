@@ -46,15 +46,18 @@ type joinRoomType = {
   postingId: number;
 };
 
-const expoPushTokens = new Map<string, string>();
+const offlineUserList: string[] = []; // socket.id, Set of rooms
+const expoPushTokens = new Map<string, string>(); // socket.id, expo tokens
 
 const chatServerHandler = (
   io: SocketIO.Server,
   notificationServer: SocketIO.Namespace,
 ) => {
   io.on("connection", (socket) => {
-    socket.on("registerExpoPushToken", (expoPushToken) => {
+    socket.on("registerExpoPushToken", (expoPushToken: string) => {
+      console.log(expoPushToken);
       expoPushTokens.set(socket.id, expoPushToken);
+      console.log(expoPushTokens);
     });
 
     socket.on(
@@ -67,7 +70,7 @@ const chatServerHandler = (
     );
 
     socket.on("disconnect", () => {
-      expoPushTokens.delete(socket.id);
+      offlineUserList.push(socket.id);
     });
 
     socket.on(
@@ -141,7 +144,7 @@ const chatServerHandler = (
           },
         });
 
-        const entireMessagesAmount = await prisma.message.count({
+        const entireMessagesAmount = await prisma.message.findMany({
           where: {
             Room_id: chatRoomId.Room_id,
           },
@@ -174,46 +177,63 @@ const chatServerHandler = (
           lastChatTime: currentTimestamp,
           postingId: postingId,
           postingTitle: post.Title,
-          entireMessagesAmount: entireMessagesAmount,
+          entireMessagesAmount: entireMessagesAmount.length,
         });
 
-        const socketsInRooms = io.sockets.adapter.rooms.get(
-          getRoomName(postingId),
+        sendPushNotification(
+          io,
+          postingId,
+          socket,
+          notificationServer,
+          nickname,
+          post,
+          payload,
         );
-
-        socketsInRooms?.forEach(async (socketId) => {
-          if (
-            socketId != socket.id &&
-            (await checkUserOffline(io, socket.id))
-          ) {
-            notificationServer.emit(
-              "newMessageNotification",
-              expoPushTokens.get(socketId)!!,
-              nickname,
-              post.Title,
-              payload,
-            );
-          }
-        });
-
-        // if (await checkUserOffline(io, +hostId)) {
-        // } else if (await checkUserOffline(io, +guestId)) {
-        // }
-
-        const room = await findRoomByPostingId(postingId);
-        await prisma.message.create({
-          data: {
-            Msg: payload,
-            User_id: userId,
-            Room_id: room.Room_id,
-          },
-        });
       },
     );
   });
 };
 
 export default chatServerHandler;
+
+function sendPushNotification(
+  io: SocketIO.Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  postingId: number,
+  socket: SocketIO.Socket<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  notificationServer: SocketIO.Namespace<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    any
+  >,
+  nickname: string,
+  post: { Title: string },
+  payload: string,
+) {
+  const socketsInRooms = io.sockets.adapter.rooms.get(getRoomName(postingId));
+
+  socketsInRooms?.forEach(async (opponentId) => {
+    // if (await checkUserOffline(opponentId)) {
+    notificationServer.emit(
+      "newMessageNotification",
+      expoPushTokens.get(opponentId)!!,
+      nickname,
+      post.Title,
+      payload,
+    );
+    // }
+  });
+}
 
 function getCurrentTimestamp() {
   return Date.now();
@@ -388,14 +408,13 @@ function getRoomName(postingId: number): string {
  * @param socketId
  * @returns
  */
-async function checkUserOffline(io: SocketIO.Server, socketId: string) {
-  let isOnline;
-  io.sockets.sockets.forEach((socket) => {
-    if (socket.id == socketId) {
-      return (isOnline = true);
-    }
-  });
-  if (isOnline == true) return false;
+async function checkUserOffline(socketId: string) {
+  if (
+    offlineUserList.some((element) => {
+      return element == socketId;
+    })
+  )
+    return false;
   else return true;
 }
 
