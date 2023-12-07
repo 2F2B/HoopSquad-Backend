@@ -57,9 +57,9 @@ async function getUserProfile(userId: number) {
 
   if (!Profile) throw new NotFoundError("Profile");
   return {
-    ...Profile.Profile[0],
-    GameType: Profile.Profile[0].GameType[0],
-    Image: Profile.Profile[0].Image[0],
+    ...Profile.Profile,
+    GameType: Profile.Profile?.GameType[0],
+    Image: Profile.Profile?.Image[0],
     Name: Profile?.Name,
     Team: sortedTeam,
   };

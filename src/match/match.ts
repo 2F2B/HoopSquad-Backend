@@ -318,7 +318,7 @@ async function MatchInfo(
     Lng: match.Lng,
     GameType: match.Posting[0].GameType,
     Image: match.Posting[0].Image,
-    WriterImage: writerImage.Profile[0].Image[0],
+    WriterImage: writerImage.Profile?.Image[0],
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
