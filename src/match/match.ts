@@ -8,6 +8,7 @@ import {
   UserNotWriterError,
   TypeNotBooleanError,
   MatchJoinError,
+  UserAlreadyJoinError,
 } from "./error";
 import multer from "multer";
 import fs from "fs";
@@ -317,7 +318,7 @@ async function MatchInfo(
     Lng: match.Lng,
     GameType: match.Posting[0].GameType,
     Image: match.Posting[0].Image,
-    WriterImage: writerImage.Profile[0].Image[0],
+    WriterImage: writerImage.Profile?.Image[0],
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
@@ -401,15 +402,19 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
 }
 
 async function JoinMatch(Posting_id: number, User_id: number) {
-  if (
-    !(await prisma.member.create({
+  const isJoining = await prisma.member.findFirst({
+    where: {
+      User_id: User_id,
+    },
+  });
+  if (!isJoining) {
+    await prisma.member.create({
       data: {
         Posting: { connect: { Posting_id: Posting_id } },
         User: { connect: { User_id: User_id } },
       },
-    }))
-  )
-    throw new MatchJoinError();
+    });
+  } else throw new UserAlreadyJoinError();
 }
 
 // TODO 채팅
