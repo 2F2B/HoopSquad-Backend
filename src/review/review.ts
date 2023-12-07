@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Review } from "@prisma/client";
 import { NotFoundError } from "./error";
+import { CreateReviewType, ReviewArray } from "../routes/reviewRouter";
 
 const prisma = new PrismaClient();
 
-async function getPlayers(Posting_id: number) {
+async function getMatchPlayers(Posting_id: number) {
   const players = await prisma.member.findMany({
     where: {
       Posting_id: Posting_id,
@@ -15,12 +16,52 @@ async function getPlayers(Posting_id: number) {
   return playersProfiles;
 }
 
-async function setUserReview(players: object[]) {
+async function setUserReview(Reviews: CreateReviewType[], AccessToken: string) {
   // {Player_id, isPositive, Comment}
-  players.map((player) => {});
+  const user = await prisma.oAuthToken.findFirstOrThrow({
+    where: {
+      AccessToken: AccessToken,
+    },
+  });
+
+  Reviews.map(async (review) => {
+    const temp = await prisma.review.create({
+      data: {
+        IsPositive: review.isPositive,
+        Comment: review.Comment,
+        ReviewRelay: {
+          create: {
+            User_id: user.User_id,
+            IsWriter: true,
+          },
+        },
+      },
+    });
+    await prisma.reviewRelay.create({
+      data: {
+        Review: { connect: { Review_id: temp.Review_id } },
+        User: { connect: { User_id: review.Player_id } },
+      },
+    });
+
+    let score = 0;
+    score += review.isPositive ? 5 : -3;
+    score += review.isJoin ? 3 : -10;
+
+    await prisma.profile.update({
+      where: {
+        User_id: review.Player_id,
+      },
+      data: {
+        Overall: {
+          increment: score,
+        },
+      },
+    });
+  });
 }
 
-export { getPlayers, setUserReview };
+export { getMatchPlayers, setUserReview };
 
 async function getPlayerNameAndImage(
   players: {
