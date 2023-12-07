@@ -99,7 +99,7 @@ async function getPlayerNameAndImage(
       });
 
       return {
-        ...profile?.Profile[0].Image[0],
+        ...profile.Profile[0].Image[0],
         Name: profile?.Name,
         User_id: profile?.User_id,
       };
