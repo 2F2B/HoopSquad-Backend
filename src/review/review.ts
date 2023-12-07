@@ -16,49 +16,9 @@ async function getMatchPlayers(Posting_id: number) {
   return playersProfiles;
 }
 
-async function setUserReview(Reviews: CreateReviewType[], AccessToken: string) {
+async function setUserReview(players: object[]) {
   // {Player_id, isPositive, Comment}
-  const user = await prisma.oAuthToken.findFirstOrThrow({
-    where: {
-      AccessToken: AccessToken,
-    },
-  });
-
-  Reviews.map(async (review) => {
-    const temp = await prisma.review.create({
-      data: {
-        IsPositive: review.isPositive,
-        Comment: review.Comment,
-        ReviewRelay: {
-          create: {
-            User_id: user.User_id,
-            IsWriter: true,
-          },
-        },
-      },
-    });
-    await prisma.reviewRelay.create({
-      data: {
-        Review: { connect: { Review_id: temp.Review_id } },
-        User: { connect: { User_id: review.Player_id } },
-      },
-    });
-
-    let score = 0;
-    score += review.isPositive ? 5 : -3;
-    score += review.isJoin ? 3 : -10;
-
-    await prisma.profile.update({
-      where: {
-        User_id: review.Player_id,
-      },
-      data: {
-        Overall: {
-          increment: score,
-        },
-      },
-    });
-  });
+  players.map((player) => {});
 }
 
 export { getMatchPlayers, setUserReview };

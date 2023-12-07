@@ -132,22 +132,27 @@ model Profile {
 }
 
 model Review {
-  Review_id   Int           @id @default(autoincrement())
-  IsPositive  Boolean
-  Comment     String        @db.VarChar(100)
+  Review_id  Int     @id @default(autoincrement())
+  User_id    Int
+  isPositive Boolean
+  Comment    String  @db.VarChar(100)
   ReviewRelay ReviewRelay[]
-}
-
-model ReviewRelay {
-  ReviewRelay_id Int     @id @default(autoincrement())
-  Review_id      Int
-  User_id        Int
-  IsWriter       Boolean @default(false)
-  User           User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ReviewRelay_User")
-  Review         Review  @relation(fields: [Review_id], references: [Review_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ReviewRelay_Review")
+  User       User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([User_id], map: "fk_Review_User")
   @@index([Review_id], map: "fk_Review_Review")
+}
+
+model ReviewRelay {
+  ReviewRelay_id Int @id @default(autoincrement())
+  Review_id Int
+  User_id Int
+  IsReceiver  Boolean @default(false)
+  Review  Review  @relation(fields: [Review_id], references: [Review_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ReviewRelay_Review")
+  User    User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ReviewRelay_User")
+
+  @@index([Review_id], map:"fk_ReviewRelay_Review")
+  @@index([User_id], map:"fk_ReviewRelay_User")
 }
 
 model TeamProfile {
@@ -191,6 +196,7 @@ model User {
   TeamProfile TeamProfile[]
   TeamRelay   TeamRelay[]
   UserData    UserData[]
+  ReviewRelay ReviewRelay[]
 }
 
 model Image {

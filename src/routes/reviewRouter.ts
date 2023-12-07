@@ -8,12 +8,7 @@ const reviewRouter = express.Router();
 export interface CreateReviewType {
   Player_id: number;
   isPositive: boolean;
-  isJoin: boolean;
   Comment: string;
-}
-
-export interface ReviewArray {
-  Reviews: CreateReviewType[];
 }
 
 reviewRouter.get("/:id", async (req, res) => {
@@ -30,20 +25,16 @@ reviewRouter.get("/:id", async (req, res) => {
   }
 });
 
-reviewRouter.post(
-  "/",
-  async (req: express.Request<{}, {}, ReviewArray>, res: express.Response) => {
-    try {
-      const authHeader = req.headers["authorization"];
-      const token = authHeader?.slice(7);
-      const { Reviews } = req.body;
-      const result = setUserReview(Reviews, token!!);
-      res.status(201);
-      res.send(req.body);
-    } catch (err) {
-      if (err instanceof Error) {
-        handleErrors<Error>(err, res);
-      }
+reviewRouter.post("/", async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.slice(7);
+    const result = setUserReview(req.body);
+    res.status(201);
+    res.send(req.body);
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors<Error>(err, res);
     }
   },
 );
