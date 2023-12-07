@@ -93,36 +93,6 @@ async function getUserTeams(userId: number) {
   );
   return sortedTeam;
 }
-
-async function getUserTeams(userId: number) {
-  const teams = await prisma.teamRelay.findMany({
-    where: {
-      User_id: userId,
-    },
-    select: {
-      TeamProfile: {
-        select: {
-          Team_id: true,
-          Name: true,
-          TeamImage: true,
-          Introduce: true,
-        },
-      },
-    },
-  });
-  const sortedTeam = await Promise.all(
-    teams.map(async (team) => {
-      return {
-        TeamId: team.TeamProfile.Team_id,
-        Name: team.TeamProfile.Name,
-        TeamImage: team.TeamProfile.TeamImage,
-        Introduce: team.TeamProfile.Introduce,
-      };
-    }),
-  );
-  return sortedTeam;
-}
-
 async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
