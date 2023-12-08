@@ -5,6 +5,7 @@ import { getDatabase, ref, set, get, child } from "firebase/database";
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.authDomain,
+  databaseURL: process.env.databaseURL,
   projectId: process.env.projectId,
   storageBucket: process.env.storageBucket,
   messagingSenderId: process.env.messagingSenderId,
@@ -16,15 +17,15 @@ export const _ = initializeApp(firebaseConfig);
 const db = getDatabase();
 const dbRef = ref(db);
 
-async function saveToken(userId: string, token: string) {
+const saveToken = async (userId: string, token: string) => {
   const values = (await get(child(dbRef, `userTokens/${userId}/`))).val() ?? {};
   const payload = { ...values, token };
-  set(ref(db, `userToken/${userId}/`), payload);
-}
+  set(ref(db, `userTokens/${userId}/`), payload);
+};
 
-async function getToken(userId: string) {
-  const values = (await get(child(dbRef, `userToken/${userId}/`))).val();
+const getToken = async (userId: string) => {
+  const values = (await get(child(dbRef, `userTokens/${userId}`))).val();
   return values ?? {};
-}
+};
 
 export { saveToken, getToken };

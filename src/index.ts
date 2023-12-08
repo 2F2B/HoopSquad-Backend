@@ -31,7 +31,7 @@ import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import reviewRouter from "./routes/reviewRouter";
-import { getPostingAlarm } from "./alarm/alarm";
+import notificationRouter from "./routes/notificationRESTRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -42,6 +42,7 @@ app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
 app.use("/team", teamRouter);
 app.use("/review", reviewRouter);
+app.use("/notification", notificationRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",
@@ -68,14 +69,6 @@ app.get("/", async (_req, res) => {
   }
 });
 
-app.get("/test", async (req, res) => {
-  try {
-    const result = await getPostingAlarm(1);
-    res.json(result);
-  } catch (err) {
-    res.json(err);
-  }
-});
 httpServer.listen(3000, () => {
   console.log("Server started on Port 3000");
 });

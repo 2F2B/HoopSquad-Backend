@@ -110,3 +110,5 @@ notificationRouter.delete(
     }
   },
 );
+
+export default notificationRouter;
