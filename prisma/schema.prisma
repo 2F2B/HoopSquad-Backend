@@ -108,10 +108,10 @@ model Posting {
   ChatRoom      ChatRoom[]
   GameType      GameType[]
   Image         Image[]
+  MatchAlarm    MatchAlarm[]
   Member        Member[]
   Map           Map          @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User         @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
-  MatchAlarm    MatchAlarm[]
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
@@ -121,12 +121,13 @@ model Profile {
   User_id    Int        @unique
   Height     Float?     @db.Float
   Introduce  String?    @db.VarChar(45)
-  Location   String?    @db.VarChar(45)
   Overall    Int
   Team_id    Int?
   Weight     Int?
   Year       Int?
   Profile_id Int        @id @default(autoincrement())
+  Location1  String?    @db.VarChar(45)
+  Location2  String?    @db.VarChar(45)
   GameType   GameType[]
   Image      Image[]
   User       User       @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Profile_User")
@@ -161,7 +162,8 @@ model TeamProfile {
   Admin_id   Int
   Name       String      @db.VarChar(45)
   TeamImage  String?     @db.VarChar(100)
-  Location   String      @db.VarChar(45)
+  Location1  String      @db.VarChar(45)
+  Location2  String?     @db.VarChar(45)
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?

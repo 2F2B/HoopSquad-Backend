@@ -36,7 +36,8 @@ async function getUserProfile(userId: number) {
           User_id: true,
           Height: true,
           Introduce: true,
-          Location: true,
+          Location1: true,
+          Location2: true,
           Overall: true,
           Weight: true,
           Year: true,
@@ -59,7 +60,7 @@ async function getUserProfile(userId: number) {
   return {
     ...Profile.Profile,
     GameType: Profile.Profile?.GameType[0],
-    Image: Profile.Profile?.Image[0],
+    Image: Profile.Profile?.Image,
     Name: Profile?.Name,
     Team: sortedTeam,
   };
@@ -154,7 +155,8 @@ async function createGameType(
     User_id: number;
     Height: number | null;
     Introduce: string | null;
-    Location: string | null;
+    Location1: string | null;
+    Location2: string | null;
     Overall: number;
     Team_id: number | null;
     Weight: number | null;
@@ -185,7 +187,8 @@ async function createOrUpdateUserImage(
     User_id: number;
     Height: number | null;
     Introduce: string | null;
-    Location: string | null;
+    Location1: string | null;
+    Location2: string | null;
     Overall: number;
     Team_id: number | null;
     Weight: number | null;
@@ -248,7 +251,6 @@ async function updateProfile(
       Weight: parseInt(req.body.Weight),
       Year: parseInt(req.body.Year),
       Introduce: req.body.Introduce,
-      Location: req.body.Location,
     },
   });
   return { profile, updatedProfile };
