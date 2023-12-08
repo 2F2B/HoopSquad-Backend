@@ -4,22 +4,24 @@ import { SetProfileLocation, SetTeamLocation } from "../Location/setLocation";
 
 const locationRouter = express.Router();
 
-locationRouter.get("/", async (req, res) => {
+locationRouter.post("/", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
-    if (!req.headers.location) throw new Error();
-    const result = await SetProfileLocation(req.headers?.location, token!!);
+    if (!req.body.Location) throw new Error();
+    const result = await SetProfileLocation(req.body.Location, token!!);
+    res.status(201);
+    res.send();
   } catch (err) {
     if (err instanceof Error) {
       handleErrors<Error>(err, res);
     }
   }
 });
-locationRouter.get("/:id", async (req, res) => {
+locationRouter.post("/:id", async (req, res) => {
   try {
-    if (!req.headers.location) throw new Error();
-    const result = await SetTeamLocation(+req.params.id, req.headers?.location);
+    if (!req.body.Location) throw new Error();
+    const result = await SetTeamLocation(+req.params.id, req.body.Location);
   } catch (err) {
     if (err instanceof Error) {
       handleErrors<Error>(err, res);

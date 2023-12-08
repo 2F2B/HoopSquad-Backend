@@ -60,7 +60,7 @@ async function getUserProfile(userId: number) {
   return {
     ...Profile.Profile,
     GameType: Profile.Profile?.GameType[0],
-    Image: Profile.Profile?.Image[0],
+    Image: Profile.Profile?.Image,
     Name: Profile?.Name,
     Team: sortedTeam,
   };

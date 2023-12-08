@@ -40,6 +40,9 @@ async function Register(
       Profile: {
         create: {
           Overall: 50,
+          GameType: {
+            create: {},
+          },
         },
       },
     },

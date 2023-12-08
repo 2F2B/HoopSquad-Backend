@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function SetProfileLocation(AccessToken: string, Location: string) {
+async function SetProfileLocation(Location: string, AccessToken: string) {
   const user = await prisma.oAuthToken.findFirstOrThrow({
     where: {
       AccessToken: AccessToken,
