@@ -8,14 +8,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Alarm {
-  Alarm_id  Int     @id @default(autoincrement())
-  User_id   Int
-  UserImage Bytes?  @db.Blob
-  Text      String  @db.VarChar(200)
-  IsRead    Boolean @default(false)
-  IsApply   Int?
-  User      User    @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
+model MatchAlarm {
+  id          Int      @id @default(autoincrement())
+  Posting_id  Int
+  User_id     Int
+  Opponent_id Int
+  IsRead      Boolean  @default(false)
+  IsApply     Boolean?
+  User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
+  Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Posting     Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([User_id], map: "User_idx")
 }
@@ -92,23 +94,24 @@ model OAuthToken {
 }
 
 model Posting {
-  Posting_id    Int        @id @default(autoincrement())
+  Posting_id    Int          @id @default(autoincrement())
   User_id       Int
-  IsTeam        Boolean    @default(false)
-  Title         String     @db.VarChar(100)
-  WriteDate     DateTime   @default(now()) @db.Timestamp(0)
+  IsTeam        Boolean      @default(false)
+  Title         String       @db.VarChar(100)
+  WriteDate     DateTime     @default(now()) @db.Timestamp(0)
   PlayTime      Int
-  Location      String     @db.VarChar(45)
-  RecruitAmount String     @db.VarChar(45)
-  CurrentAmount String     @db.VarChar(45)
-  Introduce     String?    @db.VarChar(600)
+  Location      String       @db.VarChar(45)
+  RecruitAmount String       @db.VarChar(45)
+  CurrentAmount String       @db.VarChar(45)
+  Introduce     String?      @db.VarChar(600)
   Map_id        Int
   ChatRoom      ChatRoom[]
   GameType      GameType[]
   Image         Image[]
   Member        Member[]
-  Map           Map        @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User       @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  Map           Map          @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  User          User         @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  MatchAlarm    MatchAlarm[]
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
@@ -183,7 +186,8 @@ model TeamRelay {
 model User {
   User_id     Int           @id @default(autoincrement())
   Name        String        @db.VarChar(45)
-  Alarm       Alarm[]
+  User        MatchAlarm[]  @relation("User")
+  Opponent    MatchAlarm[]  @relation("Opponent")
   ChatRoom    ChatRoom[]
   Member      Member[]
   Message     Message[]

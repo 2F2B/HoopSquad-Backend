@@ -32,6 +32,7 @@ import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import notificationServerHandler from "./routes/notificationRouter";
 import reviewRouter from "./routes/reviewRouter";
+import { getPostingAlarm } from "./alarm/alarm";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -66,6 +67,15 @@ app.get("/", async (_req, res) => {
   } catch (err) {
     res.json(err);
     return console.error(err);
+  }
+});
+
+app.get("/test", async (req, res) => {
+  try {
+    const result = await getPostingAlarm(1);
+    res.json(result);
+  } catch (err) {
+    res.json(err);
   }
 });
 httpServer.listen(3000, () => {
