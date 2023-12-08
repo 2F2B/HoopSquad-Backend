@@ -186,7 +186,7 @@ async function AddMatch(
   if (!user) throw new NotFoundError("User");
 
   const req = request.body.data;
-  const Location = await AddressToLatLng(req.Address);
+  const Location = (await LatLngToAddress(req.lat, req.lng)).result;
   const playTime = new Date(req.PlayTime).getTime();
 
   const one = isTrue(req.One) ? true : false,
@@ -197,8 +197,8 @@ async function AddMatch(
   const newMap = await prisma.map.create({
     data: {
       LocationName: req.LocationName,
-      Lat: Location.lat,
-      Lng: Location.lng,
+      Lat: req.lat,
+      Lng: req.lng,
       Posting: {
         create: {
           User: { connect: { User_id: user.User_id } },
@@ -212,7 +212,7 @@ async function AddMatch(
             },
           },
           PlayTime: playTime / 1000,
-          Location: req.Address,
+          Location: Location,
           RecruitAmount: req.RecruitAmount,
           CurrentAmount: req.CurrentAmount,
           Introduce: req.Introduce,
