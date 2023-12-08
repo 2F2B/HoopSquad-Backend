@@ -20,14 +20,12 @@ import sanitize from "sanitize-filename";
 const teamRouter = express.Router();
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
 const uploadsDirectory = path.join(parentDirectory, "image/team"); // ~~~/image/team 주소. 해당 변수는 주소에 대한 값(?)을 저장하는 것
-
 fs.readdir(uploadsDirectory, (error) => {
   // 디렉토리를 읽어서 해당하는 디렉토리가 없으면 해당 디렉토리를 생성
   if (error) {
     fs.mkdirSync(uploadsDirectory);
   }
 });
-
 const upload = multer({
   storage: multer.diskStorage({
     destination(req, file, cb) {
@@ -45,14 +43,15 @@ const upload = multer({
 export interface CreateTeamType {
   Admin_id: string;
   Name: string;
-  TeamImage?: string;
   Location: string;
   Introduce?: string;
 }
 
 teamRouter.get("/", async (_req, res) => {
   try {
-    const result = await getTeam();
+    const location = _req.query.location;
+    const id = undefined;
+    const result = await getTeam(id, location?.toString());
     res.status(200);
     res.json(result);
   } catch (err) {
@@ -105,32 +104,40 @@ teamRouter.delete("/:id", async (req, res) => {
 
 teamRouter.post(
   "/",
-  upload.single("Image"),
+  upload.array("Image", 10),
   async (
     req: express.Request<{}, {}, CreateTeamType>,
     res: express.Response,
   ) => {
     try {
       const { Admin_id, Name, Location, Introduce } = req.body;
-      const TeamImage = req.file ? req.file.filename : undefined;
-      await createTeam({
-        Admin_id: Admin_id,
-        Name: Name,
-        TeamImage: TeamImage,
-        Location: Location,
-        Introduce: Introduce,
-      });
+      let files;
+      if (Array.isArray(req.files)) {
+        files = req.files.map((file) => {
+          return file.filename;
+        });
+      }
+      await createTeam(
+        {
+          Admin_id: Admin_id,
+          Name: Name,
+          Location: Location,
+          Introduce: Introduce,
+        },
+        files,
+      );
       res.status(201).json({ result: "success" });
     } catch (err) {
-      if (req.file) {
-        const filePath = sanitize(
-          path.join(uploadsDirectory, req.file.filename),
-        ); // 업로드 폴더의 파일 지정
-        fs.unlink(filePath, (unlinkErr: any) => {
-          // 해당 파일 삭제
-          if (unlinkErr) {
-            console.error("Error deleting file:", unlinkErr);
-          }
+      if (req.files && Array.isArray(req.files) && +req.files.length > 0) {
+        const files = req.files;
+        files.forEach((file: any) => {
+          const filePath = path.join(uploadsDirectory, file.filename); // 업로드 폴더의 파일 지정
+          fs.unlink(filePath, (unlinkErr: any) => {
+            // 해당 파일 삭제
+            if (unlinkErr) {
+              console.error("Error deleting file:", unlinkErr);
+            }
+          });
         });
       }
       if (err instanceof Error) {

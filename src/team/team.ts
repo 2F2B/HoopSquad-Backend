@@ -11,14 +11,21 @@ import { CreateTeamType } from "../routes/teamRouter";
 
 const prisma = new PrismaClient();
 
-async function getTeam(id?: number) {
+async function getTeam(id?: number, location?: string) {
   if (!id) {
     const teams = await prisma.teamProfile.findMany({
+      where: {
+        OR: [
+          { Location1: { contains: location } },
+          { Location2: { contains: location } },
+        ],
+      },
       select: {
         Team_id: true,
         Name: true,
         TeamImage: true,
         Location1: true,
+        Location2: true,
         LatestDate: true,
         UserAmount: true,
       },
@@ -83,23 +90,28 @@ async function leaveTeam(teamId: number, userId: number) {
   });
 }
 
-async function createTeam({
-  Admin_id,
-  Name,
-  TeamImage,
-  Location,
-  Introduce,
-}: CreateTeamType) {
+async function createTeam(
+  { Admin_id, Name, Location, Introduce }: CreateTeamType,
+  files?: Array<string>,
+) {
   const newTeam = await prisma.teamProfile.create({
     data: {
       Admin_id: +Admin_id,
       Name: Name,
       Location1: Location,
       Introduce: Introduce,
-      ...(TeamImage ? { TeamImage: TeamImage } : {}),
     },
   });
-
+  if (files) {
+    files.map(async (file) => {
+      await prisma.teamImage.create({
+        data: {
+          TeamProfile: { connect: { Team_id: newTeam.Team_id } },
+          ImageName: file,
+        },
+      });
+    });
+  }
   await prisma.teamRelay.create({
     data: {
       Team_id: newTeam.Team_id,
