@@ -32,6 +32,7 @@ import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import notificationServerHandler from "./routes/notificationRouter";
 import reviewRouter from "./routes/reviewRouter";
+import locationRouter from "./routes/locationRouter";
 
 app.use("/auth", authRouter);
 app.use("/court", courtRouter);
@@ -42,6 +43,7 @@ app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
 app.use("/team", teamRouter);
 app.use("/review", reviewRouter);
+app.use("/location", locationRouter);
 app.use(
   bodyParser.raw({
     type: "image/jpeg",

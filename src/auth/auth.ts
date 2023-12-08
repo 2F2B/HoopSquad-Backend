@@ -40,6 +40,9 @@ async function Register(
       Profile: {
         create: {
           Overall: 50,
+          GameType: {
+            create: {},
+          },
         },
       },
     },
@@ -103,4 +106,5 @@ async function Login(
   const profile = await getUserProfile(isExist.User_id);
   return { token: newToken.Access_Token, profile };
 }
+
 export { Register, Login };
