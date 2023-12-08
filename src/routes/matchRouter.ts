@@ -79,7 +79,7 @@ matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
-    const add = await AddMatch(req, token);
+    const add = await AddMatch(req, token!!);
     res.status(201);
     res.send(add);
   } catch (err) {

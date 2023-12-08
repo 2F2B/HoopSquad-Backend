@@ -18,7 +18,7 @@ async function getTeam(id?: number) {
         Team_id: true,
         Name: true,
         TeamImage: true,
-        Location: true,
+        Location1: true,
         LatestDate: true,
         UserAmount: true,
       },
@@ -94,7 +94,7 @@ async function createTeam({
     data: {
       Admin_id: +Admin_id,
       Name: Name,
-      Location: Location,
+      Location1: Location,
       Introduce: Introduce,
       ...(TeamImage ? { TeamImage: TeamImage } : {}),
     },
