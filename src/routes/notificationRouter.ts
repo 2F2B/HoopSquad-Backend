@@ -16,4 +16,15 @@ export const _ = initializeApp(firebaseConfig);
 const db = getDatabase();
 const dbRef = ref(db);
 
-async function saveToken() {}
+async function saveToken(userId: string, token: string) {
+  const values = (await get(child(dbRef, `userTokens/${userId}/`))).val() ?? {};
+  const payload = { ...values, token };
+  set(ref(db, `userToken/${userId}/`), payload);
+}
+
+async function getToken(userId: string) {
+  const values = (await get(child(dbRef, `userToken/${userId}/`))).val();
+  return values ?? {};
+}
+
+export { saveToken, getToken };
