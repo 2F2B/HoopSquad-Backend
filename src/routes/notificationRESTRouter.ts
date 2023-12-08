@@ -8,8 +8,16 @@ import {
   createNotification,
 } from "../alarm/alarm";
 import { Request, Router } from "express";
+import * as FirebaseService from "./notificationRouter";
 
 const notificationRouter = Router();
+
+notificationRouter.post("/registerPushToken", async (req, res) => {
+  const userId = String(req.body.userId);
+  const token = String(req.body.token);
+  await FirebaseService.saveToken(userId, token);
+  res.status(200).send({ result: "success" });
+});
 
 notificationRouter.get("/:id", async (req, res) => {
   try {
@@ -102,3 +110,5 @@ notificationRouter.delete(
     }
   },
 );
+
+export default notificationRouter;

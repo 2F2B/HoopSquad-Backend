@@ -30,9 +30,8 @@ import matchRouter from "./routes/matchRouter";
 import profileRouter from "./routes/profileRouter";
 import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
-import notificationServerHandler from "./routes/notificationRouter";
 import reviewRouter from "./routes/reviewRouter";
-import { getPostingAlarm } from "./alarm/alarm";
+import notificationRouter from "./routes/notificationRESTRouter";
 import locationRouter from "./routes/locationRouter";
 
 app.use("/auth", authRouter);
@@ -44,6 +43,7 @@ app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
 app.use("/team", teamRouter);
 app.use("/review", reviewRouter);
+app.use("/notification", notificationRouter);
 app.use("/location", locationRouter);
 app.use(
   bodyParser.raw({
@@ -61,7 +61,6 @@ const chatServer = new SocketIO.Server(httpServer, {
 const notificationServer = chatServer.of("/notification");
 
 chatServerHandler(chatServer, notificationServer);
-notificationServerHandler(notificationServer);
 
 app.get("/", async (_req, res) => {
   try {

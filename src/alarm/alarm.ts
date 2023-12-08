@@ -1,6 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-
+import Expo from "expo-server-sdk";
+import * as FirebaseService from "../routes/notificationRouter";
 const prisma = new PrismaClient();
+
+const expo = new Expo();
 
 /**
  * 특정 사용자의 모든 알림을 반환하는 함수
@@ -62,7 +65,7 @@ async function getPostingAlarm(userId: number) {
 }
 
 /**
- * 매치 수락/취소를 변경해주는 함수
+ * 매치 수락/취소를 변경 및 게스트에게 푸쉬 알림을 해주는 함수
  * @param isApply
  * @param postingId
  */
@@ -75,6 +78,37 @@ async function applyMatch(postingId: number, isApply: boolean) {
       IsApply: isApply,
     },
   });
+  const notification = await prisma.matchAlarm.findFirstOrThrow({
+    where: {
+      Posting_id: postingId,
+    },
+    select: {
+      Opponent_id: true,
+    },
+  });
+  const post = await prisma.posting.findFirstOrThrow({
+    where: {
+      Posting_id: postingId,
+    },
+    select: {
+      Title: true,
+    },
+  });
+
+  const opponentToken = await FirebaseService.getToken(
+    String(notification.Opponent_id),
+  );
+
+  expo.sendPushNotificationsAsync([
+    {
+      to: opponentToken.token,
+      title: `${post?.Title}`,
+      body: isApply ? "매칭이 수락되었습니다!" : "매칭이 거절되었습니다.",
+      data: {
+        type: "match",
+      },
+    },
+  ]);
 }
 
 /**
