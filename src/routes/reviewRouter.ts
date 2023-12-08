@@ -1,5 +1,5 @@
 import express from "express";
-import { getWeather } from "../weather/weather";
+import { getWeather } from "../main/weather";
 import { getMatchPlayers, setUserReview } from "../review/review";
 import { handleErrors } from "../ErrorHandler";
 import { NotFoundError } from "../review/error";
