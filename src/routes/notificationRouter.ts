@@ -1,41 +1,19 @@
-import SocketIO from "socket.io";
-import { applyMatch, getPostingAlarm } from "../alarm/alarm";
-import Expo from "expo-server-sdk";
+import { initializeApp } from "firebase/app";
 
-const expo = new Expo();
-const expoPushTokens = new Map<string, string>();
+import { getDatabase, ref, set, get, child } from "firebase/database";
 
-const notificationServerHandler = (io: SocketIO.Namespace) => {
-  io.on("connection", (socket) => {
-    socket.on("registerExpoPushToken", (expoPushToken: string) => {
-      console.log(expoPushToken);
-      expoPushTokens.set(socket.id, expoPushToken);
-      console.log(expoPushTokens);
-    });
-
-    socket.on("disconnect", () => {
-      expoPushTokens.delete(socket.id);
-    });
-
-    socket.on(
-      "newMessageNotification",
-      async (
-        token: string,
-        nickname: string,
-        postingTitle: string,
-        payload: string,
-      ) => {
-        await expo.sendPushNotificationsAsync([
-          {
-            to: token,
-            sound: "default",
-            title: `${postingTitle}`,
-            body: `${nickname}: ${payload}`,
-          },
-        ]);
-      },
-    );
-  });
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.authDomain,
+  projectId: process.env.projectId,
+  storageBucket: process.env.storageBucket,
+  messagingSenderId: process.env.messagingSenderId,
+  appId: process.env.appId,
+  measurementId: process.env.measurementId,
 };
 
-export default notificationServerHandler;
+export const _ = initializeApp(firebaseConfig);
+const db = getDatabase();
+const dbRef = ref(db);
+
+async function saveToken() {}
