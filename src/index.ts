@@ -32,6 +32,7 @@ import imageRouter from "./routes/imageRouter";
 import weatherRouter from "./routes/weatherRouter";
 import notificationServerHandler from "./routes/notificationRouter";
 import reviewRouter from "./routes/reviewRouter";
+import { getPostingAlarm } from "./alarm/alarm";
 import locationRouter from "./routes/locationRouter";
 
 app.use("/auth", authRouter);
@@ -70,6 +71,7 @@ app.get("/", async (_req, res) => {
     return console.error(err);
   }
 });
+
 httpServer.listen(3000, () => {
   console.log("Server started on Port 3000");
 });

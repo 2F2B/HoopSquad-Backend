@@ -8,6 +8,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model MatchAlarm {
+  id          Int      @id @default(autoincrement())
+  Posting_id  Int
+  User_id     Int
+  Opponent_id Int
+  IsRead      Boolean  @default(false)
+  IsApply     Boolean?
+  User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
+  Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  Posting     Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([User_id], map: "User_idx")
+}
+
 model ChatRoom {
   id           Int          @id @default(autoincrement())
   Room_id      Int
@@ -148,8 +162,8 @@ model TeamProfile {
   Admin_id   Int
   Name       String      @db.VarChar(45)
   TeamImage  String?     @db.VarChar(100)
-  Location1   String      @db.VarChar(45)
-  Location2   String?      @db.VarChar(45)
+  Location1  String      @db.VarChar(45)
+  Location2  String?     @db.VarChar(45)
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?
@@ -172,20 +186,20 @@ model TeamRelay {
 }
 
 model User {
-  User_id                                 Int           @id @default(autoincrement())
-  Name                                    String        @db.VarChar(45)
-  ChatRoom                                ChatRoom[]
-  MatchAlarm_MatchAlarm_Opponent_idToUser MatchAlarm[]  @relation("MatchAlarm_Opponent_idToUser")
-  MatchAlarm_MatchAlarm_User_idToUser     MatchAlarm[]  @relation("MatchAlarm_User_idToUser")
-  Member                                  Member[]
-  Message                                 Message[]
-  OAuthToken                              OAuthToken[]
-  Posting                                 Posting[]
-  Profile                                 Profile?
-  ReviewRelay                             ReviewRelay[]
-  TeamProfile                             TeamProfile[]
-  TeamRelay                               TeamRelay[]
-  UserData                                UserData[]
+  User_id     Int           @id @default(autoincrement())
+  Name        String        @db.VarChar(45)
+  User        MatchAlarm[]  @relation("User")
+  Opponent    MatchAlarm[]  @relation("Opponent")
+  ChatRoom    ChatRoom[]
+  Member      Member[]
+  Message     Message[]
+  OAuthToken  OAuthToken[]
+  Posting     Posting[]
+  Profile     Profile?
+  ReviewRelay ReviewRelay[]
+  TeamProfile TeamProfile[]
+  TeamRelay   TeamRelay[]
+  UserData    UserData[]
 }
 
 model Image {
@@ -242,20 +256,4 @@ model Member {
 
   @@index([Posting_id], map: "fk_member_Posting")
   @@index([User_id], map: "fk_member_User")
-}
-
-model MatchAlarm {
-  id                                Int      @id @default(autoincrement())
-  Posting_id                        Int
-  User_id                           Int
-  Opponent_id                       Int
-  IsRead                            Boolean  @default(false)
-  IsApply                           Boolean?
-  User_MatchAlarm_Opponent_idToUser User     @relation("MatchAlarm_Opponent_idToUser", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-  Posting                           Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
-  User_MatchAlarm_User_idToUser     User     @relation("MatchAlarm_User_idToUser", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
-
-  @@index([Opponent_id], map: "MatchAlarm_Opponent_id_fkey")
-  @@index([Posting_id], map: "MatchAlarm_Posting_id_fkey")
-  @@index([User_id], map: "User_idx")
 }

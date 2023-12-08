@@ -1,5 +1,5 @@
 import SocketIO from "socket.io";
-import { applyMatch, getAlarm } from "../alarm/alarm";
+import { applyMatch, getPostingAlarm } from "../alarm/alarm";
 import Expo from "expo-server-sdk";
 
 const expo = new Expo();
