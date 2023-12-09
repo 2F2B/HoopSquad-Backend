@@ -254,13 +254,6 @@ async function AddMatch(
   };
 }
 
-// export function getISOTime() {
-//   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000;
-
-//   const Time = new Date(utc);
-//   return Time.toISOString();
-// }
-
 async function MatchInfo(
   request: Request<{}, any, any, ParsedQs, Record<string, any>>,
 ) {

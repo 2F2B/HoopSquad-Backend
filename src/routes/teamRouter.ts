@@ -1,7 +1,9 @@
 import express from "express";
 import {
   createTeam,
+  createTeamMatch,
   deleteTeam,
+  enterMatchResult,
   getTeam,
   joinTeam,
   leaveTeam,
@@ -74,7 +76,7 @@ teamRouter.get("/:id", async (req, res) => {
   }
 });
 
-teamRouter.post("/:id", async (req, res) => {
+teamRouter.post("/:id(\\d+)", async (req, res) => {
   try {
     await joinTeam(+req.params.id, +req.body.User_id);
     res.status(201).json({ result: "success" });
@@ -168,4 +170,30 @@ teamRouter.delete(
   },
 );
 
+teamRouter.post("/match", async (req, res) => {
+  try {
+    createTeamMatch(
+      +req.body.HostTeam_id,
+      +req.body.GuestTeam_id,
+      req.body.PlayDate,
+    );
+    res.status(201);
+    res.send();
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
+teamRouter.post("/match/:id", async (req, res) => {
+  try {
+    enterMatchResult(+req.params.id, +req.body.HostScore, +req.body.GuestScore);
+    res.status(201);
+    res.send();
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
 export default teamRouter;

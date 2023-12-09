@@ -36,7 +36,7 @@ function LonLatToXY(lat: number, lon: number) {
   ro = (re * sf) / Math.pow(ro, sn);
 
   let ra = Math.tan(PI * 0.25 + lat * DEGRAD * 0.5);
-  ra = (re * sf) / math.pow(math.complex(ra, 0), sn);
+  ra = (re * sf) / math.pow(ra, sn);
   theta = lon * DEGRAD - olon;
   if (theta > PI) theta -= 2.0 * PI;
   if (theta < -PI) theta += 2.0 * PI;
