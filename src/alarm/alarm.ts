@@ -96,22 +96,20 @@ async function applyMatch(postingId: number, isApply: boolean) {
     },
   });
 
-  const userToken = await FirebaseService.getToken(
-    String(notification.User_id),
-  );
-  const opponentToken = await FirebaseService.getToken(
-    String(notification.Opponent_id),
-  );
+  const userToken = await FirebaseService.getToken(String(2));
+  // const opponentToken = await FirebaseService.getToken(
+  //   String(notification.Opponent_id),
+  // );
 
   expo.sendPushNotificationsAsync([
-    {
-      to: opponentToken.token,
-      title: `${post?.Title}`,
-      body: isApply ? "매칭이 수락되었습니다!" : "매칭이 거절되었습니다.",
-      data: {
-        type: "match",
-      },
-    },
+    // {
+    //   to: opponentToken.token,
+    //   title: `${post?.Title}`,
+    //   body: isApply ? "매칭이 수락되었습니다!" : "매칭이 거절되었습니다.",
+    //   data: {
+    //     type: "match",
+    //   },
+    // },
     {
       to: userToken.token,
       title: `${post?.Title}`,
