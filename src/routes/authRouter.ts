@@ -6,6 +6,7 @@ import { Validation } from "../auth/validate";
 import {
   NotProvidedError,
   PasswordNotMatchError,
+  TokenNotMatchError,
   TokenNotProvidedError,
   UserAlreadyExistError,
   UserNotExistError,
@@ -90,6 +91,8 @@ authRouter.post("/validation", async (req, res) => {
     res.send(result);
   } catch (err) {
     if (err instanceof TokenNotProvidedError) {
+      handleErrors(err, res);
+    } else if (err instanceof TokenNotMatchError) {
       handleErrors(err, res);
     } else if (err instanceof Error) {
       handleErrors(err, res);

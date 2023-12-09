@@ -51,3 +51,11 @@ export class RefreshTokenNotValidateError extends ErrorWithStatusCode {
     this.name = "RefreshTokenNotValidate";
   }
 }
+
+export class TokenNotMatchError extends ErrorWithStatusCode {
+  statusCode: number = 401;
+  constructor() {
+    super("Token Not Match");
+    this.name = "TokenNotMatch";
+  }
+}
