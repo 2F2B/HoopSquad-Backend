@@ -5,6 +5,7 @@ import { GenerateToken, AccessVerify, AccessRefresh } from "./token";
 import {
   NotProvidedError,
   RefreshTokenNotValidateError,
+  TokenNotMatchError,
   TokenNotProvidedError,
 } from "./error";
 import { getUserProfile } from "../profile/User";
@@ -37,7 +38,7 @@ function isTokenValidMoreThanAWeek(token: Token) {
 async function Validation(AccessToken: any) {
   if (!AccessToken) {
     // A/T 가 안넘어옴
-    throw new NotProvidedError("Body");
+    throw new TokenNotProvidedError();
   }
 
   const token = await prisma.oAuthToken.findFirst({
@@ -46,24 +47,24 @@ async function Validation(AccessToken: any) {
     },
   });
 
-  if (token) {
-    if (AccessVerify(token.AccessToken)) {
-      const profile = await getUserProfile(token.User_id);
-      return { profile };
-    } // A/T O
-    if (!AccessVerify(token.RefreshToken))
-      throw new RefreshTokenNotValidateError(); // A/T 만료 & R/T 만료
+  if (!token) throw new TokenNotMatchError();
 
-    if (isTokenValidMoreThanAWeek(token)) {
-      const newToken = AccessRefresh(token.Auth_id);
-      const profile = await getUserProfile(token.User_id);
-      return { access_token: newToken.Access_Token, Profile: profile };
-    } else {
-      const newToken = GenerateToken(token.Auth_id);
-      const profile = await getUserProfile(token.User_id);
-      return { access_token: newToken.Access_Token, Profile: profile };
-    }
-  } else throw new TokenNotProvidedError();
+  if (AccessVerify(token.AccessToken)) {
+    const profile = await getUserProfile(token.User_id);
+    return { profile };
+  } // A/T O
+  if (!AccessVerify(token.RefreshToken))
+    throw new RefreshTokenNotValidateError(); // A/T 만료 & R/T 만료
+
+  if (isTokenValidMoreThanAWeek(token)) {
+    const newToken = AccessRefresh(token.Auth_id);
+    const profile = await getUserProfile(token.User_id);
+    return { access_token: newToken.Access_Token, Profile: profile };
+  } else {
+    const newToken = GenerateToken(token.Auth_id);
+    const profile = await getUserProfile(token.User_id);
+    return { access_token: newToken.Access_Token, Profile: profile };
+  }
 }
 
 export { Validation };
