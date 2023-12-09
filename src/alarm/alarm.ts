@@ -27,7 +27,7 @@ async function getPostingAlarm(userId: number) {
   const alarmList: {
     image: string | undefined;
     nickname: string;
-    userId: number;
+    guestId: number;
     postingId: number;
     isRead: boolean;
     isApply: boolean | null;
@@ -57,7 +57,7 @@ async function getPostingAlarm(userId: number) {
     alarmList.push({
       image: userImage?.ImageData,
       nickname: opponentProfile.User.Name,
-      userId: alarm.Opponent_id,
+      guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
       isRead: alarm.IsRead,
       isApply: alarm.IsApply,
