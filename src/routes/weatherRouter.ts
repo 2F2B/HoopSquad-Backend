@@ -1,5 +1,6 @@
 import express from "express";
 import { getWeather } from "../weather/weather";
+import { handleErrors } from "../ErrorHandler";
 
 const math = require("mathjs");
 const weatherRouter = express.Router();
@@ -25,7 +26,7 @@ const olon = mapData.olon * DEGRAD;
 const olat = mapData.olat * DEGRAD;
 
 function LonLatToXY(lat: number, lon: number) {
-  let sn, sf, ro, theta;
+  let sn: number, sf: number, ro: number, theta: number;
 
   sn = Math.tan(PI * 0.25 + slat2 * 0.5) / Math.tan(PI * 0.25 + slat1 * 0.5);
   sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
@@ -39,7 +40,7 @@ function LonLatToXY(lat: number, lon: number) {
   theta = lon * DEGRAD - olon;
   if (theta > PI) theta -= 2.0 * PI;
   if (theta < -PI) theta += 2.0 * PI;
-  theta *= sn!!;
+  theta *= sn;
   const x = ra * Math.sin(theta) + mapData.xo;
   const y = ro!! - ra * Math.cos(theta) + mapData.yo;
   return { X: x, Y: y };
@@ -47,9 +48,14 @@ function LonLatToXY(lat: number, lon: number) {
 
 weatherRouter.get("/", async (req, res) => {
   try {
-    // getWeather();
-    console.log(LonLatToXY(128.427833, 36.13388));
-  } catch {}
+    const { X, Y } = LonLatToXY(36.13388, 128.427833);
+    const result = await getWeather(X, Y);
+    res.send(result);
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
 });
 
 export default weatherRouter;

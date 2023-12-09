@@ -1,31 +1,120 @@
-import { initializeApp } from "firebase/app";
+import { handleErrors } from "../ErrorHandler";
+import {
+  getPostingAlarm,
+  applyMatch,
+  updateIsRead,
+  deleteAllNotification,
+  deleteNotification,
+  createNotification,
+} from "../alarm/alarm";
+import { Request, Router } from "express";
+import * as FirebaseService from "../alarm/pushNotification";
 
-import { getDatabase, ref, set, get, child } from "firebase/database";
+const notificationRouter = Router();
 
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.authDomain,
-  databaseURL: process.env.databaseURL,
-  projectId: process.env.projectId,
-  storageBucket: process.env.storageBucket,
-  messagingSenderId: process.env.messagingSenderId,
-  appId: process.env.appId,
-  measurementId: process.env.measurementId,
-};
+notificationRouter.post("/registerPushToken", async (req, res) => {
+  try {
+    const userId = String(req.body.userId);
+    const token = String(req.body.token);
+    await FirebaseService.saveToken(userId, token);
+    res.status(201).send({ result: "success" });
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
 
-export const _ = initializeApp(firebaseConfig);
-const db = getDatabase();
-const dbRef = ref(db);
+notificationRouter.get("/:id", async (req, res) => {
+  try {
+    const result = await getPostingAlarm(+req.params.id);
+    res.status(200).json(result);
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
 
-const saveToken = async (userId: string, token: string) => {
-  const values = (await get(child(dbRef, `userTokens/${userId}/`))).val() ?? {};
-  const payload = { ...values, token };
-  set(ref(db, `userTokens/${userId}/`), payload);
-};
+notificationRouter.patch(
+  "/match",
+  async (
+    req: Request<{}, {}, { postingId: number; isApply: boolean }, {}>,
+    res,
+  ) => {
+    try {
+      await applyMatch(req.body.postingId, req.body.isApply);
+      res.status(200).json({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
 
-const getToken = async (userId: string) => {
-  const values = (await get(child(dbRef, `userTokens/${userId}`))).val();
-  return values ?? {};
-};
+notificationRouter.patch("/:id", async (req, res) => {
+  try {
+    await updateIsRead(+req.params.id);
+    res.status(200).json({ result: "success" });
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
 
-export { saveToken, getToken };
+notificationRouter.post(
+  "/",
+  async (
+    req: Request<
+      {},
+      {},
+      { postingId: number; userId: number; opponentId: number },
+      {}
+    >,
+    res,
+  ) => {
+    try {
+      await createNotification(
+        req.body.postingId,
+        req.body.userId,
+        req.body.opponentId,
+      );
+      res.status(201).json({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
+notificationRouter.delete("/:id", async (req, res) => {
+  try {
+    await deleteAllNotification(+req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
+
+notificationRouter.delete(
+  "/",
+  async (
+    req: Request<{}, {}, {}, { user_id: number; posting_id: number }>,
+    res,
+  ) => {
+    try {
+      await deleteNotification(req.query.user_id, req.query.posting_id);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
+export default notificationRouter;
