@@ -9,19 +9,17 @@ datasource db {
 }
 
 model MatchAlarm {
-  id          Int      @id @default(autoincrement())
-  Posting_id  Int
-  User_id     Int
-  Opponent_id Int
-  IsRead      Boolean  @default(false)
-  IsApply     Boolean?
-  createdAt   DateTime @default(now())
-  Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
-  Posting     Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
-  User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
+  id         Int      @id @default(autoincrement())
+  Posting_id Int
+  User_id    Int
+  isHost     Boolean
+  IsRead     Boolean  @default(false)
+  IsApply    Boolean?
+  createdAt  DateTime @default(now())
+  Posting    Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
+  User       User     @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
 
   @@index([User_id], map: "User_idx")
-  @@index([Opponent_id], map: "MatchAlarm_Opponent_id_fkey")
   @@index([Posting_id], map: "MatchAlarm_Posting_id_fkey")
 }
 
@@ -192,8 +190,7 @@ model User {
   User_id     Int           @id @default(autoincrement())
   Name        String        @db.VarChar(45)
   ChatRoom    ChatRoom[]
-  Opponent    MatchAlarm[]  @relation("Opponent")
-  User        MatchAlarm[]  @relation("User")
+  User        MatchAlarm[]
   Member      Member[]
   Message     Message[]
   OAuthToken  OAuthToken[]
