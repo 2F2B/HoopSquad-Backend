@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Expo from "expo-server-sdk";
-import * as FirebaseService from "../routes/notificationRouter";
+import * as FirebaseService from "./pushNotification";
 const prisma = new PrismaClient();
 
 const expo = new Expo();
@@ -31,6 +31,7 @@ async function getPostingAlarm(userId: number) {
     postingId: number;
     isRead: boolean;
     isApply: boolean | null;
+    createdAt: Date;
   }[] = [];
 
   for (const alarm of alarms) {
@@ -60,6 +61,7 @@ async function getPostingAlarm(userId: number) {
       postingId: alarm.Posting_id,
       isRead: alarm.IsRead,
       isApply: alarm.IsApply,
+      createdAt: alarm.createdAt,
     });
   }
   return alarmList;
