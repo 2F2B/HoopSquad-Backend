@@ -20,6 +20,7 @@ async function getPostingAlarm(userId: number) {
       IsApply: true,
       Opponent_id: true,
       Posting_id: true,
+      createdAt: true,
     },
   });
 

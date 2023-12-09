@@ -15,6 +15,7 @@ model MatchAlarm {
   Opponent_id Int
   IsRead      Boolean  @default(false)
   IsApply     Boolean?
+  createdAt   DateTime @default(now())
   Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   Posting     Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
   User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
@@ -260,10 +261,10 @@ model Member {
   @@index([User_id], map: "fk_member_User")
 }
 
-model TeamImage{
-  id Int @id @default(autoincrement())
-  Team_id Int
-  ImageName String  @db.VarChar(50)
+model TeamImage {
+  id        Int    @id @default(autoincrement())
+  Team_id   Int
+  ImageName String @db.VarChar(50)
 
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
 }
