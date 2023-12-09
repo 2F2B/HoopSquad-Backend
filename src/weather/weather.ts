@@ -64,6 +64,7 @@ async function getWeather(X: number, Y: number) {
   });
 
   return {
+    baseTime,
     temperature,
     windSpeed,
     sunny: sky,
