@@ -1,5 +1,5 @@
 import express from "express";
-import { getWeather } from "../main/weather";
+import { getWeather } from "../weather/weather";
 
 const math = require("mathjs");
 const weatherRouter = express.Router();
