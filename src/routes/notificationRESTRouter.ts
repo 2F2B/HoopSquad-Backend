@@ -13,10 +13,16 @@ import * as FirebaseService from "./notificationRouter";
 const notificationRouter = Router();
 
 notificationRouter.post("/registerPushToken", async (req, res) => {
-  const userId = String(req.body.userId);
-  const token = String(req.body.token);
-  await FirebaseService.saveToken(userId, token);
-  res.status(200).send({ result: "success" });
+  try {
+    const userId = String(req.body.userId);
+    const token = String(req.body.token);
+    await FirebaseService.saveToken(userId, token);
+    res.status(201).send({ result: "success" });
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
 });
 
 notificationRouter.get("/:id", async (req, res) => {
