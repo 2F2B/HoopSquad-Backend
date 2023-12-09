@@ -15,11 +15,13 @@ model MatchAlarm {
   Opponent_id Int
   IsRead      Boolean  @default(false)
   IsApply     Boolean?
-  User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
   Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   Posting     Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
+  User        User     @relation("User", fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Alarm_User")
 
   @@index([User_id], map: "User_idx")
+  @@index([Opponent_id], map: "MatchAlarm_Opponent_id_fkey")
+  @@index([Posting_id], map: "MatchAlarm_Posting_id_fkey")
 }
 
 model ChatRoom {
@@ -161,14 +163,14 @@ model TeamProfile {
   Team_id    Int         @id @default(autoincrement())
   Admin_id   Int
   Name       String      @db.VarChar(45)
-  TeamImage  String?     @db.VarChar(100)
-  Location1  String      @db.VarChar(45)
-  Location2  String?     @db.VarChar(45)
   Introduce  String?     @db.VarChar(400)
   LatestDate DateTime?   @db.DateTime(0)
   UserAmount Int?
+  Location1  String      @db.VarChar(45)
+  Location2  String?     @db.VarChar(45)
   User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
   TeamRelay  TeamRelay[]
+  TeamImage  TeamImage[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
@@ -188,9 +190,9 @@ model TeamRelay {
 model User {
   User_id     Int           @id @default(autoincrement())
   Name        String        @db.VarChar(45)
-  User        MatchAlarm[]  @relation("User")
-  Opponent    MatchAlarm[]  @relation("Opponent")
   ChatRoom    ChatRoom[]
+  Opponent    MatchAlarm[]  @relation("Opponent")
+  User        MatchAlarm[]  @relation("User")
   Member      Member[]
   Message     Message[]
   OAuthToken  OAuthToken[]
@@ -256,4 +258,12 @@ model Member {
 
   @@index([Posting_id], map: "fk_member_Posting")
   @@index([User_id], map: "fk_member_User")
+}
+
+model TeamImage{
+  id Int @id @default(autoincrement())
+  Team_id Int
+  ImageName String  @db.VarChar(50)
+
+  TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
 }

@@ -6,6 +6,7 @@ import {
   MatchInfo,
   DeleteMatch,
   JoinMatch,
+  getDeadlineMatches,
 } from "../match/match";
 import { BodyParser } from "body-parser";
 import multer from "multer";
@@ -119,6 +120,17 @@ matchRouter.delete("/:id", async (req, res) => {
       handleErrors<UserNotWriterError>(err, res);
     } else if (err instanceof Error) {
       handleErrors<Error>(err, res);
+    }
+  }
+});
+
+matchRouter.get("/deadline/:location", async (req, res) => {
+  try {
+    const result = await getDeadlineMatches(req.params.location);
+    res.status(200).json(result);
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
     }
   }
 });

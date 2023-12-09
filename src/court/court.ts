@@ -34,6 +34,12 @@ async function getCourt(id?: number) {
         Court_id: true,
         Name: true,
         Location: true,
+        Map: {
+          select: {
+            Lat: true,
+            Lng: true,
+          },
+        },
       },
     });
     return court;
