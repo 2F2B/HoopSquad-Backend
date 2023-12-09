@@ -16,6 +16,8 @@ async function getWeather(X: number, Y: number) {
   if (result.data.response.header.resultMsg !== "NORMAL_SERVICE")
     throw new Error(result.data.response.header.resultMsg);
 
+  let temperature: number;
+
   result.data.response.body.items.item.forEach((item: any) => {
     const data = item.fcstValue;
     switch (item.category) {
