@@ -137,5 +137,95 @@ async function deleteTeam(Team_id: number, User_id: number) {
     },
   });
 }
+/**
+ *  @param HostTeam_id
+ *  @param GuestTeam_id
+ *  @param PlayDate
+ */
+async function createTeamMatch(
+  HostTeam_id: number,
+  GuestTeam_id: number,
+  PlayDate: string,
+) {
+  const newMatch = await prisma.teamMatch.create({
+    data: {
+      PlayDate: PlayDate,
+    },
+  });
+  await makeTeamRecord(HostTeam_id, newMatch.TeamMatch_id, true);
+  await makeTeamRecord(GuestTeam_id, newMatch.TeamMatch_id, false);
+}
 
-export { getTeam, joinTeam, leaveTeam, createTeam, deleteTeam };
+export {
+  getTeam,
+  joinTeam,
+  leaveTeam,
+  createTeam,
+  deleteTeam,
+  createTeamMatch,
+  enterMatchResult,
+};
+
+async function makeTeamRecord(
+  Team_id: number,
+  TeamMatch_id: number,
+  IsHost: boolean,
+) {
+  await prisma.teamRecord.create({
+    data: {
+      Team: { connect: { Team_id: Team_id } },
+      TeamMatch: { connect: { TeamMatch_id: TeamMatch_id } },
+      IsHost: IsHost,
+    },
+  });
+}
+/**
+ *  @param TeamMatch_id
+ *  @param HostScore
+ *  @param GuestScore
+ */
+async function enterMatchResult(
+  TeamMatch_id: number,
+  HostScore: number,
+  GuestScore: number,
+) {
+  const record = await getRecordId(TeamMatch_id);
+
+  const IsHostWin = HostScore > GuestScore ? true : false;
+
+  setTeamRecord(record, HostScore, GuestScore, IsHostWin);
+}
+function setTeamRecord(
+  record: { TeamRecord: { Record_id: number; IsHost: boolean }[] } | null,
+  HostScore: number,
+  GuestScore: number,
+  IsHostWin: boolean,
+) {
+  record?.TeamRecord.map(async (Record) => {
+    await prisma.teamRecord.update({
+      where: {
+        Record_id: Record.Record_id,
+      },
+      data: {
+        Score: Record.IsHost ? HostScore : GuestScore,
+        IsWin: Record.IsHost ? IsHostWin : !IsHostWin,
+      },
+    });
+  });
+}
+
+async function getRecordId(TeamMatch_id: number) {
+  return await prisma.teamMatch.findFirstOrThrow({
+    where: {
+      TeamMatch_id: TeamMatch_id,
+    },
+    select: {
+      TeamRecord: {
+        select: {
+          Record_id: true,
+          IsHost: true,
+        },
+      },
+    },
+  });
+}

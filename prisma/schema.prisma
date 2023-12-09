@@ -172,6 +172,7 @@ model TeamProfile {
   User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
   TeamRelay  TeamRelay[]
   TeamImage  TeamImage[]
+  TeamRecord TeamRecord[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
@@ -267,4 +268,22 @@ model TeamImage {
   ImageName String @db.VarChar(50)
 
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
+}
+model TeamRecord {
+  Record_id Int @id @default(autoincrement())
+  Team_id   Int
+  Match_id  Int  
+  Score Int?
+  IsHost  Boolean
+  IsWin   Boolean?
+
+  Team      TeamProfile @relation(fields: [Team_id],references: [Team_id], onDelete: Cascade,onUpdate: NoAction,map:"fk_TeamRecord_TeamProfile")
+  TeamMatch  TeamMatch  @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
+}
+
+model TeamMatch {
+  TeamMatch_id  Int @id @default(autoincrement())
+  PlayDate     String
+
+  TeamRecord  TeamRecord[]
 }
