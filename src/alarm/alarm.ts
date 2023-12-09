@@ -13,7 +13,10 @@ const expo = new Expo();
 async function getPostingAlarm(userId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      User_id: userId,
+      OR: [
+        { User_id: userId },
+        { AND: [{ Opponent_id: userId }, { NOT: { IsApply: null } }] },
+      ],
     },
     select: {
       IsRead: true,

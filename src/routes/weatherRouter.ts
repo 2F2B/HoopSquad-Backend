@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import { getWeather } from "../weather/weather";
 import { handleErrors } from "../ErrorHandler";
 
@@ -46,16 +46,19 @@ function LonLatToXY(lat: number, lon: number) {
   return { X: x, Y: y };
 }
 
-weatherRouter.get("/", async (req, res) => {
-  try {
-    const { X, Y } = LonLatToXY(36.13388, 128.427833);
-    const result = await getWeather(X, Y);
-    res.send(result);
-  } catch (err) {
-    if (err instanceof Error) {
-      handleErrors(err, res);
+weatherRouter.get(
+  "/",
+  async (req: Request<{}, {}, {}, { lat: number; lng: number }>, res) => {
+    try {
+      const { X, Y } = LonLatToXY(req.query.lat, req.query.lng);
+      const result = await getWeather(X, Y);
+      res.send(result);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
     }
-  }
-});
+  },
+);
 
 export default weatherRouter;
