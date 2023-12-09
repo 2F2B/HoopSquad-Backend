@@ -417,5 +417,38 @@ async function JoinMatch(Posting_id: number, User_id: number) {
   } else throw new UserAlreadyJoinError();
 }
 
+async function getDeadlineMatches(location: string) {
+  const matches = await prisma.posting.findMany({
+    where: {
+      Location: { contains: location },
+    },
+    orderBy: {
+      PlayTime: "desc",
+    },
+    take: 3,
+    select: {
+      Posting_id: true,
+      Title: true,
+      PlayTime: true,
+      RecruitAmount: true,
+      CurrentAmount: true,
+      Image: {
+        select: {
+          ImageData: true,
+        },
+      },
+    },
+  });
+
+  return matches;
+}
+
 // TODO 채팅
-export { AllMatch, AddMatch, MatchInfo, DeleteMatch, JoinMatch };
+export {
+  AllMatch,
+  AddMatch,
+  MatchInfo,
+  DeleteMatch,
+  JoinMatch,
+  getDeadlineMatches,
+};
