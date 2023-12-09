@@ -96,7 +96,7 @@ async function applyMatch(postingId: number, isApply: boolean) {
   });
 
   const opponentToken = await FirebaseService.getToken(
-    String(2 /*notification.Opponent_id*/),
+    String(notification.Opponent_id),
   );
 
   expo.sendPushNotificationsAsync([
