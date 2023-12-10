@@ -6,7 +6,7 @@ import {
   signUpMatch,
 } from "../alarm/alarm";
 import { Request, Router } from "express";
-import * as FirebaseService from "../alarm/pushNotification";
+import { removeToken, saveToken } from "../alarm/pushNotification";
 
 const notificationRouter = Router();
 
@@ -16,7 +16,7 @@ notificationRouter.post(
     try {
       const userId = String(req.body.userId);
       const token = String(req.body.token);
-      await FirebaseService.saveToken(userId, token);
+      await saveToken(userId, token);
       res.status(201).send({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
@@ -30,7 +30,7 @@ notificationRouter.delete(
   "/removePushToken",
   async (req: Request<{}, {}, { userId: number }, {}>, res) => {
     try {
-      await FirebaseService.removeToken(String(req.body.userId));
+      await removeToken(String(req.body.userId));
       res.status(204).send();
     } catch (err) {
       if (err instanceof Error) {
