@@ -211,6 +211,9 @@ async function createOrUpdateUserImage(
         },
       });
     } else {
+      const filePath = path.join(uploadsDirectory, image.ImageData);
+      console.log(filePath);
+      fs.unlink(filePath, (unlinkErr: any) => {});
       image = await prisma.image.update({
         where: { Image_id: image.Image_id },
         data: {
@@ -247,10 +250,10 @@ async function updateProfile(
       Profile_id: profile!!.Profile_id,
     },
     data: {
-      Height: parseFloat(req.body.Height),
-      Weight: parseInt(req.body.Weight),
-      Year: parseInt(req.body.Year),
       Introduce: req.body.Introduce,
+      ...(req.body.Height ? { Height: parseFloat(req.body.Height) } : {}),
+      ...(req.body.Weight ? { Weight: parseInt(req.body.Weight) } : {}),
+      ...(req.body.Year ? { Year: parseInt(req.body.Year) } : {}),
     },
   });
   return { profile, updatedProfile };
