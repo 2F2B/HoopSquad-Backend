@@ -2,7 +2,6 @@ import { handleErrors } from "../ErrorHandler";
 import {
   getPostingAlarm,
   applyMatch,
-  updateIsRead,
   deleteAllNotification,
   deleteNotification,
   createNotification,
@@ -52,17 +51,6 @@ notificationRouter.patch(
     }
   },
 );
-
-notificationRouter.patch("/:id", async (req, res) => {
-  try {
-    await updateIsRead(+req.params.id);
-    res.status(200).json({ result: "success" });
-  } catch (err) {
-    if (err instanceof Error) {
-      handleErrors(err, res);
-    }
-  }
-});
 
 notificationRouter.post(
   "/",

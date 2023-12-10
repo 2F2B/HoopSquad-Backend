@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import {
   createTeam,
   createTeamMatch,
@@ -7,6 +7,7 @@ import {
   getTeam,
   joinTeam,
   leaveTeam,
+  participateTeam,
 } from "../team/team";
 import {
   NotAdminError,
@@ -76,20 +77,26 @@ teamRouter.get("/:id", async (req, res) => {
   }
 });
 
-teamRouter.post("/:id(\\d+)", async (req, res) => {
-  try {
-    await joinTeam(+req.params.id, +req.body.User_id);
-    res.status(201).json({ result: "success" });
-  } catch (err) {
-    if (err instanceof TeamNotFoundError) {
-      handleErrors(err, res);
-    } else if (err instanceof UserAlreadyInTeamError) {
-      handleErrors(err, res);
-    } else if (err instanceof Error) {
-      handleErrors(err, res);
+teamRouter.post(
+  "/:id(\\d+)",
+  async (
+    req: Request<{ id: number }, {}, { User_id: number; isApply: boolean }, {}>,
+    res,
+  ) => {
+    try {
+      await joinTeam(req.params.id, req.body.User_id, req.body.isApply);
+      res.status(201).json({ result: "success" });
+    } catch (err) {
+      if (err instanceof TeamNotFoundError) {
+        handleErrors(err, res);
+      } else if (err instanceof UserAlreadyInTeamError) {
+        handleErrors(err, res);
+      } else if (err instanceof Error) {
+        handleErrors(err, res);
+      }
     }
-  }
-});
+  },
+);
 
 teamRouter.delete("/:id", async (req, res) => {
   try {
@@ -185,6 +192,7 @@ teamRouter.post("/match", async (req, res) => {
     }
   }
 });
+
 teamRouter.post("/match/:id", async (req, res) => {
   try {
     enterMatchResult(+req.params.id, +req.body.HostScore, +req.body.GuestScore);
@@ -197,3 +205,17 @@ teamRouter.post("/match/:id", async (req, res) => {
   }
 });
 export default teamRouter;
+
+teamRouter.post(
+  "/participate",
+  async (req: Request<{}, {}, { teamId: number; userId: number }, {}>, res) => {
+    try {
+      await participateTeam(req.body.teamId, req.body.userId);
+      res.status(201).send({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);

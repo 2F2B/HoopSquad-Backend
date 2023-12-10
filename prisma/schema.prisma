@@ -13,7 +13,6 @@ model MatchAlarm {
   Posting_id  Int
   User_id     Int
   Opponent_id Int
-  IsRead      Boolean  @default(false)
   IsApply     Boolean?
   createdAt   DateTime @default(now())
   Opponent    User     @relation("Opponent", fields: [Opponent_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
@@ -161,18 +160,19 @@ model ReviewRelay {
 }
 
 model TeamProfile {
-  Team_id    Int         @id @default(autoincrement())
-  Admin_id   Int
-  Name       String      @db.VarChar(45)
-  Introduce  String?     @db.VarChar(400)
-  LatestDate DateTime?   @db.DateTime(0)
-  UserAmount Int?
-  Location1  String      @db.VarChar(45)
-  Location2  String?     @db.VarChar(45)
-  User       User        @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
-  TeamRelay  TeamRelay[]
-  TeamImage  TeamImage[]
-  TeamRecord TeamRecord[]
+  Team_id       Int             @id @default(autoincrement())
+  Admin_id      Int
+  Name          String          @db.VarChar(45)
+  Introduce     String?         @db.VarChar(400)
+  LatestDate    DateTime?       @db.DateTime(0)
+  UserAmount    Int?
+  Location1     String          @db.VarChar(45)
+  Location2     String?         @db.VarChar(45)
+  User          User            @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
+  TeamRecord    TeamRecord[]
+  TeamRelay     TeamRelay[]
+  TeamImage     TeamImage[]
+  TeamJoinApply TeamJoinApply[]
 
   @@index([Admin_id], map: "fk_TeamProfile_UserProfile1_idx")
 }
@@ -190,20 +190,21 @@ model TeamRelay {
 }
 
 model User {
-  User_id     Int           @id @default(autoincrement())
-  Name        String        @db.VarChar(45)
-  ChatRoom    ChatRoom[]
-  Opponent    MatchAlarm[]  @relation("Opponent")
-  User        MatchAlarm[]  @relation("User")
-  Member      Member[]
-  Message     Message[]
-  OAuthToken  OAuthToken[]
-  Posting     Posting[]
-  Profile     Profile?
-  ReviewRelay ReviewRelay[]
-  TeamProfile TeamProfile[]
-  TeamRelay   TeamRelay[]
-  UserData    UserData[]
+  User_id       Int             @id @default(autoincrement())
+  Name          String          @db.VarChar(45)
+  ChatRoom      ChatRoom[]
+  Opponent      MatchAlarm[]    @relation("Opponent")
+  User          MatchAlarm[]    @relation("User")
+  Member        Member[]
+  Message       Message[]
+  OAuthToken    OAuthToken[]
+  Posting       Posting[]
+  Profile       Profile?
+  ReviewRelay   ReviewRelay[]
+  TeamProfile   TeamProfile[]
+  TeamRelay     TeamRelay[]
+  UserData      UserData[]
+  TeamJoinApply TeamJoinApply[]
 }
 
 model Image {
@@ -269,21 +270,30 @@ model TeamImage {
 
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
 }
-model TeamRecord {
-  Record_id Int @id @default(autoincrement())
-  Team_id   Int
-  Match_id  Int  
-  Score Int?
-  IsHost  Boolean
-  IsWin   Boolean?
 
-  Team      TeamProfile @relation(fields: [Team_id],references: [Team_id], onDelete: Cascade,onUpdate: NoAction,map:"fk_TeamRecord_TeamProfile")
-  TeamMatch  TeamMatch  @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
+model TeamRecord {
+  Record_id Int      @id @default(autoincrement())
+  Team_id   Int
+  Match_id  Int
+  Score     Int?
+  IsHost    Boolean
+  IsWin     Boolean?
+
+  Team      TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamProfile")
+  TeamMatch TeamMatch   @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
 }
 
 model TeamMatch {
-  TeamMatch_id  Int @id @default(autoincrement())
+  TeamMatch_id Int    @id @default(autoincrement())
   PlayDate     String
 
-  TeamRecord  TeamRecord[]
+  TeamRecord TeamRecord[]
+}
+
+model TeamJoinApply {
+  id      Int         @id @default(autoincrement())
+  Team_id Int
+  User_id Int
+  Team    TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
+  User    User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }
