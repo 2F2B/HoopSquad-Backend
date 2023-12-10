@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import { getUserProfile, setUserProfile } from "../profile/User";
 import path from "path";
 import multer from "multer";
@@ -41,9 +41,18 @@ profileRouter.get("/user/:id", async (req, res) => {
     }
   }
 });
-
+type profile = {
+  Height: string;
+  Weight: string;
+  Year: string;
+  Introduce: string;
+  One: string;
+  Three: string;
+  Five: string;
+};
 profileRouter.post("/user", upload.single("Image"), async (req, res) => {
   try {
+    // const { Height, Weight, Year, Introduce, One, Three, Five } = req.body;
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
