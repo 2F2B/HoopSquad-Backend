@@ -311,14 +311,23 @@ async function MatchInfo(postingId: number, guestId: number) {
     },
   });
   const writerImage = await getWriterImage(match);
-  const participatedUser = await prisma.matchJoinApply.findMany({
+  const isParticipatedMatch = await prisma.matchJoinApply.findFirst({
     where: {
-      Posting_id: match.Posting[0].Posting_id,
-    },
-    select: {
-      User_id: true,
+      AND: [{ User_id: guestId }, { Posting_id: postingId }],
     },
   });
+
+  let roomId: number | undefined = undefined;
+
+  if (isParticipatedMatch) {
+    roomId = (
+      await prisma.chatRoom.findFirstOrThrow({
+        where: { AND: [{ User_id: guestId }, { Posting_id: postingId }] },
+        select: { Room_id: true },
+      })
+    ).Room_id;
+  }
+
   const result = {
     ...match.Posting[0],
     LocationName: match.LocationName,
@@ -327,7 +336,7 @@ async function MatchInfo(postingId: number, guestId: number) {
     GameType: match.Posting[0].GameType,
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile?.Image[0],
-    participatedUser: participatedUser,
+    roomId: roomId,
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
