@@ -270,10 +270,23 @@ async function MatchInfo(postingId: number, guestId: number) {
     },
     select: {
       Map_id: true,
+      User_id: true,
     },
   });
 
   if (!map) throw new NotFoundError("Posting");
+
+  const postNickname = (
+    await prisma.user.findFirstOrThrow({
+      where: {
+        User_id: map.User_id,
+      },
+      select: {
+        Name: true,
+      },
+    })
+  ).Name;
+
   const match = await prisma.map.findFirstOrThrow({
     where: {
       Map_id: map.Map_id,
@@ -337,6 +350,7 @@ async function MatchInfo(postingId: number, guestId: number) {
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile?.Image[0],
     roomId: roomId,
+    postWriterNickname: postNickname,
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
