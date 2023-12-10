@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import { getDatabase, ref, set, get, child, remove } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -28,4 +28,8 @@ const getToken = async (userId: string) => {
   return values ?? {};
 };
 
-export { saveToken, getToken };
+const removeToken = async (userId: string) => {
+  await remove(child(dbRef, `userTokens/${userId}`));
+};
+
+export { saveToken, getToken, removeToken };
