@@ -35,9 +35,7 @@ profileRouter.get("/user/:id", async (req, res) => {
     res.send(result);
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400);
-      console.log(err);
-      res.send({ error: err.message });
+      handleErrors(err, res);
     }
   }
 });

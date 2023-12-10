@@ -34,7 +34,7 @@ function AccessVerify(token: string) {
     jwt.verify(token, `${process.env.SECRETKey}`);
     return true;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return false;
   }
 }
