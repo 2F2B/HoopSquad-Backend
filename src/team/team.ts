@@ -148,7 +148,7 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
     const userToken = await FirebaseService.getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
-        to: userToken.token,
+        to: userToken,
         title: team.Name,
         body: "팀 참가 신청이 수락되었습니다!",
         data: {
@@ -160,7 +160,7 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
     const userToken = await FirebaseService.getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
-        to: userToken.token,
+        to: userToken,
         title: team.Name,
         body: "팀 참가 신청이 거절되었습니다.",
         data: {
@@ -374,7 +374,7 @@ async function participateTeam(teamId: number, userId: number) {
 
   expo.sendPushNotificationsAsync([
     {
-      to: adminToken.token,
+      to: adminToken,
       title: team.Name,
       body: `${userName}님의 참가 신청이 도착했습니다.`,
       data: {

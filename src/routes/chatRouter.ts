@@ -2,10 +2,11 @@ import SocketIO, { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { PrismaClient } from "@prisma/client";
 import { UserNotExistError } from "../auth/error";
-import * as FirebaseService from "../alarm/pushNotification";
+
 import Expo from "expo-server-sdk";
 import { checkGuestSignUp, signUpMatch } from "../alarm/alarm";
 import { JoinMatch } from "../match/match";
+import { getToken } from "../alarm/pushNotification";
 
 const expo = new Expo();
 
@@ -260,13 +261,11 @@ async function sendPushNotification(
       AND: [{ Room_id: roomId }, { NOT: { User_id: userId } }],
     },
   });
-  const opponentToken = await FirebaseService.getToken(
-    String(opponent.User_id),
-  );
+  const opponentToken = await getToken(String(opponent.User_id));
 
   expo.sendPushNotificationsAsync([
     {
-      to: opponentToken.token,
+      to: opponentToken,
       title: postTitle,
       body: `${nickname}: ${payload}`,
       data: {

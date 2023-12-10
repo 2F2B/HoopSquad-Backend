@@ -205,6 +205,7 @@ model User {
   TeamProfile   TeamProfile[]
   TeamRelay     TeamRelay[]
   UserData      UserData[]
+  PushToken     PushToken?
 }
 
 model Image {
@@ -303,4 +304,10 @@ model TeamJoinApply {
 
   @@index([Team_id], map: "TeamJoinApply_Team_id_fkey")
   @@index([User_id], map: "TeamJoinApply_User_id_fkey")
+}
+
+model PushToken {
+  User_id Int    @id
+  Token   String @db.VarChar(100)
+  User    User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }

@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import Expo from "expo-server-sdk";
 import * as FirebaseService from "../alarm/pushNotification";
+import { getToken } from "../alarm/pushNotification";
 
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/match");
@@ -447,7 +448,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
     },
   });
   if (!isJoining) throw new UserAlreadyJoinError();
-  const guestToken = await FirebaseService.getToken(String(guestId));
+  const guestToken = await getToken(String(guestId));
   const posting = await getPostingTitle(Posting_id);
   const guestName = await getGuestName(guestId);
   await updateApply(Posting_id, guestId, isApply);
@@ -462,7 +463,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
 
     expo.sendPushNotificationsAsync([
       {
-        to: guestToken.token,
+        to: guestToken,
         title: posting.Title,
         body: `${guestName}님의 참가 신청이 수락되었습니다!`,
         data: {
@@ -473,7 +474,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
   } else {
     expo.sendPushNotificationsAsync([
       {
-        to: guestToken.token,
+        to: guestToken,
         title: posting.Title,
         body: `${guestName}님의 참가 신청이 거절되었습니다.`,
         data: {
@@ -608,7 +609,7 @@ async function participateMatch(postingId: number, guestId: number) {
 
   expo.sendPushNotificationsAsync([
     {
-      to: hostToken.token,
+      to: hostToken,
       title: posting.Title,
       body: `${userName}님의 참가 신청이 도착했습니다.`,
       data: {
