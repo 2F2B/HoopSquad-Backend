@@ -130,23 +130,29 @@ async function SearchMatchByType(
 }
 
 async function AllMatch( // 게시글 전체 조회
-  request: Request<{}, any, any, ParsedQs, Record<string, any>>,
+  Sort: string,
+  Location: string,
+  Filter: string,
+  Input: string,
+  One: string,
+  Three: string,
+  Five: string,
 ) {
   // 정렬: 최신순, 마감순  필터: 제목, 유형, 지역    sort: "WriteDate PlayTime" / filter: "Title GameType Location"
-  const sort = request.query.Sort?.toString();
-  const input = request.query.Input;
-  const location = request.query.Location?.toString();
+  const sort = Sort;
+  const input = Input;
+  const location = Location;
   let one, three, five;
   if (!location) throw new NotFoundError("Location");
   if (!sort) throw new NotFoundError("Sort"); //  정렬 정보 없을때
 
-  switch (request.query.Filter) {
+  switch (Filter) {
     case "Title":
       return SearchMatchByTitle("Title", location, sort, input);
     case "GameType":
-      isTrue(request.query?.One) ? (one = true) : (one = false);
-      isTrue(request.query?.Three) ? (three = true) : (three = false);
-      isTrue(request.query?.Five) ? (five = true) : (five = false);
+      isTrue(One) ? (one = true) : (one = false);
+      isTrue(Three) ? (three = true) : (three = false);
+      isTrue(Five) ? (five = true) : (five = false);
 
       const typePostingId = await prisma.gameType.findMany({
         // 검색 조건에 맞는 GameType 테이블을 먼저 검색
@@ -257,18 +263,16 @@ async function AddMatch(
   };
 }
 
-async function MatchInfo(
-  request: Request<{}, any, any, ParsedQs, Record<string, any>>,
-) {
-  if (!request.query.Posting_id) throw new NotFoundError("Posting_id");
+async function MatchInfo(postingId: number, guestId: number) {
   const map = await prisma.posting.findFirst({
     where: {
-      Posting_id: parseInt(request.query?.Posting_id.toString()),
+      Posting_id: postingId,
     },
     select: {
       Map_id: true,
     },
   });
+
   if (!map) throw new NotFoundError("Posting");
   const match = await prisma.map.findFirstOrThrow({
     where: {
@@ -307,14 +311,23 @@ async function MatchInfo(
     },
   });
   const writerImage = await getWriterImage(match);
-  const participatedUser = await prisma.matchJoinApply.findMany({
+  const isParticipatedMatch = await prisma.matchJoinApply.findFirst({
     where: {
-      Posting_id: match.Posting[0].Posting_id,
-    },
-    select: {
-      User_id: true,
+      AND: [{ User_id: guestId }, { Posting_id: postingId }],
     },
   });
+
+  let roomId: number | undefined = undefined;
+
+  if (isParticipatedMatch) {
+    roomId = (
+      await prisma.chatRoom.findFirstOrThrow({
+        where: { AND: [{ User_id: guestId }, { Posting_id: postingId }] },
+        select: { Room_id: true },
+      })
+    ).Room_id;
+  }
+
   const result = {
     ...match.Posting[0],
     LocationName: match.LocationName,
@@ -323,7 +336,7 @@ async function MatchInfo(
     GameType: match.Posting[0].GameType,
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile?.Image[0],
-    participatedUser: participatedUser,
+    roomId: roomId,
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
