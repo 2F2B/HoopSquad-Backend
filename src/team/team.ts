@@ -8,7 +8,7 @@ import {
 } from "./error";
 import { CreateTeamType } from "../routes/teamRouter";
 import Expo from "expo-server-sdk";
-import * as FirebaseService from "../alarm/pushNotification";
+import { getToken } from "../alarm/pushNotification";
 
 const prisma = new PrismaClient();
 const expo = new Expo();
@@ -145,7 +145,7 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
       },
     });
 
-    const userToken = await FirebaseService.getToken(String(userId));
+    const userToken = await getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
         to: userToken,
@@ -157,7 +157,7 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
       },
     ]);
   } else {
-    const userToken = await FirebaseService.getToken(String(userId));
+    const userToken = await getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
         to: userToken,
@@ -359,7 +359,7 @@ async function participateTeam(teamId: number, userId: number) {
     },
   });
 
-  const adminToken = await FirebaseService.getToken(String(team.Admin_id));
+  const adminToken = await getToken(String(team.Admin_id));
 
   const userName = (
     await prisma.user.findFirstOrThrow({

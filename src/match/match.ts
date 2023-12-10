@@ -14,7 +14,6 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import Expo from "expo-server-sdk";
-import * as FirebaseService from "../alarm/pushNotification";
 import { getToken } from "../alarm/pushNotification";
 
 const parentDirectory = path.join(__dirname, "../../..");
@@ -594,7 +593,7 @@ async function participateMatch(postingId: number, guestId: number) {
     },
   });
 
-  const hostToken = await FirebaseService.getToken(String(posting.User_id));
+  const hostToken = await getToken(String(posting.User_id));
 
   const userName = (
     await prisma.user.findFirstOrThrow({
