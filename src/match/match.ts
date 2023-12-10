@@ -324,22 +324,16 @@ async function MatchInfo(postingId: number, guestId: number) {
     },
   });
   const writerImage = await getWriterImage(match);
-  const isParticipatedMatch = await prisma.matchJoinApply.findFirst({
-    where: {
-      AND: [{ User_id: guestId }, { Posting_id: postingId }],
-    },
-  });
-
-  let roomId: number | undefined = undefined;
-
-  if (isParticipatedMatch) {
-    roomId = (
-      await prisma.chatRoom.findFirstOrThrow({
-        where: { AND: [{ User_id: guestId }, { Posting_id: postingId }] },
-        select: { Room_id: true },
-      })
-    ).Room_id;
-  }
+  const roomId = (
+    await prisma.chatRoom.findFirst({
+      where: {
+        AND: [{ User_id: guestId }, { Posting_id: postingId }],
+      },
+      select: {
+        Room_id: true,
+      },
+    })
+  )?.Room_id;
 
   const result = {
     ...match.Posting[0],
