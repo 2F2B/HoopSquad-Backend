@@ -5,11 +5,12 @@ import {
   TeamNotFoundError,
   UserAlreadyInTeamError,
 } from "./error";
-import path from "path";
-import fs from "fs";
 import { CreateTeamType } from "../routes/teamRouter";
+import Expo from "expo-server-sdk";
+import * as FirebaseService from "../alarm/pushNotification";
 
 const prisma = new PrismaClient();
+const expo = new Expo();
 
 async function getTeam(id?: number, location?: string) {
   if (!id) {
@@ -44,7 +45,7 @@ async function getTeam(id?: number, location?: string) {
   }
 }
 
-async function joinTeam(teamId: number, userId: number) {
+async function joinTeam(teamId: number, userId: number, isApply: boolean) {
   const team = await prisma.teamProfile.findFirst({
     where: {
       Team_id: teamId,
@@ -52,21 +53,52 @@ async function joinTeam(teamId: number, userId: number) {
   });
 
   if (!team) throw new TeamNotFoundError();
+  if (isApply) {
+    const checkUserExist = await prisma.teamRelay.findFirst({
+      where: {
+        Team_id: teamId,
+        User_id: userId,
+      },
+    });
 
-  const checkUserExist = await prisma.teamRelay.findFirst({
+    if (checkUserExist) throw new UserAlreadyInTeamError();
+
+    await prisma.teamRelay.create({
+      data: {
+        Team_id: teamId,
+        IsAdmin: false,
+        User_id: userId,
+      },
+    });
+
+    const userToken = await FirebaseService.getToken(String(userId));
+    expo.sendPushNotificationsAsync([
+      {
+        to: userToken.token,
+        title: team.Name,
+        body: "팀 참가 신청이 수락되었습니다!",
+        data: {
+          type: "teamJoinAccepted",
+        },
+      },
+    ]);
+  } else {
+    const userToken = await FirebaseService.getToken(String(userId));
+    expo.sendPushNotificationsAsync([
+      {
+        to: userToken.token,
+        title: team.Name,
+        body: "팀 참가 신청이 거절되었습니다.",
+        data: {
+          type: "teamJoinRejected",
+        },
+      },
+    ]);
+  }
+
+  await prisma.teamJoinApply.deleteMany({
     where: {
-      Team_id: teamId,
-      User_id: userId,
-    },
-  });
-
-  if (checkUserExist) throw new UserAlreadyInTeamError();
-
-  await prisma.teamRelay.create({
-    data: {
-      Team_id: teamId,
-      IsAdmin: false,
-      User_id: userId,
+      AND: [{ Team_id: teamId }, { User_id: userId }],
     },
   });
 }
@@ -164,6 +196,7 @@ export {
   deleteTeam,
   createTeamMatch,
   enterMatchResult,
+  participateTeam,
 };
 
 async function makeTeamRecord(
@@ -195,6 +228,7 @@ async function enterMatchResult(
 
   setTeamRecord(record, HostScore, GuestScore, IsHostWin);
 }
+
 function setTeamRecord(
   record: { TeamRecord: { Record_id: number; IsHost: boolean }[] } | null,
   HostScore: number,
@@ -228,4 +262,46 @@ async function getRecordId(TeamMatch_id: number) {
       },
     },
   });
+}
+
+async function participateTeam(teamId: number, userId: number) {
+  await prisma.teamJoinApply.create({
+    data: {
+      Team_id: teamId,
+      User_id: userId,
+    },
+  });
+  const team = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: teamId,
+    },
+    select: {
+      Admin_id: true,
+      Name: true,
+    },
+  });
+
+  const adminToken = await FirebaseService.getToken(String(team.Admin_id));
+
+  const userName = (
+    await prisma.user.findFirstOrThrow({
+      where: {
+        User_id: userId,
+      },
+      select: {
+        Name: true,
+      },
+    })
+  ).Name;
+
+  expo.sendPushNotificationsAsync([
+    {
+      to: adminToken.token,
+      title: team.Name,
+      body: `${userName}님의 참가 신청이 도착했습니다.`,
+      data: {
+        type: "teamParticipate",
+      },
+    },
+  ]);
 }

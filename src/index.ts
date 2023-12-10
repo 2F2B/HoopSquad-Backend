@@ -60,7 +60,7 @@ const chatServer = new SocketIO.Server(httpServer, {
 
 const notificationServer = chatServer.of("/notification");
 
-chatServerHandler(chatServer, notificationServer);
+chatServerHandler(chatServer);
 
 app.get("/", async (_req, res) => {
   try {
