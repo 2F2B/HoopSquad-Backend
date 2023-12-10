@@ -182,6 +182,8 @@ async function sendPushNotification(
       AND: [{ Room_id: roomId }, { NOT: { User_id: userId } }],
     },
   });
+  console.log(userId);
+  console.log(opponent.User_id);
   const opponentToken = await FirebaseService.getToken(
     String(opponent.User_id),
   );
@@ -189,8 +191,8 @@ async function sendPushNotification(
   expo.sendPushNotificationsAsync([
     {
       to: opponentToken.token,
-      title: postTitle,
-      body: `${nickname}: ${payload}`,
+      title: nickname,
+      body: payload,
       data: {
         type: "chat",
         roomId: roomId,
