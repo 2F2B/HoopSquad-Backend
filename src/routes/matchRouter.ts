@@ -132,7 +132,7 @@ matchRouter.post(
 /*
  * 매치 추가
  */
-matchRouter.post("/", upload.single("Image"), async (req, res) => {
+matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
     console.log(req.file);
     const authHeader = req.headers["authorization"];

@@ -18,9 +18,6 @@ fs.readdir(uploadsDirectory, (error) => {
 const prisma = new PrismaClient();
 
 function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
-  // true, false string을 boolean으로 변환
-  console.log(Type);
-  console.log(typeof Type);
   if (Type === "true") return true;
   else if (Type === "false") return false;
   else throw new TypeNotBooleanError();
@@ -103,6 +100,10 @@ async function setUserProfile(
   const isUser = await validateUser(AccessToken, req.body.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
+
+  // true, false string을 boolean으로 변환
+  console.log(req.body);
+  console.log(typeof req.body);
 
   const one = isTrue(req.body.One) ? true : false,
     three = isTrue(req.body.Three) ? true : false,
