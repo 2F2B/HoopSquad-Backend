@@ -82,16 +82,11 @@ notificationRouter.get("/match/:id", async (req, res) => {
 notificationRouter.post(
   "/",
   async (
-    req: Request<
-      {},
-      {},
-      { postingId: number; hostId: number; guestId: number },
-      {}
-    >,
+    req: Request<{}, {}, { postingId: number; roomId: number }, {}>,
     res,
   ) => {
     try {
-      await signUpMatch(req.body.postingId, req.body.hostId, req.body.guestId);
+      await signUpMatch(req.body.postingId, req.body.roomId);
       res.status(201).json({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
