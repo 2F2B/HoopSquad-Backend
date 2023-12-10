@@ -63,7 +63,7 @@ matchRouter.get("/", async (req, res) => {
  * 매치 참여
  */
 matchRouter.post(
-  "/:id",
+  "/:id(\\d+)",
   async (
     req: Request<{ id: number }, {}, { guestId: number; isApply: boolean }, {}>,
     res,
