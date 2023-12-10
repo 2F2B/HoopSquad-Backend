@@ -186,21 +186,22 @@ async function checkHostApplyMatch(roomId: number) {
       },
     })
   ).User_id;
-  const isApply = await prisma.matchAlarm.findFirst({
+  const isNotificationExist = await prisma.matchAlarm.findFirst({
     where: {
       AND: [
         { Posting_id: postingId },
         { User_id: hostId },
         { Opponent_id: guestId },
-        { IsApply: null },
       ],
     },
     select: {
       IsApply: true,
     },
   });
-  if (isApply) return true;
-  else return false;
+  if (!isNotificationExist) return 0;
+  if (isNotificationExist.IsApply == null) return 1;
+  if (isNotificationExist.IsApply) return 2;
+  if (isNotificationExist.IsApply) return 3;
 }
 
 export { getPostingAlarm, signUpMatch, checkGuestSignUp, checkHostApplyMatch };

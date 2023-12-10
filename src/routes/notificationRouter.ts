@@ -59,7 +59,7 @@ notificationRouter.get(
   async (req: Request<{}, {}, {}, { roomId: number }>, res) => {
     try {
       const result = await checkHostApplyMatch(+req.query.roomId);
-      res.status(200).send({ result: result });
+      res.status(200).send({ result: result!! });
     } catch (err) {
       if (err instanceof Error) {
         handleErrors(err, res);
