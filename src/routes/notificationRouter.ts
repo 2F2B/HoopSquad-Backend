@@ -2,8 +2,6 @@ import { handleErrors } from "../ErrorHandler";
 import {
   getPostingAlarm,
   applyMatch,
-  deleteAllNotification,
-  deleteNotification,
   createNotification,
 } from "../alarm/alarm";
 import { Request, Router } from "express";
@@ -41,7 +39,7 @@ notificationRouter.delete(
   },
 );
 
-notificationRouter.get("/:id", async (req, res) => {
+notificationRouter.get("/match/:id", async (req, res) => {
   try {
     const result = await getPostingAlarm(+req.params.id);
     res.status(200).json(result);
@@ -87,33 +85,6 @@ notificationRouter.post(
         req.body.opponentId,
       );
       res.status(201).json({ result: "success" });
-    } catch (err) {
-      if (err instanceof Error) {
-        handleErrors(err, res);
-      }
-    }
-  },
-);
-
-notificationRouter.delete("/:id", async (req, res) => {
-  try {
-    await deleteAllNotification(+req.params.id);
-    res.status(204).send();
-  } catch (err) {
-    if (err instanceof Error) {
-      handleErrors(err, res);
-    }
-  }
-});
-
-notificationRouter.delete(
-  "/",
-  async (
-    req: Request<{}, {}, {}, { user_id: number; posting_id: number }>,
-    res,
-  ) => {
-    try {
-      await deleteNotification(req.query.user_id, req.query.posting_id);
     } catch (err) {
       if (err instanceof Error) {
         handleErrors(err, res);

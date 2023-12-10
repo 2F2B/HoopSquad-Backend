@@ -96,9 +96,12 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
     ]);
   }
 
-  await prisma.teamJoinApply.deleteMany({
+  await prisma.teamJoinApply.updateMany({
     where: {
-      AND: [{ Team_id: teamId }, { User_id: userId }],
+      AND: [{ User_id: userId, Team_id: teamId }],
+    },
+    data: {
+      IsApply: isApply,
     },
   });
 }
