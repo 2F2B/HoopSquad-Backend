@@ -80,11 +80,11 @@ teamRouter.get("/:id", async (req, res) => {
 teamRouter.post(
   "/:id(\\d+)",
   async (
-    req: Request<{ id: number }, {}, { User_id: number; isApply: boolean }, {}>,
+    req: Request<{ id: number }, {}, { userId: number; isApply: boolean }, {}>,
     res,
   ) => {
     try {
-      await joinTeam(req.params.id, req.body.User_id, req.body.isApply);
+      await joinTeam(+req.params.id, req.body.userId, req.body.isApply);
       res.status(201).json({ result: "success" });
     } catch (err) {
       if (err instanceof TeamNotFoundError) {
@@ -100,7 +100,7 @@ teamRouter.post(
 
 teamRouter.delete("/:id", async (req, res) => {
   try {
-    await leaveTeam(+req.params.id, +req.body.User_id);
+    await leaveTeam(+req.params.id, +req.body.userId);
     res.status(204).send();
   } catch (err) {
     if (err instanceof TeamNotFoundError) {
@@ -115,11 +115,23 @@ teamRouter.post(
   "/",
   upload.array("Image", 10),
   async (
-    req: express.Request<{}, {}, CreateTeamType>,
+    req: express.Request<
+      {},
+      {},
+      {
+        data: {
+          adminId: string;
+          name: string;
+          location: string;
+          introduce: string;
+        };
+      },
+      {}
+    >,
     res: express.Response,
   ) => {
     try {
-      const { Admin_id, Name, Location, Introduce } = req.body;
+      const { adminId, name, location, introduce } = req.body.data;
       let files;
       if (Array.isArray(req.files)) {
         files = req.files.map((file) => {
@@ -128,10 +140,10 @@ teamRouter.post(
       }
       await createTeam(
         {
-          Admin_id: Admin_id,
-          Name: Name,
-          Location: Location,
-          Introduce: Introduce,
+          Admin_id: adminId,
+          Name: name,
+          Location: location,
+          Introduce: introduce,
         },
         files,
       );
@@ -159,11 +171,11 @@ teamRouter.post(
 teamRouter.delete(
   "/",
   async (
-    req: express.Request<{}, {}, {}, { team_id: number; user_id: number }>,
+    req: express.Request<{}, {}, {}, { teamId: number; userId: number }>,
     res,
   ) => {
     try {
-      await deleteTeam(+req.query.team_id, +req.query.user_id);
+      await deleteTeam(+req.query.teamId, +req.query.userId);
       res.send();
     } catch (err) {
       if (err instanceof TeamNotFoundError) {

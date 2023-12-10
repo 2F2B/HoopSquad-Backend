@@ -31,3 +31,13 @@ export class TeamAdminLeaveError extends ErrorWithStatusCode {
     this.name = "TeamAdminLeave";
   }
 }
+export class NameDuplicateError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor(resource?: string) {
+    let message: string;
+    if (resource) message = `Name ${resource} Duplicate Error`;
+    else message = `Name Duplicate Error`;
+    super(message);
+    this.name = "NameDuplicateError";
+  }
+}
