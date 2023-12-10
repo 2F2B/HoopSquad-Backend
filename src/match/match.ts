@@ -586,13 +586,6 @@ async function participateMatch(postingId: number, guestId: number) {
       },
     },
   ]);
-
-  await prisma.matchJoinApply.create({
-    data: {
-      Posting_id: postingId,
-      User_id: guestId,
-    },
-  });
 }
 
 // TODO 채팅
