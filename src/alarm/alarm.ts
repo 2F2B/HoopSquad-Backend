@@ -12,16 +12,7 @@ const expo = new Expo();
 async function getPostingAlarm(userId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      OR: [
-        { User_id: userId },
-        { AND: [{ Opponent_id: userId }, { NOT: { IsApply: null } }] },
-      ],
-    },
-    select: {
-      IsApply: true,
-      Opponent_id: true,
-      Posting_id: true,
-      createdAt: true,
+      OR: [{ User_id: userId }, { Opponent_id: userId }],
     },
   });
 
@@ -78,62 +69,56 @@ async function getPostingAlarm(userId: number) {
   return alarmList;
 }
 
-/**
- * 매치 수락/취소를 변경 및 게스트에게 푸쉬 알림을 해주는 함수
- * @param isApply
- * @param postingId
- */
-async function applyMatch(
-  postingId: number,
-  guestId: number,
-  isApply: boolean,
-) {
-  await prisma.matchAlarm.updateMany({
-    where: {
-      AND: [{ Posting_id: postingId }, { User_id: guestId }],
-    },
-    data: {
-      IsApply: isApply,
-    },
-  });
-  const notification = await prisma.matchAlarm.findFirstOrThrow({
-    where: {
-      Posting_id: postingId,
-    },
-    select: {
-      Opponent_id: true,
-    },
-  });
-  const post = await prisma.posting.findFirstOrThrow({
-    where: {
-      Posting_id: postingId,
-    },
-    select: {
-      Title: true,
-    },
-  });
-
-  const opponentToken = await FirebaseService.getToken(
-    String(notification.Opponent_id),
-  );
-
-  expo.sendPushNotificationsAsync([
-    {
-      to: opponentToken.token,
-      title: `${post?.Title}`,
-      body: isApply ? "매칭이 수락되었습니다!" : "매칭이 거절되었습니다.",
-      data: {
-        type: "match",
+async function checkGuestSignUp(roomId: number) {
+  const postingId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        Room_id: roomId,
       },
+      select: {
+        Posting_id: true,
+      },
+    })
+  ).Posting_id;
+  const hostId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: true }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+  const guestId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: false }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+
+  const isSignUp = await prisma.matchAlarm.findFirst({
+    where: {
+      AND: [
+        { Posting_id: postingId },
+        { User_id: hostId },
+        { Opponent_id: guestId },
+      ],
     },
-  ]);
+    select: {
+      id: true,
+    },
+  });
+
+  if (isSignUp) return true;
+  else return false;
 }
 
-async function createNotification(
-  postingId: number,
-  hostId: number,
-  guestId: number,
-) {
+async function signUpMatch(postingId: number, hostId: number, guestId: number) {
   await prisma.matchAlarm.create({
     data: {
       Posting_id: postingId,
@@ -141,6 +126,33 @@ async function createNotification(
       Opponent_id: guestId,
     },
   });
+  const postTitle = (
+    await prisma.posting.findFirstOrThrow({
+      where: {
+        Posting_id: postingId,
+      },
+      select: {
+        Title: true,
+      },
+    })
+  ).Title;
+  const guestName = (
+    await prisma.user.findFirstOrThrow({
+      where: { User_id: guestId },
+      select: { Name: true },
+    })
+  ).Name;
+  const hostToken = await FirebaseService.getToken(String(hostId));
+  expo.sendPushNotificationsAsync([
+    {
+      to: hostToken.token,
+      title: postTitle,
+      body: `${guestName}님에게 매칭 참여 요청이 왔습니다.`,
+      data: {
+        type: "matchParticipate",
+      },
+    },
+  ]);
 }
 
-export { getPostingAlarm, applyMatch, createNotification };
+export { getPostingAlarm, signUpMatch, checkGuestSignUp };

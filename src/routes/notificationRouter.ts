@@ -1,9 +1,5 @@
 import { handleErrors } from "../ErrorHandler";
-import {
-  getPostingAlarm,
-  applyMatch,
-  createNotification,
-} from "../alarm/alarm";
+import { checkGuestSignUp, getPostingAlarm, signUpMatch } from "../alarm/alarm";
 import { Request, Router } from "express";
 import * as FirebaseService from "../alarm/pushNotification";
 
@@ -39,6 +35,20 @@ notificationRouter.delete(
   },
 );
 
+notificationRouter.get(
+  "/matchSignUp",
+  async (req: Request<{}, {}, {}, { roomId: number }>, res) => {
+    try {
+      const result = await checkGuestSignUp(+req.query.roomId);
+      res.status(200).send({ result: result });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
 notificationRouter.get("/match/:id", async (req, res) => {
   try {
     const result = await getPostingAlarm(+req.params.id);
@@ -49,28 +59,6 @@ notificationRouter.get("/match/:id", async (req, res) => {
     }
   }
 });
-
-notificationRouter.patch(
-  "/match",
-  async (
-    req: Request<
-      {},
-      {},
-      { postingId: number; guestId: number; isApply: boolean },
-      {}
-    >,
-    res,
-  ) => {
-    try {
-      await applyMatch(req.body.postingId, req.body.guestId, req.body.isApply);
-      res.status(200).json({ result: "success" });
-    } catch (err) {
-      if (err instanceof Error) {
-        handleErrors(err, res);
-      }
-    }
-  },
-);
 
 notificationRouter.post(
   "/",
@@ -84,11 +72,7 @@ notificationRouter.post(
     res,
   ) => {
     try {
-      await createNotification(
-        req.body.postingId,
-        req.body.hostId,
-        req.body.guestId,
-      );
+      await signUpMatch(req.body.postingId, req.body.hostId, req.body.guestId);
       res.status(201).json({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
