@@ -2,7 +2,6 @@ import { PrismaClient } from "@prisma/client";
 import Expo from "expo-server-sdk";
 import * as FirebaseService from "./pushNotification";
 const prisma = new PrismaClient();
-
 const expo = new Expo();
 
 /**
@@ -19,7 +18,6 @@ async function getPostingAlarm(userId: number) {
       ],
     },
     select: {
-      IsRead: true,
       IsApply: true,
       Opponent_id: true,
       Posting_id: true,
@@ -32,7 +30,6 @@ async function getPostingAlarm(userId: number) {
     nickname: string;
     guestId: number;
     postingId: number;
-    isRead: boolean;
     isApply: boolean | null;
     createdAt: Date;
   }[] = [];
@@ -62,7 +59,6 @@ async function getPostingAlarm(userId: number) {
       nickname: opponentProfile.User.Name,
       guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
-      isRead: alarm.IsRead,
       isApply: alarm.IsApply,
       createdAt: alarm.createdAt,
     });
@@ -117,21 +113,6 @@ async function applyMatch(postingId: number, isApply: boolean) {
   ]);
 }
 
-/**
- * 알림 목록 전체를 읽음 처리하는 함수
- * @param postingIdList
- */
-async function updateIsRead(userId: number) {
-  await prisma.matchAlarm.updateMany({
-    where: {
-      User_id: userId,
-    },
-    data: {
-      IsRead: true,
-    },
-  });
-}
-
 async function deleteAllNotification(userId: number) {
   await prisma.matchAlarm.deleteMany({
     where: {
@@ -166,7 +147,6 @@ async function createNotification(
 export {
   getPostingAlarm,
   applyMatch,
-  updateIsRead,
   deleteAllNotification,
   deleteNotification,
   createNotification,
