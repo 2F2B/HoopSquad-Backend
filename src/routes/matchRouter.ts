@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import { PrismaClient } from "@prisma/client";
 import {
   AllMatch,
@@ -7,6 +7,7 @@ import {
   DeleteMatch,
   JoinMatch,
   getDeadlineMatches,
+  participateMatch,
 } from "../match/match";
 import { BodyParser } from "body-parser";
 import multer from "multer";
@@ -61,17 +62,22 @@ matchRouter.get("/", async (req, res) => {
 /*
  * 매치 참여
  */
-matchRouter.post("/:id", async (req, res) => {
-  try {
-    const result = await JoinMatch(+req.params.id, +req.query.User_id!!);
-    res.status(201);
-    res.send(result);
-  } catch (err) {
-    if (err instanceof MatchJoinError) {
-      handleErrors<MatchJoinError>(err, res);
+matchRouter.post(
+  "/:id",
+  async (
+    req: Request<{ id: number }, {}, { User_id: number; isApply: boolean }, {}>,
+    res,
+  ) => {
+    try {
+      await JoinMatch(req.params.id, req.body.User_id, req.body.isApply);
+      res.status(201).json({ result: "success" });
+    } catch (err) {
+      if (err instanceof MatchJoinError) {
+        handleErrors<MatchJoinError>(err, res);
+      }
     }
-  }
-});
+  },
+);
 /*
  * 매치 추가
  */
@@ -134,5 +140,22 @@ matchRouter.get("/deadline/:location", async (req, res) => {
     }
   }
 });
+
+matchRouter.post(
+  "/participate",
+  async (
+    req: Request<{}, {}, { postingId: number; guestId: number }, {}>,
+    res,
+  ) => {
+    try {
+      await participateMatch(req.body.postingId, req.body.guestId);
+      res.status(201).send({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
 
 export default matchRouter;

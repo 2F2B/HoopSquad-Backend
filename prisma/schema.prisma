@@ -112,6 +112,7 @@ model Posting {
   Image         Image[]
   MatchAlarm    MatchAlarm[]
   Member        Member[]
+  MatchJoinApply  MatchJoinApply[]
   Map           Map          @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
   User          User         @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
 
@@ -205,6 +206,7 @@ model User {
   TeamRelay     TeamRelay[]
   UserData      UserData[]
   TeamJoinApply TeamJoinApply[]
+  MatchJoinApply  MatchJoinApply[]
 }
 
 model Image {
@@ -295,5 +297,13 @@ model TeamJoinApply {
   Team_id Int
   User_id Int
   Team    TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
+  User    User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+}
+model MatchJoinApply {
+  id      Int         @id @default(autoincrement())
+  Posting_id Int
+  User_id Int
+  IsApply Boolean?
+  Posting    Posting @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
   User    User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 }

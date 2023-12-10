@@ -13,6 +13,8 @@ import {
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import Expo from "expo-server-sdk";
+import * as FirebaseService from "../alarm/pushNotification";
 
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/match");
@@ -24,6 +26,7 @@ fs.readdir(uploadsDirectory, (error) => {
 });
 
 const prisma = new PrismaClient();
+const expo = new Expo();
 
 function getCurrentTime() {
   // 현재 날짜와 시간을 포함하는 Date 객체 생성
@@ -304,6 +307,14 @@ async function MatchInfo(
     },
   });
   const writerImage = await getWriterImage(match);
+  const participatedUser = await prisma.matchJoinApply.findMany({
+    where: {
+      Posting_id: match.Posting[0].Posting_id,
+    },
+    select: {
+      User_id: true,
+    },
+  });
   const result = {
     ...match.Posting[0],
     LocationName: match.LocationName,
@@ -312,6 +323,7 @@ async function MatchInfo(
     GameType: match.Posting[0].GameType,
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile?.Image[0],
+    participatedUser: participatedUser,
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
@@ -394,20 +406,97 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
   } else throw new UserNotWriterError();
 }
 
-async function JoinMatch(Posting_id: number, User_id: number) {
+async function JoinMatch(
+  Posting_id: number,
+  guestId: number,
+  isApply: boolean,
+) {
   const isJoining = await prisma.member.findFirst({
     where: {
-      User_id: User_id,
+      User_id: guestId,
     },
   });
-  if (!isJoining) {
+  if (!isJoining) throw new UserAlreadyJoinError();
+  const guestToken = await FirebaseService.getToken(String(guestId));
+  const posting = await getPostingTitle(Posting_id);
+  const guestName = await getGuestName(guestId);
+  await updateApply(Posting_id, guestId, isApply);
+
+  if (isApply) {
     await prisma.member.create({
       data: {
         Posting: { connect: { Posting_id: Posting_id } },
-        User: { connect: { User_id: User_id } },
+        User: { connect: { User_id: guestId } },
       },
     });
-  } else throw new UserAlreadyJoinError();
+
+    expo.sendPushNotificationsAsync([
+      {
+        to: guestToken.token,
+        title: posting.Title,
+        body: `${guestName}님의 참가 신청이 수락되었습니다!`,
+        data: {
+          type: "matchJoinAccepted",
+        },
+      },
+    ]);
+  } else {
+    expo.sendPushNotificationsAsync([
+      {
+        to: guestToken.token,
+        title: posting.Title,
+        body: `${guestName}님의 참가 신청이 거절되었습니다.`,
+        data: {
+          type: "matchJoinRejected",
+        },
+      },
+    ]);
+  }
+}
+
+async function updateApply(
+  Posting_id: number,
+  guestId: number,
+  isApply: boolean,
+) {
+  const apply = await prisma.matchJoinApply.findFirst({
+    where: {
+      AND: [{ Posting_id: Posting_id }, { User_id: guestId }],
+    },
+    select: {
+      id: true,
+    },
+  });
+  await prisma.matchJoinApply.update({
+    where: {
+      id: apply?.id,
+    },
+    data: {
+      IsApply: isApply,
+    },
+  });
+}
+
+async function getPostingTitle(Posting_id: number) {
+  return await prisma.posting.findFirstOrThrow({
+    where: {
+      Posting_id: Posting_id,
+    },
+    select: {
+      Title: true,
+    },
+  });
+}
+
+async function getGuestName(guestId: number) {
+  return await prisma.user.findFirstOrThrow({
+    where: {
+      User_id: guestId,
+    },
+    select: {
+      Name: true,
+    },
+  });
 }
 
 async function getDeadlineMatches(location: string) {
@@ -436,6 +525,48 @@ async function getDeadlineMatches(location: string) {
   return matches;
 }
 
+async function participateMatch(postingId: number, guestId: number) {
+  await prisma.matchJoinApply.create({
+    data: {
+      Posting_id: postingId,
+      User_id: guestId,
+    },
+  });
+  const posting = await prisma.posting.findFirstOrThrow({
+    where: {
+      Posting_id: postingId,
+    },
+    select: {
+      User_id: true,
+      Title: true,
+    },
+  });
+
+  const hostToken = await FirebaseService.getToken(String(posting.User_id));
+
+  const userName = (
+    await prisma.user.findFirstOrThrow({
+      where: {
+        User_id: guestId,
+      },
+      select: {
+        Name: true,
+      },
+    })
+  ).Name;
+
+  expo.sendPushNotificationsAsync([
+    {
+      to: hostToken.token,
+      title: posting.Title,
+      body: `${userName}님의 참가 신청이 도착했습니다.`,
+      data: {
+        type: "matchParticipate",
+      },
+    },
+  ]);
+}
+
 // TODO 채팅
 export {
   AllMatch,
@@ -444,4 +575,5 @@ export {
   DeleteMatch,
   JoinMatch,
   getDeadlineMatches,
+  participateMatch,
 };
