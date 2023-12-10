@@ -97,6 +97,7 @@ async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
 ) {
+  console.log(req.body.data);
   const isUser = await validateUser(AccessToken, req.body.data.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
