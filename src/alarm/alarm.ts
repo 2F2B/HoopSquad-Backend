@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import Expo from "expo-server-sdk";
 import * as FirebaseService from "./pushNotification";
+import { getToken } from "./pushNotification";
 const prisma = new PrismaClient();
 const expo = new Expo();
 
@@ -162,10 +163,10 @@ async function signUpMatch(postingId: number, roomId: number) {
       select: { Name: true },
     })
   ).Name;
-  const hostToken = await FirebaseService.getToken(String(hostId));
+  const hostToken = await getToken(String(hostId));
   expo.sendPushNotificationsAsync([
     {
-      to: hostToken.token,
+      to: hostToken,
       title: postTitle,
       body: `${guestName}님에게 매칭 참여 요청이 왔습니다.`,
       data: {
