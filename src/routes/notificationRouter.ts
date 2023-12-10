@@ -1,5 +1,10 @@
 import { handleErrors } from "../ErrorHandler";
-import { checkGuestSignUp, getPostingAlarm, signUpMatch } from "../alarm/alarm";
+import {
+  checkGuestSignUp,
+  checkHostApplyMatch,
+  getPostingAlarm,
+  signUpMatch,
+} from "../alarm/alarm";
 import { Request, Router } from "express";
 import * as FirebaseService from "../alarm/pushNotification";
 
@@ -40,6 +45,20 @@ notificationRouter.get(
   async (req: Request<{}, {}, {}, { roomId: number }>, res) => {
     try {
       const result = await checkGuestSignUp(+req.query.roomId);
+      res.status(200).send({ result: result });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
+notificationRouter.get(
+  "/apply",
+  async (req: Request<{}, {}, {}, { roomId: number }>, res) => {
+    try {
+      const result = await checkHostApplyMatch(+req.query.roomId);
       res.status(200).send({ result: result });
     } catch (err) {
       if (err instanceof Error) {
