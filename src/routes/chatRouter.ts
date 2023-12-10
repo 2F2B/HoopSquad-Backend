@@ -69,12 +69,14 @@ const chatServerHandler = (io: SocketIO.Server) => {
         done: (roomId: number) => void,
       ) => {
         const chatRoom = await createRoom(hostId, guestId, postingId);
+        const roomId =
+          typeof chatRoom == "number" ? chatRoom : chatRoom.Room_id;
         await joinRoom({
-          roomId: chatRoom.Room_id,
+          roomId: roomId,
           socket: socket,
           io: io,
         });
-        done(chatRoom.Room_id);
+        done(roomId);
       },
     );
 
@@ -319,28 +321,28 @@ async function createRoom(hostId: number, guestId: number, postingId: number) {
       ],
     },
   });
-  if (isChatRoomExist.length == 2) throw new Error("Room Already Exist");
-  const chatRoom = await prisma.chatRoomList.create({
-    data: {
-      ChatRoom: {
-        createMany: {
-          data: [
-            {
-              User_id: hostId,
-              IsHost: true,
-              Posting_id: postingId,
-            },
-            {
-              User_id: guestId,
-              Posting_id: postingId,
-            },
-          ],
+  if (isChatRoomExist.length != 2) {
+    const chatRoom = await prisma.chatRoomList.create({
+      data: {
+        ChatRoom: {
+          createMany: {
+            data: [
+              {
+                User_id: hostId,
+                IsHost: true,
+                Posting_id: postingId,
+              },
+              {
+                User_id: guestId,
+                Posting_id: postingId,
+              },
+            ],
+          },
         },
       },
-    },
-  });
-
-  return chatRoom;
+    });
+    return chatRoom;
+  } else return isChatRoomExist[0].Room_id;
 }
 
 /**

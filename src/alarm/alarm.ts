@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 const expo = new Expo();
 
 /**
- * 특정 사용자의 모든 알림을 반환하는 함수
+ * 특정 사용자의 모든 매치 알림을 반환하는 함수
  * @param userId
  * @returns
  */
@@ -30,6 +30,7 @@ async function getPostingAlarm(userId: number) {
     nickname: string;
     guestId: number;
     postingId: number;
+    postingTitle: string;
     isApply: boolean | null;
     createdAt: Date;
   }[] = [];
@@ -44,6 +45,16 @@ async function getPostingAlarm(userId: number) {
         User: true,
       },
     });
+    const postingName = (
+      await prisma.posting.findFirstOrThrow({
+        where: {
+          Posting_id: alarm.Posting_id,
+        },
+        select: {
+          Title: true,
+        },
+      })
+    ).Title;
 
     const userImage = await prisma.image.findFirst({
       where: {
@@ -59,6 +70,7 @@ async function getPostingAlarm(userId: number) {
       nickname: opponentProfile.User.Name,
       guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
+      postingTitle: postingName,
       isApply: alarm.IsApply,
       createdAt: alarm.createdAt,
     });
@@ -113,23 +125,6 @@ async function applyMatch(postingId: number, isApply: boolean) {
   ]);
 }
 
-async function deleteAllNotification(userId: number) {
-  await prisma.matchAlarm.deleteMany({
-    where: {
-      User_id: userId,
-    },
-  });
-}
-
-async function deleteNotification(userId: number, postingId: number) {
-  await prisma.matchAlarm.deleteMany({
-    where: {
-      User_id: userId,
-      Posting_id: postingId,
-    },
-  });
-}
-
 async function createNotification(
   postingId: number,
   userId: number,
@@ -144,10 +139,4 @@ async function createNotification(
   });
 }
 
-export {
-  getPostingAlarm,
-  applyMatch,
-  deleteAllNotification,
-  deleteNotification,
-  createNotification,
-};
+export { getPostingAlarm, applyMatch, createNotification };
