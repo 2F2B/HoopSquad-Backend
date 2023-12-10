@@ -486,7 +486,7 @@ async function updateApply(
   guestId: number,
   isApply: boolean,
 ) {
-  const apply = await prisma.matchJoinApply.findFirst({
+  const apply = await prisma.matchJoinApply.findFirstOrThrow({
     where: {
       AND: [{ Posting_id: Posting_id }, { User_id: guestId }],
     },
@@ -496,7 +496,7 @@ async function updateApply(
   });
   await prisma.matchJoinApply.update({
     where: {
-      id: apply?.id,
+      id: apply.id,
     },
     data: {
       IsApply: isApply,
@@ -592,6 +592,13 @@ async function participateMatch(postingId: number, guestId: number) {
       },
     },
   ]);
+
+  await prisma.matchJoinApply.create({
+    data: {
+      Posting_id: postingId,
+      User_id: guestId,
+    },
+  });
 }
 
 // TODO 채팅
