@@ -78,7 +78,7 @@ notificationRouter.post(
     req: Request<
       {},
       {},
-      { postingId: number; userId: number; opponentId: number },
+      { postingId: number; hostId: number; guestId: number },
       {}
     >,
     res,
@@ -86,8 +86,8 @@ notificationRouter.post(
     try {
       await createNotification(
         req.body.postingId,
-        req.body.userId,
-        req.body.opponentId,
+        req.body.hostId,
+        req.body.guestId,
       );
       res.status(201).json({ result: "success" });
     } catch (err) {
