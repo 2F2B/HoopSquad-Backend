@@ -107,7 +107,7 @@ const chatServerHandler = (io: SocketIO.Server) => {
         roomId: number,
         userId: number,
         done: (result: {
-          opponentImageName: string;
+          opponentImageName: string | undefined;
           chatList: enterRoomType[];
         }) => void,
       ) => {
@@ -147,7 +147,8 @@ const chatServerHandler = (io: SocketIO.Server) => {
             },
           })
         ).User_id;
-        const opponentImageName = await prisma.profile.findFirstOrThrow({
+        let opponentImageName: string = "";
+        const opponentImage = await prisma.profile.findFirstOrThrow({
           where: {
             User_id: opponentId,
           },
@@ -155,7 +156,9 @@ const chatServerHandler = (io: SocketIO.Server) => {
             Image: true,
           },
         });
-        console.log(opponentImageName.Image);
+        if (opponentImage.Image.length != 0) {
+          opponentImageName = opponentImage.Image[0].ImageData;
+        }
         const chatListWithPostingId: enterRoomType[] = chatList.map((chat) => ({
           ...chat,
           Posting_id: post.Posting_id,
@@ -163,7 +166,7 @@ const chatServerHandler = (io: SocketIO.Server) => {
         }));
         const result = {
           hostId,
-          opponentImageName: "",
+          opponentImageName: opponentImageName,
           chatList: chatListWithPostingId,
         };
         done(result);
