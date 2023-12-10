@@ -27,6 +27,20 @@ notificationRouter.post(
   },
 );
 
+notificationRouter.delete(
+  "/removePushToken",
+  async (req: Request<{}, {}, { userId: number }, {}>, res) => {
+    try {
+      await FirebaseService.removeToken(String(req.body.userId));
+      res.status(204).send();
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
 notificationRouter.get("/:id", async (req, res) => {
   try {
     const result = await getPostingAlarm(+req.params.id);
