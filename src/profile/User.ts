@@ -1,10 +1,13 @@
-import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express";
 import { ParsedQs } from "qs";
 import path from "path";
 import fs from "fs";
-import { NotFoundError, TypeNotBooleanError } from "./error";
+import {
+  NameDuplicateError,
+  NotFoundError,
+  TypeNotBooleanError,
+} from "./error";
 import sanitize from "sanitize-filename";
 
 const parentDirectory = path.join(__dirname, "../../..");
@@ -97,7 +100,6 @@ async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
 ) {
-  console.log(req.body.data);
   const isUser = await validateUser(AccessToken, req.body.data.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
@@ -307,15 +309,39 @@ async function validateUser(AccessToken: string, name: string) {
     },
   });
   if (!user) throw new NotFoundError("User");
-  const isUser = await prisma.user.update({
+  await checkNameDuplicate(user, name);
+  return user;
+}
+
+async function checkNameDuplicate(
+  user: {
+    id: number;
+    User_id: number;
+    AccessToken: string;
+    RefreshToken: string;
+    AToken_CreatedAt: string;
+    RToken_CreatedAt: string;
+    AToken_Expires: number;
+    RToken_Expires: number;
+    Auth_id: string;
+  },
+  name: string,
+) {
+  const duplication = await prisma.user.findFirst({
     where: {
-      User_id: user.User_id,
-    },
-    data: {
-      Name: name,
+      AND: [{ Name: name }, { NOT: { User_id: user.User_id } }],
     },
   });
-  return user;
+  if (!duplication) {
+    await prisma.user.update({
+      where: {
+        User_id: user.User_id,
+      },
+      data: {
+        Name: name,
+      },
+    });
+  } else throw new NameDuplicateError(name);
 }
 
 async function setOverall(
