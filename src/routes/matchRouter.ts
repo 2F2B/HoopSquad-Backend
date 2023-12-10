@@ -134,7 +134,6 @@ matchRouter.get(
  */
 matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
   try {
-    console.log(req.file);
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
