@@ -155,4 +155,53 @@ async function signUpMatch(postingId: number, hostId: number, guestId: number) {
   ]);
 }
 
-export { getPostingAlarm, signUpMatch, checkGuestSignUp };
+async function checkHostApplyMatch(roomId: number) {
+  const postingId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        Room_id: roomId,
+      },
+      select: {
+        Posting_id: true,
+      },
+    })
+  ).Posting_id;
+  const hostId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: true }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+  const guestId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: false }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+  const isApply = (
+    await prisma.matchAlarm.findFirstOrThrow({
+      where: {
+        AND: [
+          { Posting_id: postingId },
+          { User_id: hostId },
+          { Opponent_id: guestId },
+        ],
+      },
+      select: {
+        IsApply: true,
+      },
+    })
+  ).IsApply;
+  if (isApply) return true;
+  else return false;
+}
+
+export { getPostingAlarm, signUpMatch, checkGuestSignUp, checkHostApplyMatch };
