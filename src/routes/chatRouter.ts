@@ -82,7 +82,14 @@ const chatServerHandler = (io: SocketIO.Server) => {
 
     socket.on(
       "enterRoom",
-      async (roomId: number, done: (chatList: enterRoomType[]) => void) => {
+      async (
+        roomId: number,
+        userId: number,
+        done: (result: {
+          opponentImageName: string;
+          chatList: enterRoomType[];
+        }) => void,
+      ) => {
         const chatList = await prisma.message.findMany({
           where: {
             Room_id: roomId,
@@ -99,12 +106,37 @@ const chatServerHandler = (io: SocketIO.Server) => {
             Room_id: roomId,
           },
         });
-        const chatListWithPostingId = chatList.map((chat) => ({
+        const opponentId = (
+          await prisma.chatRoom.findFirstOrThrow({
+            where: {
+              AND: [{ Room_id: roomId }, { NOT: { User_id: userId } }],
+            },
+            select: {
+              User_id: true,
+            },
+          })
+        ).User_id;
+        const opponentImageName = (
+          await prisma.profile.findFirstOrThrow({
+            where: {
+              User_id: opponentId,
+            },
+            select: {
+              Image: {
+                select: {
+                  ImageData: true,
+                },
+              },
+            },
+          })
+        ).Image[0].ImageData;
+        const chatListWithPostingId: enterRoomType[] = chatList.map((chat) => ({
           ...chat,
           Posting_id: post.Posting_id,
           roomId: roomId,
         }));
-        done(chatListWithPostingId);
+        const result = { opponentImageName, chatList: chatListWithPostingId };
+        done(result);
       },
     );
 
