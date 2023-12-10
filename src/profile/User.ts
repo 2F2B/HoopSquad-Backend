@@ -98,7 +98,7 @@ async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
 ) {
-  const isUser = await validateUser(AccessToken);
+  const isUser = await validateUser(AccessToken, req.body.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
 
@@ -256,15 +256,24 @@ async function updateProfile(
   return { profile, updatedProfile };
 }
 
-async function validateUser(AccessToken: string) {
-  const isUser = await prisma.oAuthToken.findFirst({
+async function validateUser(AccessToken: string, name: string) {
+  const user = await prisma.oAuthToken.findFirst({
     where: {
       AccessToken: AccessToken,
     },
   });
 
-  if (!isUser) throw new NotFoundError("User");
-  return isUser;
+  if (!user) throw new NotFoundError("User");
+  const isUser = await prisma.user.update({
+    where: {
+      User_id: user.User_id,
+    },
+    data: {
+      Name: name,
+    },
+  });
+
+  return user;
 }
 
 async function setOverall(

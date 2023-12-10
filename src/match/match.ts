@@ -141,9 +141,9 @@ async function AllMatch( // 게시글 전체 조회
     case "Title":
       return SearchMatchByTitle("Title", location, sort, input);
     case "GameType":
-      (await isTrue(request.query?.One)) ? (one = true) : (one = false);
-      (await isTrue(request.query?.Three)) ? (three = true) : (three = false);
-      (await isTrue(request.query?.Five)) ? (five = true) : (five = false);
+      isTrue(request.query?.One) ? (one = true) : (one = false);
+      isTrue(request.query?.Three) ? (three = true) : (three = false);
+      isTrue(request.query?.Five) ? (five = true) : (five = false);
 
       const typePostingId = await prisma.gameType.findMany({
         // 검색 조건에 맞는 GameType 테이블을 먼저 검색
