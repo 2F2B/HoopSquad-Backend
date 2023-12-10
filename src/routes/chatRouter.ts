@@ -4,6 +4,8 @@ import { PrismaClient } from "@prisma/client";
 import { UserNotExistError } from "../auth/error";
 import * as FirebaseService from "../alarm/pushNotification";
 import Expo from "expo-server-sdk";
+import { checkGuestSignUp } from "../alarm/alarm";
+import { updateApply } from "../match/match";
 
 const expo = new Expo();
 
@@ -60,6 +62,25 @@ const chatServerHandler = (io: SocketIO.Server) => {
       },
     );
 
+    socket.on(
+      "checkSignUp",
+      async (roomId: number, done: (result: boolean) => void) => {
+        const result = await checkGuestSignUp(roomId);
+        done(result);
+      },
+    );
+
+    socket.on(
+      "signUp",
+      async (
+        postingId: number,
+        userId: number,
+        isApply: boolean,
+        done: () => void,
+      ) => {
+        await updateApply(postingId, userId, isApply);
+      },
+    );
     socket.on(
       "makeRoom",
       async (
@@ -140,6 +161,7 @@ const chatServerHandler = (io: SocketIO.Server) => {
             },
           })
         ).Image[0].ImageData;
+        console.log(opponentImageName);
         const chatListWithPostingId: enterRoomType[] = chatList.map((chat) => ({
           ...chat,
           Posting_id: post.Posting_id,
