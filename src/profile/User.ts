@@ -19,6 +19,8 @@ const prisma = new PrismaClient();
 
 function isTrue(Type: string | ParsedQs | string[] | ParsedQs[] | undefined) {
   // true, false string을 boolean으로 변환
+  console.log(Type);
+  console.log(typeof Type);
   if (Type === "true") return true;
   else if (Type === "false") return false;
   else throw new TypeNotBooleanError();
