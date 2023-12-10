@@ -182,8 +182,6 @@ async function sendPushNotification(
       AND: [{ Room_id: roomId }, { NOT: { User_id: userId } }],
     },
   });
-  console.log(userId);
-  console.log(opponent.User_id);
   const opponentToken = await FirebaseService.getToken(
     String(opponent.User_id),
   );

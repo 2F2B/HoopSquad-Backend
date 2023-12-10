@@ -11,18 +11,21 @@ import * as FirebaseService from "../alarm/pushNotification";
 
 const notificationRouter = Router();
 
-notificationRouter.post("/registerPushToken", async (req, res) => {
-  try {
-    const userId = String(req.body.userId);
-    const token = String(req.body.token);
-    await FirebaseService.saveToken(userId, token);
-    res.status(201).send({ result: "success" });
-  } catch (err) {
-    if (err instanceof Error) {
-      handleErrors(err, res);
+notificationRouter.post(
+  "/registerPushToken",
+  async (req: Request<{}, {}, { userId: number; token: string }, {}>, res) => {
+    try {
+      const userId = String(req.body.userId);
+      const token = String(req.body.token);
+      await FirebaseService.saveToken(userId, token);
+      res.status(201).send({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
     }
-  }
-});
+  },
+);
 
 notificationRouter.get("/:id", async (req, res) => {
   try {
