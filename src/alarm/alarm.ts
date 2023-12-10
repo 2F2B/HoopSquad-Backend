@@ -131,14 +131,14 @@ async function applyMatch(
 
 async function createNotification(
   postingId: number,
-  userId: number,
-  opponentId: number,
+  hostId: number,
+  guestId: number,
 ) {
   await prisma.matchAlarm.create({
     data: {
       Posting_id: postingId,
-      User_id: userId,
-      Opponent_id: opponentId,
+      User_id: hostId,
+      Opponent_id: guestId,
     },
   });
 }
