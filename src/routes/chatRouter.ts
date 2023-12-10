@@ -101,6 +101,16 @@ const chatServerHandler = (io: SocketIO.Server) => {
             User_id: true,
           },
         });
+        const hostId = (
+          await prisma.chatRoom.findFirstOrThrow({
+            where: {
+              AND: [{ Room_id: roomId }, { IsHost: true }],
+            },
+            select: {
+              User_id: true,
+            },
+          })
+        ).User_id;
         const post = await prisma.chatRoom.findFirstOrThrow({
           where: {
             Room_id: roomId,
@@ -135,7 +145,11 @@ const chatServerHandler = (io: SocketIO.Server) => {
           Posting_id: post.Posting_id,
           roomId: roomId,
         }));
-        const result = { opponentImageName, chatList: chatListWithPostingId };
+        const result = {
+          hostId,
+          opponentImageName,
+          chatList: chatListWithPostingId,
+        };
         done(result);
       },
     );
@@ -177,6 +191,17 @@ const chatServerHandler = (io: SocketIO.Server) => {
           },
         });
 
+        const hostId = (
+          await prisma.chatRoom.findFirstOrThrow({
+            where: {
+              AND: [{ Room_id: roomId }, { IsHost: true }],
+            },
+            select: {
+              User_id: true,
+            },
+          })
+        ).User_id;
+
         io.to(getRoomName(roomId)).emit("send", {
           Message_id: newMessage.Message_id,
           Posting_id: postingId,
@@ -184,6 +209,7 @@ const chatServerHandler = (io: SocketIO.Server) => {
           ChatTime: currentTimestamp,
           User_id: userId,
           roomId: roomId,
+          hostId: hostId,
         });
 
         io.to(getRoomName(roomId)).emit("updateChatRoom", {
@@ -194,6 +220,7 @@ const chatServerHandler = (io: SocketIO.Server) => {
           postingTitle: post.Title,
           entireMessagesAmount: entireMessagesAmount.length,
           roomId: roomId,
+          hostId: hostId,
         });
 
         sendPushNotification(userId, roomId, nickname, post.Title, payload);
@@ -223,8 +250,8 @@ async function sendPushNotification(
   expo.sendPushNotificationsAsync([
     {
       to: opponentToken.token,
-      title: nickname,
-      body: payload,
+      title: postTitle,
+      body: `${nickname}: ${payload}`,
       data: {
         type: "chat",
         roomId: roomId,
@@ -250,6 +277,16 @@ async function joinAllRooms(
   return await Promise.all(
     chatRoomList.map(async (room) => {
       socket.join(getRoomName(room.Room_id));
+      const hostId = (
+        await prisma.chatRoom.findFirstOrThrow({
+          where: {
+            AND: [{ Room_id: room.Room_id }, { IsHost: true }],
+          },
+          select: {
+            User_id: true,
+          },
+        })
+      ).User_id;
       const opponentName = await findOpponentInfo(room, user_id);
       const opponentProfile = await prisma.profile.findFirstOrThrow({
         where: {
@@ -271,6 +308,7 @@ async function joinAllRooms(
         postingId: room.Posting_id,
         postingTitle: postingName.Title,
         roomId: room.Room_id,
+        hostId: hostId,
       };
     }),
   );

@@ -480,7 +480,7 @@ async function updateApply(
   guestId: number,
   isApply: boolean,
 ) {
-  const apply = await prisma.matchJoinApply.findFirstOrThrow({
+  const apply = await prisma.matchAlarm.findFirstOrThrow({
     where: {
       AND: [{ Posting_id: Posting_id }, { User_id: guestId }],
     },
@@ -488,7 +488,7 @@ async function updateApply(
       id: true,
     },
   });
-  await prisma.matchJoinApply.update({
+  await prisma.matchAlarm.update({
     where: {
       id: apply.id,
     },
@@ -547,10 +547,31 @@ async function getDeadlineMatches(location: string) {
 }
 
 async function participateMatch(postingId: number, guestId: number) {
-  await prisma.matchJoinApply.create({
+  const roomId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Posting_id: postingId }, { User_id: guestId }],
+      },
+      select: {
+        Room_id: true,
+      },
+    })
+  ).Room_id;
+  const hostId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { NOT: { User_id: guestId } }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+  await prisma.matchAlarm.create({
     data: {
       Posting_id: postingId,
-      User_id: guestId,
+      User_id: hostId,
+      Opponent_id: guestId,
     },
   });
   const posting = await prisma.posting.findFirstOrThrow({
