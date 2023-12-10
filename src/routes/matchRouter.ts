@@ -65,11 +65,11 @@ matchRouter.get("/", async (req, res) => {
 matchRouter.post(
   "/:id",
   async (
-    req: Request<{ id: number }, {}, { User_id: number; isApply: boolean }, {}>,
+    req: Request<{ id: number }, {}, { guestId: number; isApply: boolean }, {}>,
     res,
   ) => {
     try {
-      await JoinMatch(req.params.id, req.body.User_id, req.body.isApply);
+      await JoinMatch(req.params.id, req.body.guestId, req.body.isApply);
       res.status(201).json({ result: "success" });
     } catch (err) {
       if (err instanceof MatchJoinError) {
