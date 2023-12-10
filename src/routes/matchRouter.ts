@@ -43,22 +43,73 @@ const matchRouter = express.Router();
  * 전체 매치 조회
  * header: all => 전체조회 / header: info => 상세 조회
  */
-matchRouter.get("/", async (req, res) => {
-  try {
-    let result;
-    if (req.query.all) result = await AllMatch(req);
-    else if (req.query.info) result = await MatchInfo(req);
-    else throw new Error("Bad Request");
-    res.status(200);
-    res.send(result);
-  } catch (err) {
-    if (err instanceof ErrorWithStatusCode) {
-      handleErrors(err, res);
-    } else if (err instanceof Error) {
-      handleErrors(err, res);
+matchRouter.get(
+  "/info",
+  async (
+    req: Request<
+      {},
+      {},
+      {},
+      {
+        postingId: number;
+        guestId: number;
+      }
+    >,
+    res,
+  ) => {
+    try {
+      const result = await MatchInfo(+req.query.postingId, +req.query.guestId);
+      res.status(200);
+      res.send(result);
+    } catch (err) {
+      if (err instanceof ErrorWithStatusCode) {
+        handleErrors(err, res);
+      } else if (err instanceof Error) {
+        handleErrors(err, res);
+      }
     }
-  }
-});
+  },
+);
+matchRouter.get(
+  "/",
+  async (
+    req: Request<
+      {},
+      {},
+      {},
+      {
+        Sort: string;
+        Location: string;
+        Filter: string;
+        Input: string;
+        One: string;
+        Three: string;
+        Five: string;
+      }
+    >,
+    res,
+  ) => {
+    try {
+      const result = await AllMatch(
+        req.query.Sort,
+        req.query.Location,
+        req.query.Filter,
+        req.query.Input,
+        req.query.One,
+        req.query.Three,
+        req.query.Five,
+      );
+      res.status(200);
+      res.send(result);
+    } catch (err) {
+      if (err instanceof ErrorWithStatusCode) {
+        handleErrors(err, res);
+      } else if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
 /*
  * 매치 참여
  */
@@ -81,8 +132,9 @@ matchRouter.post(
 /*
  * 매치 추가
  */
-matchRouter.post("/", upload.array("Image", 10), async (req, res) => {
+matchRouter.post("/", upload.single("Image"), async (req, res) => {
   try {
+    console.log(req.file);
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");

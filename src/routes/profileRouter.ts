@@ -45,8 +45,6 @@ profileRouter.get("/user/:id", async (req, res) => {
 profileRouter.post("/user", upload.single("Image"), async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
-    console.log(req.body.body.formData._parts);
-    console.log(req.file);
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
     const result = await setUserProfile(req, token!!);
