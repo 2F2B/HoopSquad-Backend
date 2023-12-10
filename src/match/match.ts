@@ -427,11 +427,20 @@ async function DeleteMatch(Posting_id: number, access_token: any) {
   } else throw new UserNotWriterError();
 }
 
-async function JoinMatch(
-  Posting_id: number,
-  guestId: number,
-  isApply: boolean,
-) {
+async function JoinMatch(roomId: number, isApply: boolean) {
+  const room = await prisma.chatRoom.findFirstOrThrow({
+    where: {
+      AND: [{ Room_id: roomId }, { IsHost: false }],
+    },
+    select: {
+      User_id: true,
+      Posting_id: true,
+    },
+  });
+
+  const guestId = room.User_id;
+  const Posting_id = room.Posting_id;
+
   const isJoining = await prisma.member.findFirst({
     where: {
       User_id: guestId,
@@ -475,7 +484,7 @@ async function JoinMatch(
   }
 }
 
-export async function updateApply(
+async function updateApply(
   Posting_id: number,
   guestId: number,
   isApply: boolean,

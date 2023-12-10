@@ -110,25 +110,25 @@ matchRouter.get(
     }
   },
 );
-/*
- * 매치 참여
- */
-matchRouter.post(
-  "/:id(\\d+)",
-  async (
-    req: Request<{ id: number }, {}, { guestId: number; isApply: boolean }, {}>,
-    res,
-  ) => {
-    try {
-      await JoinMatch(req.params.id, req.body.guestId, req.body.isApply);
-      res.status(201).json({ result: "success" });
-    } catch (err) {
-      if (err instanceof MatchJoinError) {
-        handleErrors<MatchJoinError>(err, res);
-      }
-    }
-  },
-);
+// /*
+//  * 매치 참여
+//  */
+// matchRouter.post(
+//   "/:id(\\d+)",
+//   async (
+//     req: Request<{ id: number }, {}, { guestId: number; isApply: boolean }, {}>,
+//     res,
+//   ) => {
+//     try {
+//       await JoinMatch(req.params.id, req.body.guestId, req.body.isApply);
+//       res.status(201).json({ result: "success" });
+//     } catch (err) {
+//       if (err instanceof MatchJoinError) {
+//         handleErrors<MatchJoinError>(err, res);
+//       }
+//     }
+//   },
+// );
 /*
  * 매치 추가
  */

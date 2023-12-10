@@ -118,7 +118,27 @@ async function checkGuestSignUp(roomId: number) {
   else return false;
 }
 
-async function signUpMatch(postingId: number, hostId: number, guestId: number) {
+async function signUpMatch(postingId: number, roomId: number) {
+  const hostId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: true }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
+  const guestId = (
+    await prisma.chatRoom.findFirstOrThrow({
+      where: {
+        AND: [{ Room_id: roomId }, { IsHost: false }],
+      },
+      select: {
+        User_id: true,
+      },
+    })
+  ).User_id;
   await prisma.matchAlarm.create({
     data: {
       Posting_id: postingId,
