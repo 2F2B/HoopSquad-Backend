@@ -97,17 +97,13 @@ async function setUserProfile(
   req: Request<{}, any, any, ParsedQs, Record<string, any>>,
   AccessToken: string,
 ) {
-  const isUser = await validateUser(AccessToken, req.body.Name);
+  const isUser = await validateUser(AccessToken, req.body.data.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
 
-  // true, false string을 boolean으로 변환
-  console.log(req.body);
-  console.log(typeof req.body);
-
-  const one = isTrue(req.body.One) ? true : false,
-    three = isTrue(req.body.Three) ? true : false,
-    five = isTrue(req.body.Five) ? true : false;
+  const one = isTrue(req.body.data.One) ? true : false,
+    three = isTrue(req.body.data.Three) ? true : false,
+    five = isTrue(req.body.data.Five) ? true : false;
 
   const type = await prisma.gameType.findFirst({
     where: {
@@ -252,10 +248,14 @@ async function updateProfile(
       Profile_id: profile!!.Profile_id,
     },
     data: {
-      Introduce: req.body.Introduce,
-      ...(req.body.Height ? { Height: parseFloat(req.body.Height) } : {}),
-      ...(req.body.Weight ? { Weight: parseInt(req.body.Weight) } : {}),
-      ...(req.body.Year ? { Year: parseInt(req.body.Year) } : {}),
+      Introduce: req.body.data.Introduce,
+      ...(req.body.data.Height
+        ? { Height: parseFloat(req.body.data.Height) }
+        : {}),
+      ...(req.body.data.Weight
+        ? { Weight: parseInt(req.body.data.Weight) }
+        : {}),
+      ...(req.body.data.Year ? { Year: parseInt(req.body.data.Year) } : {}),
     },
   });
   return { profile, updatedProfile };
