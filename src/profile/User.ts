@@ -210,12 +210,24 @@ async function createOrUpdateUserImage(
         },
       });
     } else {
+      if (fileName != image.ImageData) {
+        const filePath = path.join(uploadsDirectory, image.ImageData);
+        fs.unlink(filePath, (unlinkErr: any) => {});
+        image = await prisma.image.update({
+          where: { Image_id: image.Image_id },
+          data: {
+            ImageData: fileName,
+          },
+        });
+      }
+    }
+  } else {
+    if (image) {
       const filePath = path.join(uploadsDirectory, image.ImageData);
       fs.unlink(filePath, (unlinkErr: any) => {});
-      image = await prisma.image.update({
-        where: { Image_id: image.Image_id },
-        data: {
-          ImageData: fileName,
+      await prisma.image.delete({
+        where: {
+          Image_id: image.Image_id,
         },
       });
     }
