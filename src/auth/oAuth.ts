@@ -60,6 +60,9 @@ async function LoginKakao(code: any) {
         Profile: {
           create: {
             Overall: 50,
+            GameType: {
+              create: {},
+            },
           },
         },
       },
@@ -160,6 +163,9 @@ async function LoginGoogle( // 유저 코드 넘어옴
         Profile: {
           create: {
             Overall: 50,
+            GameType: {
+              create: {},
+            },
           },
         },
       },
