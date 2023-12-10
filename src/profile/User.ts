@@ -100,7 +100,7 @@ async function setUserProfile(
   const isUser = await validateUser(AccessToken, req.body.data.Name);
   const { profile, updatedProfile } = await updateProfile(isUser, req);
   let image = await createOrUpdateUserImage(profile, req);
-
+  const userName = await getUserName(isUser);
   const one = isTrue(req.body.data.One) ? true : false,
     three = isTrue(req.body.data.Three) ? true : false,
     five = isTrue(req.body.data.Five) ? true : false;
@@ -123,7 +123,33 @@ async function setUserProfile(
   } else {
     updatedType = await updateGameType(type, one, three, five);
   }
-  return { ...updatedProfile, GameType: updatedType, Image: image };
+  return {
+    ...updatedProfile,
+    GameType: updatedType,
+    Image: image,
+    Name: userName,
+  };
+}
+
+async function getUserName(isUser: {
+  id: number;
+  User_id: number;
+  AccessToken: string;
+  RefreshToken: string;
+  AToken_CreatedAt: string;
+  RToken_CreatedAt: string;
+  AToken_Expires: number;
+  RToken_Expires: number;
+  Auth_id: string;
+}) {
+  return await prisma.user.findFirst({
+    where: {
+      User_id: isUser.User_id,
+    },
+    select: {
+      Name: true,
+    },
+  });
 }
 
 async function updateGameType(
@@ -279,7 +305,6 @@ async function validateUser(AccessToken: string, name: string) {
       AccessToken: AccessToken,
     },
   });
-
   if (!user) throw new NotFoundError("User");
   const isUser = await prisma.user.update({
     where: {
@@ -289,7 +314,6 @@ async function validateUser(AccessToken: string, name: string) {
       Name: name,
     },
   });
-
   return user;
 }
 
