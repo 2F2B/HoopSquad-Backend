@@ -1,4 +1,3 @@
-import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { Request } from "express";
 import { ParsedQs } from "qs";
@@ -10,7 +9,6 @@ import {
   TypeNotBooleanError,
 } from "./error";
 import sanitize from "sanitize-filename";
-import { not } from "mathjs";
 
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/user");
