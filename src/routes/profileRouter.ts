@@ -52,7 +52,6 @@ type profile = {
 };
 profileRouter.post("/user", upload.single("Image"), async (req, res) => {
   try {
-    // const { Height, Weight, Year, Introduce, One, Three, Five } = req.body;
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
     if (!req.body) throw new Error("Body Not Exists");
