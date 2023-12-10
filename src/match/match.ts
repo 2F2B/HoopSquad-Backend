@@ -475,14 +475,14 @@ async function JoinMatch(
   }
 }
 
-async function updateApply(
+export async function updateApply(
   Posting_id: number,
   guestId: number,
   isApply: boolean,
 ) {
   const apply = await prisma.matchAlarm.findFirstOrThrow({
     where: {
-      AND: [{ Posting_id: Posting_id }, { User_id: guestId }],
+      AND: [{ Posting_id: Posting_id }, { Opponent_id: guestId }],
     },
     select: {
       id: true,
