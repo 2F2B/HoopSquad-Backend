@@ -270,10 +270,23 @@ async function MatchInfo(postingId: number, guestId: number) {
     },
     select: {
       Map_id: true,
+      User_id: true,
     },
   });
 
   if (!map) throw new NotFoundError("Posting");
+
+  const postNickname = (
+    await prisma.user.findFirstOrThrow({
+      where: {
+        User_id: map.User_id,
+      },
+      select: {
+        Name: true,
+      },
+    })
+  ).Name;
+
   const match = await prisma.map.findFirstOrThrow({
     where: {
       Map_id: map.Map_id,
@@ -311,22 +324,16 @@ async function MatchInfo(postingId: number, guestId: number) {
     },
   });
   const writerImage = await getWriterImage(match);
-  const isParticipatedMatch = await prisma.matchJoinApply.findFirst({
-    where: {
-      AND: [{ User_id: guestId }, { Posting_id: postingId }],
-    },
-  });
-
-  let roomId: number | undefined = undefined;
-
-  if (isParticipatedMatch) {
-    roomId = (
-      await prisma.chatRoom.findFirstOrThrow({
-        where: { AND: [{ User_id: guestId }, { Posting_id: postingId }] },
-        select: { Room_id: true },
-      })
-    ).Room_id;
-  }
+  const roomId = (
+    await prisma.chatRoom.findFirst({
+      where: {
+        AND: [{ User_id: guestId }, { Posting_id: postingId }],
+      },
+      select: {
+        Room_id: true,
+      },
+    })
+  )?.Room_id;
 
   const result = {
     ...match.Posting[0],
@@ -337,6 +344,7 @@ async function MatchInfo(postingId: number, guestId: number) {
     Image: match.Posting[0].Image,
     WriterImage: writerImage.Profile?.Image[0],
     roomId: roomId,
+    postWriterNickname: postNickname,
   };
   if (!match) throw new NotFoundError("Posting");
   return result;
@@ -472,7 +480,7 @@ async function updateApply(
   guestId: number,
   isApply: boolean,
 ) {
-  const apply = await prisma.matchJoinApply.findFirst({
+  const apply = await prisma.matchJoinApply.findFirstOrThrow({
     where: {
       AND: [{ Posting_id: Posting_id }, { User_id: guestId }],
     },
@@ -482,7 +490,7 @@ async function updateApply(
   });
   await prisma.matchJoinApply.update({
     where: {
-      id: apply?.id,
+      id: apply.id,
     },
     data: {
       IsApply: isApply,
@@ -578,6 +586,13 @@ async function participateMatch(postingId: number, guestId: number) {
       },
     },
   ]);
+
+  await prisma.matchJoinApply.create({
+    data: {
+      Posting_id: postingId,
+      User_id: guestId,
+    },
+  });
 }
 
 // TODO 채팅

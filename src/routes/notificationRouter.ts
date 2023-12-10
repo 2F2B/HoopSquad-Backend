@@ -53,11 +53,16 @@ notificationRouter.get("/match/:id", async (req, res) => {
 notificationRouter.patch(
   "/match",
   async (
-    req: Request<{}, {}, { postingId: number; isApply: boolean }, {}>,
+    req: Request<
+      {},
+      {},
+      { postingId: number; guestId: number; isApply: boolean },
+      {}
+    >,
     res,
   ) => {
     try {
-      await applyMatch(req.body.postingId, req.body.isApply);
+      await applyMatch(req.body.postingId, req.body.guestId, req.body.isApply);
       res.status(200).json({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
@@ -73,7 +78,7 @@ notificationRouter.post(
     req: Request<
       {},
       {},
-      { postingId: number; userId: number; opponentId: number },
+      { postingId: number; hostId: number; guestId: number },
       {}
     >,
     res,
@@ -81,8 +86,8 @@ notificationRouter.post(
     try {
       await createNotification(
         req.body.postingId,
-        req.body.userId,
-        req.body.opponentId,
+        req.body.hostId,
+        req.body.guestId,
       );
       res.status(201).json({ result: "success" });
     } catch (err) {

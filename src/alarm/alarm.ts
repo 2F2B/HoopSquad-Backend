@@ -83,10 +83,14 @@ async function getPostingAlarm(userId: number) {
  * @param isApply
  * @param postingId
  */
-async function applyMatch(postingId: number, isApply: boolean) {
+async function applyMatch(
+  postingId: number,
+  guestId: number,
+  isApply: boolean,
+) {
   await prisma.matchAlarm.updateMany({
     where: {
-      Posting_id: postingId,
+      AND: [{ Posting_id: postingId }, { User_id: guestId }],
     },
     data: {
       IsApply: isApply,
@@ -127,14 +131,14 @@ async function applyMatch(postingId: number, isApply: boolean) {
 
 async function createNotification(
   postingId: number,
-  userId: number,
-  opponentId: number,
+  hostId: number,
+  guestId: number,
 ) {
   await prisma.matchAlarm.create({
     data: {
       Posting_id: postingId,
-      User_id: userId,
-      Opponent_id: opponentId,
+      User_id: hostId,
+      Opponent_id: guestId,
     },
   });
 }
