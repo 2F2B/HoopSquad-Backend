@@ -186,20 +186,19 @@ async function checkHostApplyMatch(roomId: number) {
       },
     })
   ).User_id;
-  const isApply = (
-    await prisma.matchAlarm.findFirstOrThrow({
-      where: {
-        AND: [
-          { Posting_id: postingId },
-          { User_id: hostId },
-          { Opponent_id: guestId },
-        ],
-      },
-      select: {
-        IsApply: true,
-      },
-    })
-  ).IsApply;
+  const isApply = await prisma.matchAlarm.findFirst({
+    where: {
+      AND: [
+        { Posting_id: postingId },
+        { User_id: hostId },
+        { Opponent_id: guestId },
+        { IsApply: null },
+      ],
+    },
+    select: {
+      IsApply: true,
+    },
+  });
   if (isApply) return true;
   else return false;
 }
