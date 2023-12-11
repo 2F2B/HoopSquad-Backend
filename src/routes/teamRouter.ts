@@ -1,13 +1,15 @@
-import express, { Request } from "express";
+import express, { Request, Response } from "express";
 import {
   createTeam,
-  createTeamMatch,
+  acceptTeamMatch,
   deleteTeam,
   enterMatchResult,
   getTeam,
   joinTeam,
   leaveTeam,
   participateTeam,
+  participateTeamMatch,
+  updateTeamProfile,
 } from "../team/team";
 import {
   NotAdminError,
@@ -18,7 +20,6 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { handleErrors } from "../ErrorHandler";
-import sanitize from "sanitize-filename";
 
 const teamRouter = express.Router();
 const parentDirectory = path.join(__dirname, "../../.."); // __dirname == 이 코드 파일이 있는 절대 주소 ~~~/HOOPSQUAD-BACKEND/src/routes, "../../.." == 상위 폴더로 이동
@@ -46,7 +47,8 @@ const upload = multer({
 export interface CreateTeamType {
   Admin_id: string;
   Name: string;
-  Location: string;
+  Location1: { location: string; city: string };
+  Location2?: { location: string; city: string };
   Introduce?: string;
 }
 
@@ -66,7 +68,7 @@ teamRouter.get("/", async (_req, res) => {
 
 teamRouter.get("/:id", async (req, res) => {
   try {
-    const result = await getTeam(+req.params.id);
+    const result = await getTeam(+req.params.id, undefined);
     res.json(result);
   } catch (err) {
     if (err instanceof TeamNotFoundError) {
@@ -122,8 +124,9 @@ teamRouter.post(
         data: {
           adminId: string;
           name: string;
-          location: string;
-          introduce: string;
+          location1: { location: string; city: string };
+          location2?: { location: string; city: string };
+          introduce?: string;
         };
       },
       {}
@@ -131,7 +134,7 @@ teamRouter.post(
     res: express.Response,
   ) => {
     try {
-      const { adminId, name, location, introduce } = req.body.data;
+      const { adminId, name, location1, location2, introduce } = req.body.data;
       let files;
       if (Array.isArray(req.files)) {
         files = req.files.map((file) => {
@@ -142,7 +145,8 @@ teamRouter.post(
         {
           Admin_id: adminId,
           Name: name,
-          Location: location,
+          Location1: location1,
+          Location2: location2,
           Introduce: introduce,
         },
         files,
@@ -191,10 +195,10 @@ teamRouter.delete(
 
 teamRouter.post("/match", async (req, res) => {
   try {
-    createTeamMatch(
+    acceptTeamMatch(
       +req.body.HostTeam_id,
       +req.body.GuestTeam_id,
-      req.body.PlayDate,
+      req.body.isApply,
     );
     res.status(201);
     res.send();
@@ -219,10 +223,90 @@ teamRouter.post("/match/:id", async (req, res) => {
 export default teamRouter;
 
 teamRouter.post(
-  "/participate",
-  async (req: Request<{}, {}, { teamId: number; userId: number }, {}>, res) => {
+  "/participate/:id",
+  async (
+    req: Request<{ id: number }, {}, { teamId: number; userId: number }, {}>,
+    res,
+  ) => {
     try {
-      await participateTeam(req.body.teamId, req.body.userId);
+      await participateTeam(+req.params.id, req.body.userId);
+      res.status(201).send({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+teamRouter.post(
+  "/participate",
+  async (
+    req: Request<
+      { id: number },
+      {},
+      { hostTeamId: number; guestTeamId: number; playDate: string },
+      {}
+    >,
+    res,
+  ) => {
+    try {
+      await participateTeamMatch(
+        req.body.hostTeamId,
+        req.body.guestTeamId,
+        req.body.playDate,
+      );
+      res.status(201).send({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
+teamRouter.patch(
+  "/",
+  upload.array("Image", 10),
+  async (
+    req: Request<
+      {},
+      {},
+      {
+        data: {
+          teamId: string;
+          adminId: string;
+          name: string;
+          location1: { location: string; city: string };
+          location2?: { location: string; city: string };
+          introduce?: string;
+        };
+      },
+      {}
+    >,
+    res: Response<{}>,
+  ) => {
+    try {
+      let files;
+      if (Array.isArray(req.files)) {
+        files = req.files.map((file) => {
+          return file.filename;
+        });
+      }
+      const { teamId, adminId, name, location1, location2, introduce } =
+        req.body.data;
+      const newLocation1 = location1.location + " " + location1.city;
+      const newLocation2 = location2?.location + " " + location2?.city;
+      await updateTeamProfile(
+        {
+          teamId: +teamId,
+          adminId: +adminId,
+          name: name,
+          location1: newLocation1,
+          location2: newLocation2,
+          introduce: introduce,
+        },
+        files,
+      );
       res.status(201).send({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {

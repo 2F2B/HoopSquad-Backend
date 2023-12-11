@@ -8,8 +8,11 @@ locationRouter.post("/", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.slice(7);
-    if (!req.body.Location) throw new Error();
-    const result = await SetProfileLocation(req.body.Location, token!!);
+    const result = await SetProfileLocation(
+      token!!,
+      req.body.Location1,
+      req.body.Location2,
+    );
     res.status(201);
     res.send();
   } catch (err) {
@@ -22,6 +25,8 @@ locationRouter.post("/:id", async (req, res) => {
   try {
     if (!req.body.Location) throw new Error();
     const result = await SetTeamLocation(+req.params.id, req.body.Location);
+    res.status(201);
+    res.send();
   } catch (err) {
     if (err instanceof Error) {
       handleErrors<Error>(err, res);

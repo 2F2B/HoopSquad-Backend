@@ -24,6 +24,7 @@ fs.readdir(uploadsDirectory, (error) => {
     fs.mkdirSync(uploadsDirectory);
   }
 });
+``;
 
 const prisma = new PrismaClient();
 const expo = new Expo();

@@ -6,6 +6,9 @@ import {
   TeamNotFoundError,
   UserAlreadyInTeamError,
 } from "./error";
+import http from "http";
+import fs from "fs";
+import path from "path";
 import { CreateTeamType } from "../routes/teamRouter";
 import Expo from "expo-server-sdk";
 import { getToken } from "../alarm/pushNotification";
@@ -18,10 +21,14 @@ export {
   leaveTeam,
   createTeam,
   deleteTeam,
-  createTeamMatch,
+  acceptTeamMatch,
   enterMatchResult,
   participateTeam,
+  updateTeamProfile,
+  participateTeamMatch,
 };
+const parentDirectory = path.join(__dirname, "../../..");
+const uploadsDirectory = path.join(parentDirectory, "image/team");
 
 async function getTeam(teamId?: number, location?: string) {
   if (!teamId) {
@@ -145,10 +152,10 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
       },
     });
 
-    const userToken = await getToken(String(userId));
+    // const userToken = await getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
-        to: userToken,
+        to: "userToken",
         title: team.Name,
         body: "팀 참가 신청이 수락되었습니다!",
         data: {
@@ -157,10 +164,10 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
       },
     ]);
   } else {
-    const userToken = await getToken(String(userId));
+    // const userToken = await getToken(String(userId));
     expo.sendPushNotificationsAsync([
       {
-        to: userToken,
+        to: "userToken",
         title: team.Name,
         body: "팀 참가 신청이 거절되었습니다.",
         data: {
@@ -200,7 +207,7 @@ async function leaveTeam(teamId: number, userId: number) {
 }
 
 async function createTeam(
-  { Admin_id, Name, Location, Introduce }: CreateTeamType,
+  { Admin_id, Name, Location1, Location2, Introduce }: CreateTeamType,
   files?: Array<string>,
 ) {
   await checkNameDuplicate(Name);
@@ -208,8 +215,12 @@ async function createTeam(
     data: {
       Admin_id: +Admin_id,
       Name: Name,
-      Location1: Location,
+      Location1: Location1.location + " " + Location1?.city,
+      ...(Location2
+        ? { Location2: Location2.location + " " + Location2.city }
+        : {}),
       Introduce: Introduce,
+      UserAmount: 1,
     },
   });
   if (files) {
@@ -259,22 +270,87 @@ async function deleteTeam(teamId: number, userId: number) {
   });
 }
 /**
- *  @param HostTeam_id
- *  @param GuestTeam_id
- *  @param PlayDate
+ *  @param hostTeamId
+ *  @param guestTeamId
+ *  @param playDate
  */
-async function createTeamMatch(
-  HostTeam_id: number,
-  GuestTeam_id: number,
-  PlayDate: string,
+async function acceptTeamMatch(
+  hostTeamId: number,
+  guestTeamId: number,
+  isApply: boolean,
 ) {
-  const newMatch = await prisma.teamMatch.create({
-    data: {
-      PlayDate: PlayDate,
+  const hostTeam = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: hostTeamId,
     },
   });
-  await makeTeamRecord(HostTeam_id, newMatch.TeamMatch_id, true);
-  await makeTeamRecord(GuestTeam_id, newMatch.TeamMatch_id, false);
+  const guestTeam = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: guestTeamId,
+    },
+  });
+
+  await updateIsApply(hostTeamId, guestTeamId, isApply);
+
+  // const guestToken = await getToken(String(guestTeam.Admin_id));
+  if (isApply) {
+    expo.sendPushNotificationsAsync([
+      {
+        to: "guestToken",
+        title: guestTeam.Name,
+        body: `${hostTeam.Name}에 대한 매칭이 수락되었습니다!`,
+        data: {
+          type: "teamMatchAccepted",
+        },
+      },
+    ]);
+  } else {
+    expo.sendPushNotificationsAsync([
+      {
+        to: "guestToken",
+        title: guestTeam.Name,
+        body: `${hostTeam.Name}에 대한 매칭이 거절되었습니다.`,
+        data: {
+          type: "teamMatchRejected",
+        },
+      },
+    ]);
+  }
+}
+
+async function updateIsApply(
+  hostTeamId: number,
+  guestTeamId: number,
+  isApply: boolean,
+) {
+  const tmpMap = await prisma.posting.findMany({
+    where: {
+      AND: [
+        { IsTeam: true },
+        { User_id: hostTeamId },
+        { PlayTime: guestTeamId },
+      ],
+    },
+    orderBy: {
+      Posting_id: "asc",
+    },
+  });
+
+  const match = await prisma.teamMatchApply.findFirst({
+    where: {
+      Posting_id: tmpMap[0]?.Posting_id,
+    },
+  });
+
+  const a = await prisma.teamMatchApply.update({
+    where: {
+      TeamMatch_id: match?.TeamMatch_id,
+    },
+    data: {
+      IsApply: isApply,
+    },
+  });
+  console.log(a);
 }
 
 async function makeTeamRecord(
@@ -296,11 +372,11 @@ async function makeTeamRecord(
  *  @param GuestScore
  */
 async function enterMatchResult(
-  TeamMatch_id: number,
+  HostTeam_id: number,
   HostScore: number,
   GuestScore: number,
 ) {
-  const record = await getRecordId(TeamMatch_id);
+  const record = await getRecordId(HostTeam_id);
 
   const IsHostWin = HostScore > GuestScore ? true : false;
 
@@ -308,12 +384,12 @@ async function enterMatchResult(
 }
 
 function setTeamRecord(
-  record: { TeamRecord: { Record_id: number; IsHost: boolean }[] } | null,
+  record: { Record_id: number; IsHost: boolean }[] | null,
   HostScore: number,
   GuestScore: number,
   IsHostWin: boolean,
 ) {
-  record?.TeamRecord.map(async (Record) => {
+  record?.map(async (Record) => {
     await prisma.teamRecord.update({
       where: {
         Record_id: Record.Record_id,
@@ -326,18 +402,24 @@ function setTeamRecord(
   });
 }
 
-async function getRecordId(TeamMatch_id: number) {
-  return await prisma.teamMatch.findFirstOrThrow({
+async function getRecordId(HostTeam_id: number) {
+  const tmpMap = await prisma.posting.findFirst({
     where: {
-      TeamMatch_id: TeamMatch_id,
+      AND: [{ IsTeam: true }, { User_id: HostTeam_id }],
+    },
+  });
+  const match = await prisma.teamMatchApply.findFirst({
+    where: {
+      Posting_id: tmpMap?.Posting_id,
+    },
+  });
+  return await prisma.teamRecord.findMany({
+    where: {
+      Match_id: match?.TeamMatch_id,
     },
     select: {
-      TeamRecord: {
-        select: {
-          Record_id: true,
-          IsHost: true,
-        },
-      },
+      Record_id: true,
+      IsHost: true,
     },
   });
 }
@@ -359,7 +441,7 @@ async function participateTeam(teamId: number, userId: number) {
     },
   });
 
-  const adminToken = await getToken(String(team.Admin_id));
+  // const adminToken = await getToken(String(team.Admin_id));
 
   const userName = (
     await prisma.user.findFirstOrThrow({
@@ -374,7 +456,7 @@ async function participateTeam(teamId: number, userId: number) {
 
   expo.sendPushNotificationsAsync([
     {
-      to: adminToken,
+      to: "adminToken",
       title: team.Name,
       body: `${userName}님의 참가 신청이 도착했습니다.`,
       data: {
@@ -384,11 +466,110 @@ async function participateTeam(teamId: number, userId: number) {
   ]);
 }
 
-async function updateTeamProfile(teamId: number) {
-  const team = await prisma.teamProfile.update({
+async function updateTeamProfile(
+  data: {
+    teamId: number;
+    adminId: number;
+    name: string;
+    location1: string;
+    location2?: string;
+    introduce?: string;
+  },
+  files?: Array<string> | undefined,
+) {
+  const team = await prisma.teamProfile.findFirstOrThrow({
     where: {
-      Team_id: teamId,
+      AND: [{ Team_id: data.teamId }, { Admin_id: data.adminId }],
     },
-    data: {},
   });
+  await prisma.teamProfile.update({
+    where: {
+      Team_id: team.Team_id,
+    },
+    data: {
+      ...(data.name ? { Name: data.name } : {}),
+      ...(data.location1 ? { Location1: data.location1 } : {}),
+      ...(data.location2 ? { Location2: data.location2 } : {}),
+      ...(data.introduce ? { Introduce: data.introduce } : {}),
+    },
+  });
+  if (files) {
+    files.forEach((file: any) => {
+      const filePath = path.join(uploadsDirectory, file.ImageData);
+      fs.unlink(filePath, (unlinkErr: any) => {});
+      prisma.teamImage.updateMany({
+        where: {
+          Team_id: team.Team_id,
+        },
+        data: {
+          ImageName: file.filename,
+        },
+      });
+    });
+  }
+}
+async function participateTeamMatch(
+  hostTeamId: number,
+  guestTeamId: number,
+  playDate: string,
+) {
+  const hostTeam = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: hostTeamId,
+    },
+    select: {
+      Admin_id: true,
+      Name: true,
+    },
+  });
+  const tmpMap = await prisma.map.create({
+    data: {
+      Lat: 1,
+      Lng: 1,
+      LocationName: "1",
+    },
+  });
+  const teamMatch = await prisma.teamMatchApply.create({
+    data: {
+      PlayDate: playDate,
+      Posting: {
+        create: {
+          IsTeam: true,
+          User_id: hostTeam.Admin_id,
+          Title: "asd",
+          PlayTime: guestTeamId,
+          Location: "asd",
+          RecruitAmount: "1",
+          CurrentAmount: "1",
+          Map_id: tmpMap.Map_id,
+        },
+      },
+    },
+  });
+  await makeTeamRecord(hostTeamId, teamMatch.TeamMatch_id, true);
+  await makeTeamRecord(guestTeamId, teamMatch.TeamMatch_id, false);
+
+  // const hostTeamToken = await getToken(String(hostTeam.Admin_id));
+
+  const guestTeamName = (
+    await prisma.teamProfile.findFirstOrThrow({
+      where: {
+        Team_id: guestTeamId,
+      },
+      select: {
+        Name: true,
+      },
+    })
+  ).Name;
+
+  expo.sendPushNotificationsAsync([
+    {
+      to: "",
+      title: hostTeam.Name,
+      body: `${guestTeamName}(으로/로)부터 매칭 참가 신청이 도착했습니다.`,
+      data: {
+        type: "teamMatchParticipate",
+      },
+    },
+  ]);
 }
