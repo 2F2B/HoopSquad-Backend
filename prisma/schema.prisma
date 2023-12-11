@@ -96,24 +96,26 @@ model OAuthToken {
 }
 
 model Posting {
-  Posting_id    Int          @id @default(autoincrement())
-  User_id       Int
-  IsTeam        Boolean      @default(false)
-  Title         String       @db.VarChar(100)
-  WriteDate     DateTime     @default(now()) @db.Timestamp(0)
-  PlayTime      Int
-  Location      String       @db.VarChar(45)
-  RecruitAmount String       @db.VarChar(45)
-  CurrentAmount String       @db.VarChar(45)
-  Introduce     String?      @db.VarChar(600)
-  Map_id        Int
-  ChatRoom      ChatRoom[]
-  GameType      GameType[]
-  Image         Image[]
-  MatchAlarm    MatchAlarm[]
-  Member        Member[]
-  Map           Map          @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
-  User          User         @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  Posting_id     Int              @id @default(autoincrement())
+  User_id        Int
+  IsTeam         Boolean          @default(false)
+  Title          String           @db.VarChar(100)
+  WriteDate      DateTime         @default(now()) @db.Timestamp(0)
+  PlayTime       Int
+  Location       String           @db.VarChar(45)
+  RecruitAmount  String           @db.VarChar(45)
+  CurrentAmount  String           @db.VarChar(45)
+  Introduce      String?          @db.VarChar(600)
+  Map_id         Int
+  ChatRoom       ChatRoom[]
+  GameType       GameType[]
+  Image          Image[]
+  MatchAlarm     MatchAlarm[]
+  MatchJoinApply MatchJoinApply[]
+  Member         Member[]
+  Map            Map              @relation(fields: [Map_id], references: [Map_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Posting_Map")
+  User           User             @relation(fields: [User_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Posting_User")
+  TeamMatchApply TeamMatchApply?
 
   @@index([User_id], map: "Writer_idx")
   @@index([Map_id], map: "fk_Posting_Map1_idx")
@@ -205,6 +207,7 @@ model User {
   TeamProfile   TeamProfile[]
   TeamRelay     TeamRelay[]
   UserData      UserData[]
+  MatchJoinApply MatchJoinApply[]
   PushToken     PushToken?
 }
 
@@ -274,33 +277,26 @@ model TeamImage {
 }
 
 model TeamRecord {
-  Record_id Int         @id @default(autoincrement())
+  Record_id Int            @id @default(autoincrement())
   Team_id   Int
   Match_id  Int
   Score     Int?
   IsHost    Boolean
   IsWin     Boolean?
-  TeamMatch TeamMatch   @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
-  Team      TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamProfile")
+  TeamMatch TeamMatchApply @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
+  Team      TeamProfile    @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamProfile")
 
   @@index([Match_id], map: "fk_TeamRecord_TeamMatch")
   @@index([Team_id], map: "fk_TeamRecord_TeamProfile")
 }
 
-model TeamMatch {
-  TeamMatch_id Int          @id @default(autoincrement())
-  PlayDate     String
-  TeamRecord   TeamRecord[]
-}
-
 model TeamJoinApply {
-  id       Int         @id @default(autoincrement())
-  Team_id  Int
-  User_id  Int
-  IsApply  Boolean?
-  IsSignUp Boolean     @default(false)
-  Team     TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
-  User     User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  id      Int         @id @default(autoincrement())
+  Team_id Int
+  User_id Int
+  IsApply Boolean?
+  Team    TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
+  User    User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([Team_id], map: "TeamJoinApply_Team_id_fkey")
   @@index([User_id], map: "TeamJoinApply_User_id_fkey")
@@ -310,4 +306,26 @@ model PushToken {
   User_id Int    @id
   Token   String @db.VarChar(100)
   User    User   @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  }
+model MatchJoinApply {
+  id         Int      @id @default(autoincrement())
+  Posting_id Int
+  User_id    Int
+  IsApply    Boolean?
+  Posting    Posting  @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction)
+  User       User     @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([Posting_id], map: "MatchJoinApply_Posting_id_fkey")
+  @@index([User_id], map: "MatchJoinApply_User_id_fkey")
+}
+
+model TeamMatchApply {
+  TeamMatch_id Int          @id @default(autoincrement())
+  PlayDate     String
+  IsApply      Boolean?
+  Posting_id   Int          @unique
+  Posting      Posting      @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamMatch_TeamPosting")
+  TeamRecord   TeamRecord[]
+
+  @@index([Posting_id], map: "fk_TeamMatch_TeamPosting")
 }

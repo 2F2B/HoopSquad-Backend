@@ -17,9 +17,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(limiter);
 
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-});
+// process.on("uncaughtException", (err) => {
+//   console.error("Uncaught Exception:", err);
+// });
 
 const httpServer = http.createServer(app);
 import teamRouter from "./routes/teamRouter";
@@ -41,7 +41,6 @@ app.use("/match", matchRouter);
 app.use("/profile", profileRouter);
 app.use("/image", imageRouter);
 app.use("/weather", weatherRouter);
-app.use("/team", teamRouter);
 app.use("/review", reviewRouter);
 app.use("/notification", notificationRouter);
 app.use("/location", locationRouter);
