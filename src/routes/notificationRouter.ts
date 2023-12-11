@@ -16,8 +16,8 @@ notificationRouter.post(
     try {
       const userId = String(req.body.userId);
       const token = String(req.body.token);
-      await saveToken(userId, token);
-      res.status(201).send({ result: "success" });
+      const statusCode = await saveToken(userId, token);
+      res.status(statusCode).send({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
         handleErrors(err, res);
