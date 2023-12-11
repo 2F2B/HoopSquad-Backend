@@ -30,13 +30,21 @@ export {
 const parentDirectory = path.join(__dirname, "../../..");
 const uploadsDirectory = path.join(parentDirectory, "image/team");
 
-async function getTeam(teamId?: number, location?: string) {
+async function getTeam(teamId?: number, location?: string, city?: string) {
   if (!teamId) {
     const teams = await prisma.teamProfile.findMany({
       where: {
         OR: [
-          { Location1: { contains: location } },
-          { Location2: { contains: location } },
+          {
+            AND: [
+              { Location1: { contains: location }, City1: { contains: city } },
+            ],
+          },
+          {
+            AND: [
+              { Location2: { contains: location }, City2: { contains: city } },
+            ],
+          },
         ],
       },
       select: {
@@ -391,25 +399,6 @@ async function updateIsApply(
   });
   console.log(a);
 }
-
-async function makeTeamRecord(
-  Team_id: number,
-  TeamMatch_id: number,
-  IsHost: boolean,
-) {
-  await prisma.teamRecord.create({
-    data: {
-      Team: { connect: { Team_id: Team_id } },
-      TeamMatch: { connect: { TeamMatch_id: TeamMatch_id } },
-      IsHost: IsHost,
-    },
-  });
-}
-/**
- *  @param TeamMatch_id
- *  @param HostScore
- *  @param GuestScore
- */
 async function enterMatchResult(
   HostTeam_id: number,
   HostScore: number,
@@ -480,7 +469,7 @@ async function participateTeam(teamId: number, userId: number) {
     },
   });
 
-  // const adminToken = await getToken(String(team.Admin_id));
+  const adminToken = await getToken(String(team.Admin_id));
 
   const userName = (
     await prisma.user.findFirstOrThrow({
@@ -495,7 +484,7 @@ async function participateTeam(teamId: number, userId: number) {
 
   expo.sendPushNotificationsAsync([
     {
-      to: "adminToken",
+      to: adminToken,
       title: team.Name,
       body: `${userName}님의 참가 신청이 도착했습니다.`,
       data: {
@@ -568,6 +557,8 @@ async function participateTeamMatch(
       LocationName: "1",
     },
   });
+  const time = Date.now();
+
   const teamMatch = await prisma.teamMatchApply.create({
     data: {
       PlayDate: playDate,
@@ -576,7 +567,7 @@ async function participateTeamMatch(
           IsTeam: true,
           User_id: hostTeam.Admin_id,
           Title: "asd",
-          PlayTime: guestTeamId,
+          PlayTime: time,
           Location: "asd",
           RecruitAmount: "1",
           CurrentAmount: "1",
@@ -611,4 +602,17 @@ async function participateTeamMatch(
       },
     },
   ]);
+}
+async function makeTeamRecord(
+  Team_id: number,
+  TeamMatch_id: number,
+  IsHost: boolean,
+) {
+  await prisma.teamRecord.create({
+    data: {
+      Team: { connect: { Team_id: Team_id } },
+      TeamMatch: { connect: { TeamMatch_id: TeamMatch_id } },
+      IsHost: IsHost,
+    },
+  });
 }

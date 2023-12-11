@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import {
   createTeam,
   acceptTeamMatch,
@@ -51,12 +51,16 @@ export interface CreateTeamType {
   Location2?: { location: string; city: string };
   Introduce?: string;
 }
-
-teamRouter.get("/", async (_req, res) => {
+//getTeam
+teamRouter.get("/", async (req, res) => {
   try {
-    const location = _req.query.location;
-    const id = undefined;
-    const result = await getTeam(id, location?.toString());
+    const location = req.query.location;
+    const city = req.query.city;
+    const result = await getTeam(
+      undefined,
+      location?.toString(),
+      city?.toString(),
+    );
     res.status(200);
     res.json(result);
   } catch (err) {
@@ -65,7 +69,7 @@ teamRouter.get("/", async (_req, res) => {
     }
   }
 });
-
+//getTeam
 teamRouter.get("/:id", async (req, res) => {
   try {
     const result = await getTeam(+req.params.id, undefined);
@@ -78,7 +82,7 @@ teamRouter.get("/:id", async (req, res) => {
     }
   }
 });
-
+//joinTeam
 teamRouter.post(
   "/:id(\\d+)",
   async (
@@ -99,20 +103,23 @@ teamRouter.post(
     }
   },
 );
-
-teamRouter.delete("/:id", async (req, res) => {
-  try {
-    await leaveTeam(+req.params.id, +req.body.userId);
-    res.status(204).send();
-  } catch (err) {
-    if (err instanceof TeamNotFoundError) {
-      handleErrors(err, res);
-    } else if (err instanceof Error) {
-      handleErrors(err, res);
+//leaveTeam
+teamRouter.delete(
+  "/:id",
+  async (req: Request<{ id: number }, {}, {}, { userId: number }>, res) => {
+    try {
+      await leaveTeam(+req.params.id, +req.query.userId);
+      res.status(204).send();
+    } catch (err) {
+      if (err instanceof TeamNotFoundError) {
+        handleErrors(err, res);
+      } else if (err instanceof Error) {
+        handleErrors(err, res);
+      }
     }
-  }
-});
-
+  },
+);
+//createTeam
 teamRouter.post(
   "/",
   upload.array("Image", 10),
@@ -171,7 +178,7 @@ teamRouter.post(
     }
   },
 );
-
+//deleteTeam
 teamRouter.delete(
   "/",
   async (
@@ -192,7 +199,7 @@ teamRouter.delete(
     }
   },
 );
-
+//acceptTeamMatch
 teamRouter.post("/match", async (req, res) => {
   try {
     acceptTeamMatch(
@@ -208,7 +215,7 @@ teamRouter.post("/match", async (req, res) => {
     }
   }
 });
-
+//enterMatchResult
 teamRouter.post("/match/:id", async (req, res) => {
   try {
     enterMatchResult(+req.params.id, +req.body.HostScore, +req.body.GuestScore);
@@ -221,7 +228,7 @@ teamRouter.post("/match/:id", async (req, res) => {
   }
 });
 export default teamRouter;
-
+//participateTeam
 teamRouter.post(
   "/participate/:id",
   async (
@@ -238,6 +245,7 @@ teamRouter.post(
     }
   },
 );
+//participateTeamMatch
 teamRouter.post(
   "/participate",
   async (
@@ -263,7 +271,7 @@ teamRouter.post(
     }
   },
 );
-
+//updateTeamProfile
 teamRouter.patch(
   "/",
   upload.array("Image", 10),
