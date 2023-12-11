@@ -40,6 +40,8 @@ async function getUserProfile(userId: number) {
           Introduce: true,
           Location1: true,
           Location2: true,
+          City1: true,
+          City2: true,
           Overall: true,
           Weight: true,
           Year: true,
@@ -55,17 +57,30 @@ async function getUserProfile(userId: number) {
       },
     },
   });
-
-  const sortedTeam = await getUserTeams(userId);
+  const location1 = {
+    location: Profile?.Profile?.Location1,
+    City: Profile?.Profile?.City1,
+  };
+  const location2 = {
+    location: Profile?.Profile?.Location2,
+    City: Profile?.Profile?.City2,
+  };
 
   if (!Profile) throw new NotFoundError("Profile");
-  return {
+  const sortedTeam = await getUserTeams(userId);
+  const updatedProfile = {
     ...Profile.Profile,
+    Location1: location1,
+    Location2: location2,
     GameType: Profile.Profile?.GameType[0],
     Image: Profile.Profile?.Image,
     Name: Profile?.Name,
     Team: sortedTeam,
   };
+  const object = Object.assign({}, updatedProfile);
+  delete object.City1;
+  delete object.City2;
+  return object;
 }
 
 async function getUserTeams(userId: number) {
