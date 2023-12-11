@@ -44,7 +44,9 @@ async function getTeam(teamId?: number, location?: string) {
         Name: true,
         TeamImage: true,
         Location1: true,
+        City1: true,
         Location2: true,
+        City2: true,
         LatestDate: true,
         UserAmount: true,
       },
@@ -87,16 +89,52 @@ async function getTeam(teamId?: number, location?: string) {
       }),
     );
 
+    const object = modifyTeamProfile(team, games, win, lose, playerInfos);
     if (team) {
-      return {
-        ...team,
-        games: games,
-        win: win,
-        lose: lose,
-        playerInfos: playerInfos,
-      };
+      return object;
     } else throw new TeamNotFoundError();
   }
+}
+
+function modifyTeamProfile(
+  team: {
+    Team_id: number;
+    Admin_id: number;
+    Name: string;
+    Introduce: string | null;
+    LatestDate: Date | null;
+    UserAmount: number | null;
+    Location1: string;
+    Location2: string | null;
+    City1: string;
+    City2: string | null;
+  } | null,
+  games: number,
+  win: number,
+  lose: number,
+  playerInfos: { Name: string | undefined; ImageData?: string | undefined }[],
+) {
+  const location1 = {
+    location: team?.Location1,
+    City: team?.City1,
+  };
+  const location2 = {
+    location: team?.Location2,
+    City: team?.City2,
+  };
+  const updatedTeam = {
+    ...team,
+    Location1: location1,
+    Location2: location2,
+    games: games,
+    win: win,
+    lose: lose,
+    playerInfos: playerInfos,
+  };
+  const object = Object.assign({}, updatedTeam);
+  delete object.City1;
+  delete object.City2;
+  return object;
 }
 
 async function getTeamRecord(
@@ -215,9 +253,10 @@ async function createTeam(
     data: {
       Admin_id: +Admin_id,
       Name: Name,
-      Location1: Location1.location + " " + Location1?.city,
+      Location1: Location1.location,
+      City1: Location1.city,
       ...(Location2
-        ? { Location2: Location2.location + " " + Location2.city }
+        ? { Location2: Location2.location, City2: Location2.city }
         : {}),
       Introduce: Introduce,
       UserAmount: 1,
