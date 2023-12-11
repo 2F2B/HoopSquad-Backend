@@ -17,9 +17,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(limiter);
 
-// process.on("uncaughtException", (err) => {
-//   console.error("Uncaught Exception:", err);
-// });
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
 
 const httpServer = http.createServer(app);
 import teamRouter from "./routes/teamRouter";
