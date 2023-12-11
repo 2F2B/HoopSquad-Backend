@@ -59,15 +59,18 @@ async function getTeam(teamId?: number, location?: string, city?: string) {
         UserAmount: true,
       },
     });
+    const newTeams = teams.map(async (team) => {
+      const { games, win, lose } = await getTeamRecord(team?.Team_id);
+    });
     return teams;
   } else {
-    const team = await prisma.teamProfile.findFirst({
+    const team = await prisma.teamProfile.findFirstOrThrow({
       where: {
         Team_id: teamId,
       },
     });
 
-    const { games, win, lose } = await getTeamRecord(team);
+    const { games, win, lose } = await getTeamRecord(team?.Team_id);
 
     const playerIds = await prisma.teamRelay.findMany({
       where: {
@@ -145,21 +148,10 @@ function modifyTeamProfile(
   return object;
 }
 
-async function getTeamRecord(
-  team: {
-    Team_id: number;
-    Admin_id: number;
-    Name: string;
-    Introduce: string | null;
-    LatestDate: Date | null;
-    UserAmount: number | null;
-    Location1: string;
-    Location2: string | null;
-  } | null,
-) {
+async function getTeamRecord(Team_id: number) {
   const matches = await prisma.teamRecord.findMany({
     where: {
-      Team_id: team?.Team_id,
+      Team_id: Team_id,
     },
     select: {
       IsWin: true,
