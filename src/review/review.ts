@@ -3,6 +3,7 @@ import { NotFoundError } from "./error";
 import { CreateReviewType } from "../routes/reviewRouter";
 
 const prisma = new PrismaClient();
+export { getMatchPlayers, setUserReview };
 
 async function getMatchPlayers(Posting_id: number) {
   const players = await prisma.member.findMany({
@@ -66,8 +67,6 @@ async function setUserReview(Reviews: CreateReviewType[], AccessToken: string) {
     });
   });
 }
-
-export { getMatchPlayers, setUserReview };
 
 async function getPlayerNameAndImage(
   players: {

@@ -12,7 +12,6 @@ async function SetProfileLocation(
       AccessToken: AccessToken,
     },
   });
-  console.log(Location1.location + " " + Location1.city);
   await setLocation(Location1, user.User_id, 1);
   if (Location2) await setLocation(Location2, user.User_id, 2);
 }
@@ -28,8 +27,8 @@ async function setLocation(
     },
     data: {
       ...(locationNum === 1
-        ? { Location1: location.location + " " + location.city }
-        : { Location2: location.location + " " + location.city }),
+        ? { Location1: location.location, City1: location.city }
+        : { Location2: location.location, City2: location.city }),
     },
   });
 }

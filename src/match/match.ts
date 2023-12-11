@@ -55,6 +55,7 @@ async function SearchMatchByTitle(
       [filter]: {
         contains: input ? input : "",
       },
+      IsTeam: false,
     },
     orderBy: {
       [sort]: "asc",
@@ -95,6 +96,7 @@ async function SearchMatchByType(
       Posting_id: {
         in: typePostingId,
       },
+      IsTeam: false,
     },
     orderBy: {
       [sort]: "asc",
