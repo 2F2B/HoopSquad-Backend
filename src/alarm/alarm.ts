@@ -165,7 +165,7 @@ async function signUpMatch(postingId: number, roomId: number) {
   const hostToken = await getToken(String(hostId));
   expo.sendPushNotificationsAsync([
     {
-      to: hostToken,
+      to: hostToken.token,
       title: postTitle,
       body: `${guestName}님에게 매칭 참여 요청이 왔습니다.`,
       data: {
