@@ -265,7 +265,7 @@ async function sendPushNotification(
 
   expo.sendPushNotificationsAsync([
     {
-      to: opponentToken,
+      to: opponentToken.token,
       title: postTitle,
       body: `${nickname}: ${payload}`,
       data: {

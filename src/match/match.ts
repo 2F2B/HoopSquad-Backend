@@ -465,7 +465,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
 
     expo.sendPushNotificationsAsync([
       {
-        to: guestToken,
+        to: guestToken.token,
         title: posting.Title,
         body: `${guestName}님의 참가 신청이 수락되었습니다!`,
         data: {
@@ -476,7 +476,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
   } else {
     expo.sendPushNotificationsAsync([
       {
-        to: guestToken,
+        to: guestToken.token,
         title: posting.Title,
         body: `${guestName}님의 참가 신청이 거절되었습니다.`,
         data: {
@@ -611,7 +611,7 @@ async function participateMatch(postingId: number, guestId: number) {
 
   expo.sendPushNotificationsAsync([
     {
-      to: hostToken,
+      to: hostToken.token,
       title: posting.Title,
       body: `${userName}님의 참가 신청이 도착했습니다.`,
       data: {
