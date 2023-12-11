@@ -59,15 +59,19 @@ async function getTeam(teamId?: number, location?: string, city?: string) {
         UserAmount: true,
       },
     });
-    return teams;
+    const newTeams = teams.map(async (team) => {
+      const { games, win, lose } = await getTeamRecord(team?.Team_id);
+      return { ...team, games: games, win: win, lose: lose };
+    });
+    return newTeams;
   } else {
-    const team = await prisma.teamProfile.findFirst({
+    const team = await prisma.teamProfile.findFirstOrThrow({
       where: {
         Team_id: teamId,
       },
     });
 
-    const { games, win, lose } = await getTeamRecord(team);
+    const { games, win, lose } = await getTeamRecord(team?.Team_id);
 
     const playerIds = await prisma.teamRelay.findMany({
       where: {
@@ -145,21 +149,10 @@ function modifyTeamProfile(
   return object;
 }
 
-async function getTeamRecord(
-  team: {
-    Team_id: number;
-    Admin_id: number;
-    Name: string;
-    Introduce: string | null;
-    LatestDate: Date | null;
-    UserAmount: number | null;
-    Location1: string;
-    Location2: string | null;
-  } | null,
-) {
+async function getTeamRecord(Team_id: number) {
   const matches = await prisma.teamRecord.findMany({
     where: {
-      Team_id: team?.Team_id,
+      Team_id: Team_id,
     },
     select: {
       IsWin: true,
@@ -199,28 +192,28 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
     });
 
     // const userToken = await getToken(String(userId));
-    expo.sendPushNotificationsAsync([
-      {
-        to: "userToken",
-        title: team.Name,
-        body: "팀 참가 신청이 수락되었습니다!",
-        data: {
-          type: "teamJoinAccepted",
-        },
-      },
-    ]);
-  } else {
-    // const userToken = await getToken(String(userId));
-    expo.sendPushNotificationsAsync([
-      {
-        to: "userToken",
-        title: team.Name,
-        body: "팀 참가 신청이 거절되었습니다.",
-        data: {
-          type: "teamJoinRejected",
-        },
-      },
-    ]);
+    //   expo.sendPushNotificationsAsync([
+    //     {
+    //       to: "userToken",
+    //       title: team.Name,
+    //       body: "팀 참가 신청이 수락되었습니다!",
+    //       data: {
+    //         type: "teamJoinAccepted",
+    //       },
+    //     },
+    //   ]);
+    // } else {
+    //   // const userToken = await getToken(String(userId));
+    //   expo.sendPushNotificationsAsync([
+    //     {
+    //       to: "userToken",
+    //       title: team.Name,
+    //       body: "팀 참가 신청이 거절되었습니다.",
+    //       data: {
+    //         type: "teamJoinRejected",
+    //       },
+    //     },
+    //   ]);
   }
 
   await prisma.teamJoinApply.updateMany({
@@ -340,29 +333,29 @@ async function acceptTeamMatch(
   await updateIsApply(hostTeamId, guestTeamId, isApply);
 
   // const guestToken = await getToken(String(guestTeam.Admin_id));
-  if (isApply) {
-    expo.sendPushNotificationsAsync([
-      {
-        to: "guestToken",
-        title: guestTeam.Name,
-        body: `${hostTeam.Name}에 대한 매칭이 수락되었습니다!`,
-        data: {
-          type: "teamMatchAccepted",
-        },
-      },
-    ]);
-  } else {
-    expo.sendPushNotificationsAsync([
-      {
-        to: "guestToken",
-        title: guestTeam.Name,
-        body: `${hostTeam.Name}에 대한 매칭이 거절되었습니다.`,
-        data: {
-          type: "teamMatchRejected",
-        },
-      },
-    ]);
-  }
+  // if (isApply) {
+  //   expo.sendPushNotificationsAsync([
+  //     {
+  //       to: "guestToken",
+  //       title: guestTeam.Name,
+  //       body: `${hostTeam.Name}에 대한 매칭이 수락되었습니다!`,
+  //       data: {
+  //         type: "teamMatchAccepted",
+  //       },
+  //     },
+  //   ]);
+  // } else {
+  //   expo.sendPushNotificationsAsync([
+  //     {
+  //       to: "guestToken",
+  //       title: guestTeam.Name,
+  //       body: `${hostTeam.Name}에 대한 매칭이 거절되었습니다.`,
+  //       data: {
+  //         type: "teamMatchRejected",
+  //       },
+  //     },
+  //   ]);
+  // }
 }
 
 async function updateIsApply(
@@ -482,16 +475,16 @@ async function participateTeam(teamId: number, userId: number) {
     })
   ).Name;
 
-  expo.sendPushNotificationsAsync([
-    {
-      to: adminToken,
-      title: team.Name,
-      body: `${userName}님의 참가 신청이 도착했습니다.`,
-      data: {
-        type: "teamParticipate",
-      },
-    },
-  ]);
+  // expo.sendPushNotificationsAsync([
+  //   {
+  //     to: adminToken,
+  //     title: team.Name,
+  //     body: `${userName}님의 참가 신청이 도착했습니다.`,
+  //     data: {
+  //       type: "teamParticipate",
+  //     },
+  //   },
+  // ]);
 }
 
 async function updateTeamProfile(
@@ -592,16 +585,16 @@ async function participateTeamMatch(
     })
   ).Name;
 
-  expo.sendPushNotificationsAsync([
-    {
-      to: "",
-      title: hostTeam.Name,
-      body: `${guestTeamName}(으로/로)부터 매칭 참가 신청이 도착했습니다.`,
-      data: {
-        type: "teamMatchParticipate",
-      },
-    },
-  ]);
+  // expo.sendPushNotificationsAsync([
+  //   {
+  //     to: "",
+  //     title: hostTeam.Name,
+  //     body: `${guestTeamName}(으로/로)부터 매칭 참가 신청이 도착했습니다.`,
+  //     data: {
+  //       type: "teamMatchParticipate",
+  //     },
+  //   },
+  // ]);
 }
 async function makeTeamRecord(
   Team_id: number,
