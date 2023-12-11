@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const saveToken = async (userId: string, token: string) => {
+  let statusCode: number;
   const isTokenExist = await prisma.pushToken.findFirst({
     where: {
       User_id: +userId,
@@ -15,7 +16,10 @@ const saveToken = async (userId: string, token: string) => {
         Token: token,
       },
     });
-  }
+    statusCode = 201;
+  } else statusCode = 302;
+
+  return statusCode;
 };
 
 const getToken = async (userId: string) => {
