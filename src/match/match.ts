@@ -568,7 +568,10 @@ async function getDeadlineMatches(location: string) {
 
   const formedMatches = await Promise.all(
     matches.map((match) => {
-      return { ...match, Image: match.Image[0].ImageData };
+      return {
+        ...match,
+        Image: match.Image.length > 0 ? match.Image[0].ImageData : undefined,
+      };
     }),
   );
 
