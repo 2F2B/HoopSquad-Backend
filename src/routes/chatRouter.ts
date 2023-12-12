@@ -65,10 +65,14 @@ const chatServerHandler = (io: SocketIO.Server) => {
 
     socket.on(
       "applyMatch",
-      async (roomId: number, isApply: boolean, done: () => void) => {
+      async (
+        roomId: number,
+        isApply: boolean,
+        done: (isApply: boolean) => void,
+      ) => {
         await JoinMatch(roomId, isApply);
         socket.to(roomId.toString()).emit("applyMatchComplete", isApply);
-        done();
+        done(isApply);
       },
     );
 
