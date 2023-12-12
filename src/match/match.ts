@@ -566,7 +566,13 @@ async function getDeadlineMatches(location: string) {
     },
   });
 
-  return matches;
+  const formedMatches = await Promise.all(
+    matches.map((match) => {
+      return { ...match, Image: match.Image[0].ImageData };
+    }),
+  );
+
+  return formedMatches;
 }
 
 async function participateMatch(postingId: number, guestId: number) {
