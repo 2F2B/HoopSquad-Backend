@@ -169,7 +169,7 @@ model TeamProfile {
   Name          String          @db.VarChar(45)
   Introduce     String?         @db.VarChar(100)
   LatestDate    DateTime?       @db.DateTime(0)
-  ActiveTime    String          @db.VarChar(100)
+  ActiveTime    String?          @db.VarChar(100)
   UserAmount    Int?
   Location1     String          @db.VarChar(45)
   Location2     String?         @db.VarChar(45)
