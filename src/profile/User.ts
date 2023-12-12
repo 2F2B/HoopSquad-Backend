@@ -92,6 +92,7 @@ async function getUserTeams(userId: number) {
       TeamProfile: {
         select: {
           Team_id: true,
+          Admin_id: true,
           Name: true,
           TeamImage: true,
           Introduce: true,
@@ -102,8 +103,9 @@ async function getUserTeams(userId: number) {
   const sortedTeam = await Promise.all(
     teams.map(async (team) => {
       return {
-        TeamId: team.TeamProfile.Team_id,
+        Team_id: team.TeamProfile.Team_id,
         Name: team.TeamProfile.Name,
+        Admin_id: team.TeamProfile.Admin_id,
         TeamImage: team.TeamProfile.TeamImage,
         Introduce: team.TeamProfile.Introduce,
       };

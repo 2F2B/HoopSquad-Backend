@@ -19,6 +19,7 @@ import {
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import sanitize from "sanitize-filename";
 import { handleErrors } from "../ErrorHandler";
 
 const teamRouter = express.Router();
@@ -122,7 +123,7 @@ teamRouter.delete(
 //createTeam
 teamRouter.post(
   "/",
-  upload.array("Image", 10),
+  upload.single("Image"),
   async (
     req: express.Request<
       {},
@@ -142,12 +143,7 @@ teamRouter.post(
   ) => {
     try {
       const { adminId, name, location1, location2, introduce } = req.body.data;
-      let files;
-      if (Array.isArray(req.files)) {
-        files = req.files.map((file) => {
-          return file.filename;
-        });
-      }
+      let file = req.file?.filename;
       await createTeam(
         {
           Admin_id: adminId,
@@ -156,20 +152,19 @@ teamRouter.post(
           Location2: location2,
           Introduce: introduce,
         },
-        files,
+        file,
       );
       res.status(201).json({ result: "success" });
     } catch (err) {
-      if (req.files && Array.isArray(req.files) && +req.files.length > 0) {
-        const files = req.files;
-        files.forEach((file: any) => {
-          const filePath = path.join(uploadsDirectory, file.filename); // 업로드 폴더의 파일 지정
-          fs.unlink(filePath, (unlinkErr: any) => {
-            // 해당 파일 삭제
-            if (unlinkErr) {
-              console.error("Error deleting file:", unlinkErr);
-            }
-          });
+      if (req.file) {
+        const filePath = sanitize(
+          path.join(uploadsDirectory, req.file.filename),
+        ); // 업로드 폴더의 파일 지정
+        fs.unlink(filePath, (unlinkErr: any) => {
+          // 해당 파일 삭제
+          if (unlinkErr) {
+            console.error("Error deleting file:", unlinkErr);
+          }
         });
       }
       if (err instanceof Error) {
@@ -182,11 +177,11 @@ teamRouter.post(
 teamRouter.delete(
   "/",
   async (
-    req: express.Request<{}, {}, {}, { teamId: number; userId: number }>,
+    req: express.Request<{}, {}, {}, { teamId: number; adminId: number }>,
     res,
   ) => {
     try {
-      await deleteTeam(+req.query.teamId, +req.query.userId);
+      await deleteTeam(+req.query.teamId, +req.query.adminId);
       res.send();
     } catch (err) {
       if (err instanceof TeamNotFoundError) {
@@ -205,7 +200,8 @@ teamRouter.post("/match", async (req, res) => {
     acceptTeamMatch(
       +req.body.HostTeam_id,
       +req.body.GuestTeam_id,
-      req.body.isApply,
+      req.body.IsApply,
+      req.body.PlayTime,
     );
     res.status(201);
     res.send();
@@ -231,10 +227,7 @@ export default teamRouter;
 //participateTeam
 teamRouter.post(
   "/participate/:id",
-  async (
-    req: Request<{ id: number }, {}, { teamId: number; userId: number }, {}>,
-    res,
-  ) => {
+  async (req: Request<{ id: number }, {}, { userId: number }, {}>, res) => {
     try {
       await participateTeam(+req.params.id, req.body.userId);
       res.status(201).send({ result: "success" });
@@ -252,17 +245,13 @@ teamRouter.post(
     req: Request<
       { id: number },
       {},
-      { hostTeamId: number; guestTeamId: number; playDate: string },
+      { hostTeamId: number; guestTeamId: number },
       {}
     >,
     res,
   ) => {
     try {
-      await participateTeamMatch(
-        req.body.hostTeamId,
-        req.body.guestTeamId,
-        req.body.playDate,
-      );
+      await participateTeamMatch(req.body.hostTeamId, req.body.guestTeamId);
       res.status(201).send({ result: "success" });
     } catch (err) {
       if (err instanceof Error) {
@@ -302,15 +291,13 @@ teamRouter.patch(
       }
       const { teamId, adminId, name, location1, location2, introduce } =
         req.body.data;
-      const newLocation1 = location1.location + " " + location1.city;
-      const newLocation2 = location2?.location + " " + location2?.city;
       await updateTeamProfile(
         {
           teamId: +teamId,
           adminId: +adminId,
           name: name,
-          location1: newLocation1,
-          location2: newLocation2,
+          location1: location1,
+          location2: location2,
           introduce: introduce,
         },
         files,

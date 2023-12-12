@@ -462,7 +462,6 @@ async function JoinMatch(roomId: number, isApply: boolean) {
         User: { connect: { User_id: guestId } },
       },
     });
-
     expo.sendPushNotificationsAsync([
       {
         to: guestToken.token,

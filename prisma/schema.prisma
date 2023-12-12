@@ -172,9 +172,9 @@ model TeamProfile {
   UserAmount    Int?
   Location1     String          @db.VarChar(45)
   Location2     String?         @db.VarChar(45)
-  City1      String
-  City2      String?
-  TeamImage     TeamImage[]
+  City1         String
+  City2         String?
+  TeamImage     TeamImage?
   TeamJoinApply TeamJoinApply[]
   User          User            @relation(fields: [Admin_id], references: [User_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_TeamProfile_Admin")
   TeamRecord    TeamRecord[]
@@ -187,6 +187,7 @@ model TeamRelay {
   Team_id      Int
   IsAdmin      Boolean
   User_id      Int
+  joinTime DateTime    @default(now()) @db.Timestamp(0)
   TeamRelay_id Int         @id @default(autoincrement())
   User         User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
   TeamProfile  TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRelay_TeamProfile")
@@ -273,7 +274,7 @@ model Member {
 
 model TeamImage {
   id          Int         @id @default(autoincrement())
-  Team_id     Int
+  Team_id     Int         @unique
   ImageName   String      @db.VarChar(50)
   TeamProfile TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -287,6 +288,7 @@ model TeamRecord {
   Score     Int?
   IsHost    Boolean
   IsWin     Boolean?
+  MatchTime String?
   TeamMatch TeamMatchApply @relation(fields: [Match_id], references: [TeamMatch_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamMatch")
   Team      TeamProfile    @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamRecord_TeamProfile")
 
@@ -295,12 +297,13 @@ model TeamRecord {
 }
 
 model TeamJoinApply {
-  id      Int         @id @default(autoincrement())
-  Team_id Int
-  User_id Int
-  IsApply Boolean?
-  Team    TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
-  User    User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
+  id       Int         @id @default(autoincrement())
+  Team_id  Int
+  User_id  Int
+  joinTime DateTime    @default(now()) @db.Timestamp(0)
+  IsApply  Boolean?
+  Team     TeamProfile @relation(fields: [Team_id], references: [Team_id], onDelete: Cascade, onUpdate: NoAction)
+  User     User        @relation(fields: [User_id], references: [User_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([Team_id], map: "TeamJoinApply_Team_id_fkey")
   @@index([User_id], map: "TeamJoinApply_User_id_fkey")
@@ -326,7 +329,7 @@ model MatchJoinApply {
 
 model TeamMatchApply {
   TeamMatch_id Int          @id @default(autoincrement())
-  PlayDate     String
+  ApplyDate     DateTime    @default(now()) @db.Timestamp(0)
   IsApply      Boolean?
   Posting_id   Int          @unique
   Posting      Posting      @relation(fields: [Posting_id], references: [Posting_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_TeamMatch_TeamPosting")

@@ -15,12 +15,25 @@ export class NotAdminError extends ErrorWithStatusCode {
     this.name = "NotAdmin";
   }
 }
-
+export class UserAlreadyAdminError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("Already Already Admin To Team");
+    this.name = "AlreadyAlreadyAdminToTeam";
+  }
+}
 export class UserAlreadyInTeamError extends ErrorWithStatusCode {
   statusCode: number = 400;
   constructor() {
     super("User Already In Team");
     this.name = "UserAlreadyInTeam";
+  }
+}
+export class AlreadyParticipateError extends ErrorWithStatusCode {
+  statusCode: number = 400;
+  constructor() {
+    super("Already Participate To Team");
+    this.name = "AlreadyParticipateToTeam";
   }
 }
 
