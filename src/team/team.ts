@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import {
+  AlreadyParticipateError,
   NameDuplicateError,
   NotAdminError,
   TeamAdminLeaveError,
   TeamNotFoundError,
+  UserAlreadyAdminError,
   UserAlreadyInTeamError,
 } from "./error";
 import http from "http";
@@ -72,14 +74,23 @@ async function getTeam(teamId?: number, location?: string, city?: string) {
         Team_id: teamId,
       },
     });
+    const teamImage = await prisma.teamImage.findFirst({
+      where: {
+        Team_id: team.Team_id,
+      },
+      select: {
+        ImageName: true,
+      },
+    });
 
-    const { games, win, lose } = await getTeamRecord(team?.Team_id);
+    const { records, games, win, lose } = await getTeamRecord(team?.Team_id);
 
     const playerIds = await prisma.teamRelay.findMany({
       where: {
         Team_id: teamId,
       },
     });
+
     const playerInfos = await Promise.all(
       playerIds.map(async (playerId) => {
         const data = await prisma.user.findFirst({
@@ -88,6 +99,7 @@ async function getTeam(teamId?: number, location?: string, city?: string) {
           },
           select: {
             Name: true,
+            User_id: true,
             Profile: {
               select: {
                 Image: {
@@ -99,11 +111,20 @@ async function getTeam(teamId?: number, location?: string, city?: string) {
             },
           },
         });
-        return { ...data?.Profile?.Image[0], Name: data?.Name };
+        return { ...data?.Profile, User_id: data?.User_id, Name: data?.Name };
       }),
     );
-
-    const object = modifyTeamProfile(team, games, win, lose, playerInfos);
+    let object;
+    if (teamImage)
+      object = modifyTeamProfile(
+        team,
+        games,
+        win,
+        lose,
+        playerInfos,
+        teamImage.ImageName,
+        records,
+      );
     if (team) {
       return object;
     } else throw new TeamNotFoundError();
@@ -127,6 +148,15 @@ function modifyTeamProfile(
   win: number,
   lose: number,
   playerInfos: { Name: string | undefined; ImageData?: string | undefined }[],
+  teamImage: string,
+  records: {
+    matchTime: string | null;
+    ourScore: number | null;
+    opponentTeam_id: number | undefined;
+    opponentTeam: string | undefined;
+    opponentScore: number | null | undefined;
+    opponentImage: string | undefined;
+  }[],
 ) {
   const location1 = {
     location: team?.Location1,
@@ -140,10 +170,12 @@ function modifyTeamProfile(
     ...team,
     Location1: location1,
     Location2: location2,
-    games: games,
-    win: win,
-    lose: lose,
-    playerInfos: playerInfos,
+    Games: games,
+    Win: win,
+    Lose: lose,
+    PlayerInfos: playerInfos,
+    TeamImage: teamImage,
+    Records: records,
   };
   const object = Object.assign({}, updatedTeam);
   delete object.City1;
@@ -157,14 +189,53 @@ async function getTeamRecord(Team_id: number) {
       Team_id: Team_id,
     },
     select: {
+      Record_id: true,
+      Match_id: true,
       IsWin: true,
+      MatchTime: true,
+      Score: true,
     },
   });
+  const records = await Promise.all(
+    matches.map(async (match) => {
+      const opponentTeam = await prisma.teamRecord.findFirst({
+        where: {
+          Match_id: match.Match_id,
+          NOT: { Team_id: Team_id },
+          MatchTime: match.MatchTime,
+        },
+        select: {
+          Score: true,
+          Team_id: true,
+          Team: {
+            select: {
+              Name: true,
+              TeamImage: {
+                select: {
+                  ImageName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        matchTime: match.MatchTime,
+        ourScore: match.Score,
+        opponentTeam_id: opponentTeam?.Team_id,
+        opponentTeam: opponentTeam?.Team.Name,
+        opponentScore: opponentTeam?.Score,
+        opponentImage: opponentTeam?.Team.TeamImage?.ImageName,
+      };
+    }),
+  );
+
   const games = matches.length;
   const win = matches.filter((match) => match.IsWin === true).length;
   const lose =
     matches.length - matches.filter((match) => match.IsWin === true).length;
-  return { games, win, lose };
+  return { records, games, win, lose };
 }
 
 async function joinTeam(teamId: number, userId: number, isApply: boolean) {
@@ -249,8 +320,9 @@ async function leaveTeam(teamId: number, userId: number) {
 
 async function createTeam(
   { Admin_id, Name, Location1, Location2, Introduce }: CreateTeamType,
-  files?: Array<string>,
+  file?: string,
 ) {
+  await isAlreadyAdmin(Admin_id);
   await checkNameDuplicate(Name);
   const newTeam = await prisma.teamProfile.create({
     data: {
@@ -265,14 +337,12 @@ async function createTeam(
       UserAmount: 1,
     },
   });
-  if (files) {
-    files.map(async (file) => {
-      await prisma.teamImage.create({
-        data: {
-          TeamProfile: { connect: { Team_id: newTeam.Team_id } },
-          ImageName: file,
-        },
-      });
+  if (file) {
+    await prisma.teamImage.create({
+      data: {
+        TeamProfile: { connect: { Team_id: newTeam.Team_id } },
+        ImageName: file,
+      },
     });
   }
   await prisma.teamRelay.create({
@@ -282,6 +352,15 @@ async function createTeam(
       User_id: newTeam.Admin_id,
     },
   });
+}
+
+async function isAlreadyAdmin(Admin_id: string) {
+  const admin = await prisma.teamProfile.findFirst({
+    where: {
+      Admin_id: +Admin_id,
+    },
+  });
+  if (admin) throw new UserAlreadyAdminError();
 }
 
 async function checkNameDuplicate(Name: string) {
@@ -320,19 +399,15 @@ async function acceptTeamMatch(
   hostTeamId: number,
   guestTeamId: number,
   isApply: boolean,
+  playTime: string,
 ) {
-  const hostTeam = await prisma.teamProfile.findFirstOrThrow({
-    where: {
-      Team_id: hostTeamId,
-    },
-  });
-  const guestTeam = await prisma.teamProfile.findFirstOrThrow({
-    where: {
-      Team_id: guestTeamId,
-    },
-  });
+  const { guestTeam, hostTeam } = await getTeamAndSetLatestTime(
+    hostTeamId,
+    playTime,
+    guestTeamId,
+  );
 
-  await updateIsApply(hostTeamId, guestTeamId, isApply);
+  await updateIsApply(hostTeamId, guestTeamId, isApply, playTime);
 
   const guestToken = await getToken(String(guestTeam.Admin_id));
   if (isApply) {
@@ -360,10 +435,45 @@ async function acceptTeamMatch(
   }
 }
 
+async function getTeamAndSetLatestTime(
+  hostTeamId: number,
+  playTime: string,
+  guestTeamId: number,
+) {
+  const hostTeam = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: hostTeamId,
+    },
+  });
+  await prisma.teamProfile.update({
+    where: {
+      Team_id: hostTeamId,
+    },
+    data: {
+      LatestDate: playTime,
+    },
+  });
+  const guestTeam = await prisma.teamProfile.findFirstOrThrow({
+    where: {
+      Team_id: guestTeamId,
+    },
+  });
+  await prisma.teamProfile.update({
+    where: {
+      Team_id: hostTeamId,
+    },
+    data: {
+      LatestDate: playTime,
+    },
+  });
+  return { guestTeam, hostTeam };
+}
+
 async function updateIsApply(
   hostTeamId: number,
   guestTeamId: number,
   isApply: boolean,
+  playTime: string,
 ) {
   const tmpMap = await prisma.posting.findMany({
     where: {
@@ -384,7 +494,7 @@ async function updateIsApply(
     },
   });
 
-  const a = await prisma.teamMatchApply.update({
+  const apply = await prisma.teamMatchApply.update({
     where: {
       TeamMatch_id: match?.TeamMatch_id,
     },
@@ -392,7 +502,14 @@ async function updateIsApply(
       IsApply: isApply,
     },
   });
-  console.log(a);
+  await prisma.teamRecord.updateMany({
+    where: {
+      Match_id: apply.TeamMatch_id,
+    },
+    data: {
+      MatchTime: playTime,
+    },
+  });
 }
 async function enterMatchResult(
   HostTeam_id: number,
@@ -407,7 +524,9 @@ async function enterMatchResult(
 }
 
 function setTeamRecord(
-  record: { Record_id: number; IsHost: boolean }[] | null,
+  record:
+    | { Record_id: number; MatchTime: string | null; IsHost: boolean }[]
+    | null,
   HostScore: number,
   GuestScore: number,
   IsHostWin: boolean,
@@ -416,6 +535,7 @@ function setTeamRecord(
     await prisma.teamRecord.update({
       where: {
         Record_id: Record.Record_id,
+        MatchTime: Record.MatchTime,
       },
       data: {
         Score: Record.IsHost ? HostScore : GuestScore,
@@ -443,50 +563,57 @@ async function getRecordId(HostTeam_id: number) {
     select: {
       Record_id: true,
       IsHost: true,
+      MatchTime: true,
     },
   });
 }
 
 async function participateTeam(teamId: number, userId: number) {
-  await prisma.teamJoinApply.create({
-    data: {
+  const isExists = await prisma.teamJoinApply.findFirst({
+    where: {
       Team_id: teamId,
       User_id: userId,
     },
   });
-  const team = await prisma.teamProfile.findFirstOrThrow({
-    where: {
-      Team_id: teamId,
-    },
-    select: {
-      Admin_id: true,
-      Name: true,
-    },
-  });
-
-  const adminToken = await getToken(String(team.Admin_id));
-
-  const userName = (
-    await prisma.user.findFirstOrThrow({
-      where: {
+  if (!isExists) {
+    await prisma.teamJoinApply.create({
+      data: {
+        Team_id: teamId,
         User_id: userId,
       },
+    });
+    const team = await prisma.teamProfile.findFirstOrThrow({
+      where: {
+        Team_id: teamId,
+      },
       select: {
+        Admin_id: true,
         Name: true,
       },
-    })
-  ).Name;
+    });
+    const adminToken = await getToken(String(team.Admin_id));
 
-  expo.sendPushNotificationsAsync([
-    {
-      to: adminToken.token,
-      title: team.Name,
-      body: `${userName}님의 참가 신청이 도착했습니다.`,
-      data: {
-        type: "teamParticipate",
+    const userName = (
+      await prisma.user.findFirstOrThrow({
+        where: {
+          User_id: userId,
+        },
+        select: {
+          Name: true,
+        },
+      })
+    ).Name;
+    expo.sendPushNotificationsAsync([
+      {
+        to: adminToken.token,
+        title: team.Name,
+        body: `${userName}님의 참가 신청이 도착했습니다.`,
+        data: {
+          type: "teamParticipate",
+        },
       },
-    },
-  ]);
+    ]);
+  } else throw new AlreadyParticipateError();
 }
 
 async function updateTeamProfile(
@@ -494,8 +621,8 @@ async function updateTeamProfile(
     teamId: number;
     adminId: number;
     name: string;
-    location1: string;
-    location2?: string;
+    location1: { location: string; city: string };
+    location2?: { location: string; city: string };
     introduce?: string;
   },
   files?: Array<string> | undefined,
@@ -511,12 +638,16 @@ async function updateTeamProfile(
     },
     data: {
       ...(data.name ? { Name: data.name } : {}),
-      ...(data.location1 ? { Location1: data.location1 } : {}),
-      ...(data.location2 ? { Location2: data.location2 } : {}),
+      ...(data.location1
+        ? { Location1: data.location1.location, City1: data.location1.city }
+        : {}),
+      ...(data.location2
+        ? { Location2: data.location2.location, City1: data.location2.city }
+        : {}),
       ...(data.introduce ? { Introduce: data.introduce } : {}),
     },
   });
-  if (files) {
+  if (files?.length) {
     files.forEach((file: any) => {
       const filePath = path.join(uploadsDirectory, file.ImageData);
       fs.unlink(filePath, (unlinkErr: any) => {});
@@ -531,11 +662,7 @@ async function updateTeamProfile(
     });
   }
 }
-async function participateTeamMatch(
-  hostTeamId: number,
-  guestTeamId: number,
-  playDate: string,
-) {
+async function participateTeamMatch(hostTeamId: number, guestTeamId: number) {
   const hostTeam = await prisma.teamProfile.findFirstOrThrow({
     where: {
       Team_id: hostTeamId,
@@ -552,11 +679,10 @@ async function participateTeamMatch(
       LocationName: "1",
     },
   });
-  const time = Date.now();
+  const time = Date.now() / 1000;
 
   const teamMatch = await prisma.teamMatchApply.create({
     data: {
-      PlayDate: playDate,
       Posting: {
         create: {
           IsTeam: true,
