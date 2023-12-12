@@ -72,7 +72,20 @@ async function getWeather(X: number, Y: number) {
     precipitationPercentage,
   };
 }
-
+async function getFineDust(location: string, city: string) {
+  const endPoint = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?sidoName=${location}&returnType=json&pageNo=1&numOfRows=100&returnType=xml&serviceKey=%2FKmIGx1FjlWOE3kn8M%2BTstmYrIZFbCnVn0AJvSlBs31s8NTum5DMX4Ba9%2BMmTMYcA8ytOs6gR%2FJY%2B9iykO7zLw%3D%3D&ver=1.0`;
+  const dusts = (await axios.get(endPoint)).data.response.body.items;
+  const pmDatas = dusts.map((dust: any) => {
+    return {
+      pm10: dust.pm10Value,
+      pm25: dust.pm25Value,
+      station: dust.stationName,
+    };
+  });
+  const result = pmDatas.find((data: any) => data.station === city);
+  console.log(result);
+}
+getFineDust("서울", "성동구");
 export { getWeather };
 function getYearMonthDay(currentDate: Date) {
   const year = currentDate.getFullYear();

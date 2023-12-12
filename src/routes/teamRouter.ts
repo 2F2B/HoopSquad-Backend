@@ -136,7 +136,7 @@ teamRouter.post(
           location1: { location: string; city: string };
           location2?: { location: string; city: string };
           introduce?: string;
-          activeTime: string;
+          activeTime?: string;
         };
       },
       {}
