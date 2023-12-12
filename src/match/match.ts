@@ -544,6 +544,9 @@ async function getDeadlineMatches(location: string) {
   const matches = await prisma.posting.findMany({
     where: {
       Location: { contains: location },
+      PlayTime: {
+        lte: new Date().getTime(),
+      },
     },
     orderBy: {
       PlayTime: "desc",
