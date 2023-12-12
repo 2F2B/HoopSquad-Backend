@@ -26,6 +26,7 @@ async function getHostPostingAlarm(hostId: number) {
     roomId: number | undefined;
     isApply: boolean | null;
     createdAt: Date;
+    type: string;
   }[] = [];
 
   for (const alarm of alarms) {
@@ -82,6 +83,7 @@ async function getHostPostingAlarm(hostId: number) {
       roomId: roomId,
       isApply: alarm.IsApply,
       createdAt: alarm.createdAt,
+      type: "host",
     });
   }
   return alarmList;
@@ -90,7 +92,7 @@ async function getHostPostingAlarm(hostId: number) {
 async function getGuestPostingAlarm(guestId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      Opponent_id: guestId,
+      AND: [{ Opponent_id: guestId }, { NOT: { IsApply: null } }],
     },
   });
 
@@ -104,6 +106,7 @@ async function getGuestPostingAlarm(guestId: number) {
     roomId: number | undefined;
     isApply: boolean | null;
     createdAt: Date;
+    type: string;
   }[] = [];
 
   for (const alarm of alarms) {
@@ -157,6 +160,7 @@ async function getGuestPostingAlarm(guestId: number) {
       roomId: roomId,
       isApply: alarm.IsApply,
       createdAt: alarm.createdAt,
+      type: "guest",
     });
   }
   return alarmList;
