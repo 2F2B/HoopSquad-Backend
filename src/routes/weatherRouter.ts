@@ -1,6 +1,7 @@
 import express, { Request } from "express";
-import { getWeather } from "../weather/weather";
+import { getFineDust, getWeather } from "../weather/weather";
 import { handleErrors } from "../ErrorHandler";
+import { AddressToLatLng } from "../google-maps/googleMaps";
 
 const math = require("mathjs");
 const weatherRouter = express.Router();
@@ -48,10 +49,26 @@ function LonLatToXY(lat: number, lon: number) {
 
 weatherRouter.get(
   "/",
-  async (req: Request<{}, {}, {}, { lat: number; lng: number }>, res) => {
+  async (req: Request<{}, {}, {}, { location: string; city: string }>, res) => {
     try {
-      const { X, Y } = LonLatToXY(req.query.lat, req.query.lng);
+      const { lat, lng } = await AddressToLatLng(
+        req.query.location + req.query.city,
+      );
+      const { X, Y } = LonLatToXY(lat, lng);
       const result = await getWeather(X, Y);
+      res.send(result);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+weatherRouter.get(
+  "/dust",
+  async (req: Request<{}, {}, {}, { Location: string; City: string }>, res) => {
+    try {
+      const result = await getFineDust(req.query.Location, req.query.City);
       res.send(result);
     } catch (err) {
       if (err instanceof Error) {

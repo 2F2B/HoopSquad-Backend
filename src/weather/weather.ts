@@ -73,20 +73,27 @@ async function getWeather(X: number, Y: number) {
   };
 }
 async function getFineDust(location: string, city: string) {
-  const endPoint = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?sidoName=${location}&returnType=json&pageNo=1&numOfRows=100&returnType=xml&serviceKey=%2FKmIGx1FjlWOE3kn8M%2BTstmYrIZFbCnVn0AJvSlBs31s8NTum5DMX4Ba9%2BMmTMYcA8ytOs6gR%2FJY%2B9iykO7zLw%3D%3D&ver=1.0`;
-  const dusts = (await axios.get(endPoint)).data.response.body.items;
-  const pmDatas = dusts.map((dust: any) => {
-    return {
-      pm10: dust.pm10Value,
-      pm25: dust.pm25Value,
-      station: dust.stationName,
-    };
-  });
-  const result = pmDatas.find((data: any) => data.station === city);
-  console.log(result);
+  const valueEndPoint = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?sidoName=${location}&returnType=json&pageNo=1&numOfRows=100&serviceKey=${process.env.fineDust}&ver=1.0`;
+  const dusts = (await axios.get(valueEndPoint)).data.response.body.items;
+  const pmDatas = await Promise.all(
+    dusts.map((dust: any) => {
+      return {
+        pm10: dust.pm10Value,
+        pm25: dust.pm25Value,
+        station: dust.stationName,
+      };
+    }),
+  );
+  const valueResult = await pmDatas.find(
+    (data: any): any => data.station === city,
+  );
+  return {
+    ...valueResult,
+    pm10Grade: getGrade(valueResult.pm10),
+    pm25Grade: getGrade(valueResult.pm25),
+  };
 }
-getFineDust("서울", "성동구");
-export { getWeather };
+export { getWeather, getFineDust };
 function getYearMonthDay(currentDate: Date) {
   const year = currentDate.getFullYear();
   const month = (currentDate.getMonth() + 1).toString().padStart(2, "0"); // 월은 0부터 시작하므로 +1 해주고, 두 자리로 맞추기
@@ -105,4 +112,17 @@ function getBaseTime(currentHour: number) {
       .toString()
       .padStart(2, "0") + "00";
   return baseTime;
+}
+
+function getGrade(value: number) {
+  switch (true) {
+    case value <= 30:
+      return 3; // 좋음
+    case value <= 80:
+      return 2; // 보통
+    case value <= 150:
+      return 1; // 나쁨
+    default:
+      return 0; // 매우 나쁨
+  }
 }
