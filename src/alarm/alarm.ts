@@ -19,6 +19,7 @@ async function getPostingAlarm(userId: number) {
   const alarmList: {
     image: string | undefined;
     nickname: string;
+    hostId: number;
     guestId: number;
     postingId: number;
     postingTitle: string;
@@ -36,16 +37,18 @@ async function getPostingAlarm(userId: number) {
         User: true,
       },
     });
-    const postingName = (
-      await prisma.posting.findFirstOrThrow({
-        where: {
-          Posting_id: alarm.Posting_id,
-        },
-        select: {
-          Title: true,
-        },
-      })
-    ).Title;
+    const posting = await prisma.posting.findFirstOrThrow({
+      where: {
+        Posting_id: alarm.Posting_id,
+      },
+      select: {
+        User_id: true,
+        Title: true,
+      },
+    });
+
+    const postingName = posting.Title;
+    const hostId = posting.User_id;
 
     const userImage = await prisma.image.findFirst({
       where: {
@@ -59,6 +62,7 @@ async function getPostingAlarm(userId: number) {
     alarmList.push({
       image: userImage?.ImageData,
       nickname: opponentProfile.User.Name,
+      hostId: hostId,
       guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
       postingTitle: postingName,
@@ -221,7 +225,7 @@ async function checkHostApplyMatch(roomId: number) {
   if (!isNotificationExist) return 0;
   if (isNotificationExist.IsApply == null) return 1;
   if (isNotificationExist.IsApply) return 2;
-  if (isNotificationExist.IsApply) return 3;
+  if (!isNotificationExist.IsApply) return 3;
 }
 
 export { getPostingAlarm, signUpMatch, checkGuestSignUp, checkHostApplyMatch };

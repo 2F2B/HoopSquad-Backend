@@ -449,7 +449,7 @@ async function JoinMatch(roomId: number, isApply: boolean) {
       User_id: guestId,
     },
   });
-  if (!isJoining) throw new UserAlreadyJoinError();
+  if (isJoining) throw new UserAlreadyJoinError();
   const guestToken = await getToken(String(guestId));
   const posting = await getPostingTitle(Posting_id);
   const guestName = await getGuestName(guestId);
