@@ -444,12 +444,6 @@ async function JoinMatch(roomId: number, isApply: boolean) {
   const guestId = room.User_id;
   const Posting_id = room.Posting_id;
 
-  const isJoining = await prisma.member.findFirst({
-    where: {
-      User_id: guestId,
-    },
-  });
-  if (isJoining) throw new UserAlreadyJoinError();
   const guestToken = await getToken(String(guestId));
   const posting = await getPostingTitle(Posting_id);
   const guestName = await getGuestName(guestId);
