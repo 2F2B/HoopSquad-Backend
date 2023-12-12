@@ -51,6 +51,7 @@ export interface CreateTeamType {
   Location1: { location: string; city: string };
   Location2?: { location: string; city: string };
   Introduce?: string;
+  ActiveTime?: string;
 }
 //getTeam
 teamRouter.get("/", async (req, res) => {
@@ -135,6 +136,7 @@ teamRouter.post(
           location1: { location: string; city: string };
           location2?: { location: string; city: string };
           introduce?: string;
+          activeTime: string;
         };
       },
       {}
@@ -142,7 +144,8 @@ teamRouter.post(
     res: express.Response,
   ) => {
     try {
-      const { adminId, name, location1, location2, introduce } = req.body.data;
+      const { adminId, name, location1, location2, introduce, activeTime } =
+        req.body.data;
       let file = req.file?.filename;
       await createTeam(
         {
@@ -151,6 +154,7 @@ teamRouter.post(
           Location1: location1,
           Location2: location2,
           Introduce: introduce,
+          ActiveTime: activeTime,
         },
         file,
       );

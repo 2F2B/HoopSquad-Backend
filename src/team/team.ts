@@ -319,7 +319,14 @@ async function leaveTeam(teamId: number, userId: number) {
 }
 
 async function createTeam(
-  { Admin_id, Name, Location1, Location2, Introduce }: CreateTeamType,
+  {
+    Admin_id,
+    Name,
+    Location1,
+    Location2,
+    Introduce,
+    ActiveTime,
+  }: CreateTeamType,
   file?: string,
 ) {
   await isAlreadyAdmin(Admin_id);
@@ -334,6 +341,7 @@ async function createTeam(
         ? { Location2: Location2.location, City2: Location2.city }
         : {}),
       Introduce: Introduce,
+      ...(ActiveTime ? { ActiveTime: ActiveTime } : {}),
       UserAmount: 1,
     },
   });
@@ -624,6 +632,7 @@ async function updateTeamProfile(
     location1: { location: string; city: string };
     location2?: { location: string; city: string };
     introduce?: string;
+    ActiveTime?: string;
   },
   files?: Array<string> | undefined,
 ) {
@@ -644,6 +653,7 @@ async function updateTeamProfile(
       ...(data.location2
         ? { Location2: data.location2.location, City1: data.location2.city }
         : {}),
+      ...(data.ActiveTime ? { ActiveTime: data.ActiveTime } : {}),
       ...(data.introduce ? { Introduce: data.introduce } : {}),
     },
   });

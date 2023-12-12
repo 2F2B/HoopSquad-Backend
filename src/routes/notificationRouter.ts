@@ -8,7 +8,12 @@ import {
 } from "../alarm/alarm";
 import { Request, Router } from "express";
 import { removeToken, saveToken } from "../alarm/pushNotification";
-import { getGuestJoinAlarms, getTeamApplyAlarms } from "../alarm/teamAlarm";
+import {
+  getGuestJoinAlarms,
+  checkAdminApply,
+  getParticipateTeamMatchAlarms,
+  getTeamMatchApplyAlarm,
+} from "../alarm/teamAlarm";
 
 const notificationRouter = Router();
 
@@ -126,7 +131,36 @@ notificationRouter.get(
   "/team/apply",
   async (req: Request<{}, {}, {}, { userId: number }>, res) => {
     try {
-      const alarms = await getTeamApplyAlarms(+req.query.userId);
+      const alarms = await checkAdminApply(+req.query.userId);
+      res.status(201).send(alarms);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+notificationRouter.get(
+  "/teammatch/",
+  async (req: Request<{}, {}, {}, { userId: number }>, res) => {
+    try {
+      const alarms = await getParticipateTeamMatchAlarms(+req.query.userId);
+      res.status(201).send(alarms);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+notificationRouter.get(
+  "/teammatch/apply",
+  async (req: Request<{}, {}, {}, { userId: number; teamId: number }>, res) => {
+    try {
+      const alarms = await getTeamMatchApplyAlarm(
+        +req.query.userId,
+        req.query.teamId,
+      );
       res.status(201).send(alarms);
     } catch (err) {
       if (err instanceof Error) {

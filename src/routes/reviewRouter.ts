@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import { getWeather } from "../weather/weather";
 import { getMatchPlayers, setUserReview } from "../review/review";
 import { handleErrors } from "../ErrorHandler";
@@ -12,19 +12,22 @@ export interface CreateReviewType {
   Comment: string;
 }
 
-reviewRouter.get("/:id", async (req, res) => {
-  try {
-    const result = await getMatchPlayers(+req.params.id);
-    res.status(200);
-    res.send(result);
-  } catch (err) {
-    if (err instanceof NotFoundError) {
-      handleErrors<NotFoundError>(err, res);
-    } else if (err instanceof Error) {
-      handleErrors<Error>(err, res);
+reviewRouter.get(
+  "/:id",
+  async (req: Request<{ id: number }, {}, {}, { userId: number }>, res) => {
+    try {
+      const result = await getMatchPlayers(+req.params.id, +req.query.userId);
+      res.status(200);
+      res.send(result);
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        handleErrors<NotFoundError>(err, res);
+      } else if (err instanceof Error) {
+        handleErrors<Error>(err, res);
+      }
     }
-  }
-});
+  },
+);
 
 reviewRouter.post("/", async (req, res) => {
   try {
