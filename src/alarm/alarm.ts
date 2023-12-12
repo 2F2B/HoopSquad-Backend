@@ -19,6 +19,7 @@ async function getHostPostingAlarm(hostId: number) {
   const alarmList: {
     image: string | undefined;
     nickname: string;
+    hostId: number;
     guestId: number;
     postingId: number;
     postingTitle: string;
@@ -74,6 +75,7 @@ async function getHostPostingAlarm(hostId: number) {
     alarmList.push({
       image: userImage?.ImageData,
       nickname: guestProfile.User.Name,
+      hostId: hostId,
       guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
       postingTitle: postingName,
@@ -96,6 +98,7 @@ async function getGuestPostingAlarm(guestId: number) {
     image: string | undefined;
     nickname: string;
     hostId: number;
+    guestId: number;
     postingId: number;
     postingTitle: string;
     roomId: number | undefined;
@@ -148,6 +151,7 @@ async function getGuestPostingAlarm(guestId: number) {
       image: userImage?.ImageData,
       nickname: hostProfile.User.Name,
       hostId: alarm.Opponent_id,
+      guestId: guestId,
       postingId: alarm.Posting_id,
       postingTitle: postingName,
       roomId: roomId,
