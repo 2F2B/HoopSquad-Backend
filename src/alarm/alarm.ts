@@ -12,7 +12,7 @@ const expo = new Expo();
 async function getHostPostingAlarm(hostId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      AND: [{ User_id: hostId }, { NOT: { IsApply: null } }],
+      User_id: hostId,
     },
   });
 
