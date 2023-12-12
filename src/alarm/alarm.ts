@@ -12,7 +12,7 @@ const expo = new Expo();
 async function getHostPostingAlarm(hostId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      User_id: hostId,
+      AND: [{ User_id: hostId }, { NOT: { IsApply: null } }],
     },
   });
 
@@ -92,7 +92,7 @@ async function getHostPostingAlarm(hostId: number) {
 async function getGuestPostingAlarm(guestId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      Opponent_id: guestId,
+      AND: [{ Opponent_id: guestId }, { NOT: { IsApply: null } }],
     },
   });
 
