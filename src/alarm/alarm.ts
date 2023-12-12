@@ -6,29 +6,29 @@ const expo = new Expo();
 
 /**
  * 특정 사용자의 모든 매치 알림을 반환하는 함수
- * @param userId
+ * @param hostId
  * @returns
  */
-async function getPostingAlarm(userId: number) {
+async function getHostPostingAlarm(hostId: number) {
   const alarms = await prisma.matchAlarm.findMany({
     where: {
-      OR: [{ User_id: userId }, { Opponent_id: userId }],
+      User_id: hostId,
     },
   });
 
   const alarmList: {
     image: string | undefined;
     nickname: string;
-    hostId: number;
     guestId: number;
     postingId: number;
     postingTitle: string;
+    roomId: number | undefined;
     isApply: boolean | null;
     createdAt: Date;
   }[] = [];
 
   for (const alarm of alarms) {
-    const opponentProfile = await prisma.profile.findFirstOrThrow({
+    const guestProfile = await prisma.profile.findFirstOrThrow({
       where: {
         User_id: alarm.Opponent_id,
       },
@@ -42,17 +42,29 @@ async function getPostingAlarm(userId: number) {
         Posting_id: alarm.Posting_id,
       },
       select: {
-        User_id: true,
         Title: true,
       },
     });
 
+    const roomId = (
+      await prisma.chatRoom.findFirst({
+        where: {
+          AND: [
+            { User_id: guestProfile.User.User_id },
+            { Posting_id: alarm.Posting_id },
+          ],
+        },
+        select: {
+          Room_id: true,
+        },
+      })
+    )?.Room_id;
+
     const postingName = posting.Title;
-    const hostId = posting.User_id;
 
     const userImage = await prisma.image.findFirst({
       where: {
-        Profile_id: opponentProfile.Profile_id,
+        Profile_id: guestProfile.Profile_id,
       },
       select: {
         ImageData: true,
@@ -61,11 +73,84 @@ async function getPostingAlarm(userId: number) {
 
     alarmList.push({
       image: userImage?.ImageData,
-      nickname: opponentProfile.User.Name,
-      hostId: hostId,
+      nickname: guestProfile.User.Name,
       guestId: alarm.Opponent_id,
       postingId: alarm.Posting_id,
       postingTitle: postingName,
+      roomId: roomId,
+      isApply: alarm.IsApply,
+      createdAt: alarm.createdAt,
+    });
+  }
+  return alarmList;
+}
+
+async function getGuestPostingAlarm(guestId: number) {
+  const alarms = await prisma.matchAlarm.findMany({
+    where: {
+      Opponent_id: guestId,
+    },
+  });
+
+  const alarmList: {
+    image: string | undefined;
+    nickname: string;
+    hostId: number;
+    postingId: number;
+    postingTitle: string;
+    roomId: number | undefined;
+    isApply: boolean | null;
+    createdAt: Date;
+  }[] = [];
+
+  for (const alarm of alarms) {
+    const hostProfile = await prisma.profile.findFirstOrThrow({
+      where: {
+        User_id: alarm.User_id,
+      },
+      select: {
+        Profile_id: true,
+        User: true,
+      },
+    });
+    const posting = await prisma.posting.findFirstOrThrow({
+      where: {
+        Posting_id: alarm.Posting_id,
+      },
+      select: {
+        Title: true,
+      },
+    });
+
+    const roomId = (
+      await prisma.chatRoom.findFirst({
+        where: {
+          AND: [{ User_id: guestId }, { Posting_id: alarm.Posting_id }],
+        },
+        select: {
+          Room_id: true,
+        },
+      })
+    )?.Room_id;
+
+    const postingName = posting.Title;
+
+    const userImage = await prisma.image.findFirst({
+      where: {
+        Profile_id: hostProfile.Profile_id,
+      },
+      select: {
+        ImageData: true,
+      },
+    });
+
+    alarmList.push({
+      image: userImage?.ImageData,
+      nickname: hostProfile.User.Name,
+      hostId: alarm.Opponent_id,
+      postingId: alarm.Posting_id,
+      postingTitle: postingName,
+      roomId: roomId,
       isApply: alarm.IsApply,
       createdAt: alarm.createdAt,
     });
@@ -228,4 +313,10 @@ async function checkHostApplyMatch(roomId: number) {
   if (!isNotificationExist.IsApply) return 3;
 }
 
-export { getPostingAlarm, signUpMatch, checkGuestSignUp, checkHostApplyMatch };
+export {
+  getHostPostingAlarm,
+  getGuestPostingAlarm,
+  signUpMatch,
+  checkGuestSignUp,
+  checkHostApplyMatch,
+};
