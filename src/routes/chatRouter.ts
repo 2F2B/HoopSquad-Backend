@@ -65,10 +65,14 @@ const chatServerHandler = (io: SocketIO.Server) => {
 
     socket.on(
       "applyMatch",
-      async (roomId: number, isApply: boolean, done: () => void) => {
+      async (
+        roomId: number,
+        isApply: boolean,
+        done: (isApply: boolean) => void,
+      ) => {
         await JoinMatch(roomId, isApply);
         socket.to(roomId.toString()).emit("applyMatchComplete", isApply);
-        done();
+        done(isApply);
       },
     );
 
@@ -84,9 +88,9 @@ const chatServerHandler = (io: SocketIO.Server) => {
     socket.on(
       "makeRoom",
       async (
-        hostId: number,
-        guestId: number,
-        postingId: number,
+        hostId: number, //12
+        guestId: number, //13
+        postingId: number, //6
         done: (roomId: number) => void,
       ) => {
         const chatRoom = await createRoom(hostId, guestId, postingId);
@@ -400,15 +404,13 @@ async function findAllChatRoom(user_id: number) {
  * @param postingId
  */
 async function createRoom(hostId: number, guestId: number, postingId: number) {
-  const isChatRoomExist = await prisma.chatRoom.findMany({
+  //12 13 6
+  const isChatRoomExist = await prisma.chatRoom.findFirst({
     where: {
-      AND: [
-        { Posting_id: postingId },
-        { OR: [{ User_id: hostId }, { User_id: guestId }] },
-      ],
+      AND: [{ Posting_id: postingId }, { User_id: guestId }],
     },
   });
-  if (isChatRoomExist.length != 2) {
+  if (!isChatRoomExist) {
     const chatRoom = await prisma.chatRoomList.create({
       data: {
         ChatRoom: {
@@ -429,7 +431,7 @@ async function createRoom(hostId: number, guestId: number, postingId: number) {
       },
     });
     return chatRoom;
-  } else return isChatRoomExist[0].Room_id;
+  } else return isChatRoomExist.Room_id;
 }
 
 /**
