@@ -5,10 +5,11 @@ import { CreateReviewType } from "../routes/reviewRouter";
 const prisma = new PrismaClient();
 export { getMatchPlayers, setUserReview };
 
-async function getMatchPlayers(Posting_id: number) {
+async function getMatchPlayers(Posting_id: number, userId: number) {
   const players = await prisma.member.findMany({
     where: {
       Posting_id: Posting_id,
+      NOT: { User_id: userId },
     },
   });
   if (!players) throw new NotFoundError("players");
