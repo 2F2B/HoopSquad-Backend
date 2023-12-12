@@ -456,6 +456,21 @@ async function JoinMatch(roomId: number, isApply: boolean) {
   await updateApply(Posting_id, guestId, isApply);
 
   if (isApply) {
+    const post = await prisma.posting.findFirstOrThrow({
+      where: {
+        Posting_id: Posting_id,
+      },
+      select: {
+        CurrentAmount: true,
+        RecruitAmount: true,
+      },
+    });
+
+    const currentAmount = post.CurrentAmount;
+    const recruitAmount = post.RecruitAmount;
+
+    if (currentAmount == recruitAmount) throw new Error("All Slots Booked");
+
     await prisma.member.create({
       data: {
         Posting: { connect: { Posting_id: Posting_id } },
