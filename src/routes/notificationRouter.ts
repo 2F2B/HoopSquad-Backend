@@ -2,7 +2,8 @@ import { handleErrors } from "../ErrorHandler";
 import {
   checkGuestSignUp,
   checkHostApplyMatch,
-  getPostingAlarm,
+  getHostPostingAlarm,
+  getGuestPostingAlarm,
   signUpMatch,
 } from "../alarm/alarm";
 import { Request, Router } from "express";
@@ -69,9 +70,20 @@ notificationRouter.get(
   },
 );
 
-notificationRouter.get("/match/:id", async (req, res) => {
+notificationRouter.get("/match/host/:id", async (req, res) => {
   try {
-    const result = await getPostingAlarm(+req.params.id);
+    const result = await getHostPostingAlarm(+req.params.id);
+    res.status(200).json(result);
+  } catch (err) {
+    if (err instanceof Error) {
+      handleErrors(err, res);
+    }
+  }
+});
+
+notificationRouter.get("/match/guest/:id", async (req, res) => {
+  try {
+    const result = await getGuestPostingAlarm(+req.params.id);
     res.status(200).json(result);
   } catch (err) {
     if (err instanceof Error) {
