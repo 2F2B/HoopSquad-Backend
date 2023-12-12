@@ -8,6 +8,7 @@ import {
 } from "../alarm/alarm";
 import { Request, Router } from "express";
 import { removeToken, saveToken } from "../alarm/pushNotification";
+import { getGuestJoinAlarms, getTeamApplyAlarms } from "../alarm/teamAlarm";
 
 const notificationRouter = Router();
 
@@ -100,6 +101,33 @@ notificationRouter.post(
     try {
       await signUpMatch(req.body.postingId, req.body.roomId);
       res.status(201).json({ result: "success" });
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+
+notificationRouter.get(
+  "/team/join",
+  async (req: Request<{}, {}, {}, { userId: number }>, res) => {
+    try {
+      const alarms = await getGuestJoinAlarms(+req.query.userId);
+      res.status(201).send(alarms);
+    } catch (err) {
+      if (err instanceof Error) {
+        handleErrors(err, res);
+      }
+    }
+  },
+);
+notificationRouter.get(
+  "/team/apply",
+  async (req: Request<{}, {}, {}, { userId: number }>, res) => {
+    try {
+      const alarms = await getTeamApplyAlarms(+req.query.userId);
+      res.status(201).send(alarms);
     } catch (err) {
       if (err instanceof Error) {
         handleErrors(err, res);
