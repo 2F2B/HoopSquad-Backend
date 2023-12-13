@@ -471,6 +471,16 @@ async function JoinMatch(roomId: number, isApply: boolean) {
         User: { connect: { User_id: guestId } },
       },
     });
+
+    await prisma.posting.update({
+      where: {
+        Posting_id: Posting_id,
+      },
+      data: {
+        RecruitAmount: recruitAmount + 1,
+      },
+    });
+
     expo.sendPushNotificationsAsync([
       {
         to: guestToken.token,
