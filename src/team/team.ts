@@ -297,6 +297,26 @@ async function joinTeam(teamId: number, userId: number, isApply: boolean) {
       IsApply: isApply,
     },
   });
+
+  const currentAmount = (
+    await prisma.teamProfile.findFirstOrThrow({
+      where: {
+        Team_id: teamId,
+      },
+      select: {
+        UserAmount: true,
+      },
+    })
+  ).UserAmount;
+
+  await prisma.teamProfile.update({
+    where: {
+      Team_id: teamId,
+    },
+    data: {
+      UserAmount: currentAmount!! + 1,
+    },
+  });
 }
 
 async function leaveTeam(teamId: number, userId: number) {
