@@ -544,6 +544,9 @@ async function getDeadlineMatches(location: string) {
   const matches = await prisma.posting.findMany({
     where: {
       Location: { contains: location },
+      PlayTime: {
+        lte: new Date().getTime(),
+      },
     },
     orderBy: {
       PlayTime: "desc",
@@ -563,7 +566,16 @@ async function getDeadlineMatches(location: string) {
     },
   });
 
-  return matches;
+  const formedMatches = await Promise.all(
+    matches.map((match) => {
+      return {
+        ...match,
+        Image: match.Image.length > 0 ? match.Image[0].ImageData : undefined,
+      };
+    }),
+  );
+
+  return formedMatches;
 }
 
 async function participateMatch(postingId: number, guestId: number) {
