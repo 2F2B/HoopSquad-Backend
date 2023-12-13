@@ -632,7 +632,7 @@ async function updateTeamProfile(
     location1: { location: string; city: string };
     location2?: { location: string; city: string };
     introduce?: string;
-    ActiveTime?: string;
+    activeTime?: string;
   },
   files?: Array<string> | undefined,
 ) {
@@ -653,7 +653,7 @@ async function updateTeamProfile(
       ...(data.location2
         ? { Location2: data.location2.location, City1: data.location2.city }
         : {}),
-      ...(data.ActiveTime ? { ActiveTime: data.ActiveTime } : {}),
+      ...(data.activeTime ? { ActiveTime: data.activeTime } : {}),
       ...(data.introduce ? { Introduce: data.introduce } : {}),
     },
   });

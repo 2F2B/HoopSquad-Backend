@@ -280,6 +280,7 @@ teamRouter.patch(
           location1: { location: string; city: string };
           location2?: { location: string; city: string };
           introduce?: string;
+          activeTime?: string;
         };
       },
       {}
@@ -293,8 +294,15 @@ teamRouter.patch(
           return file.filename;
         });
       }
-      const { teamId, adminId, name, location1, location2, introduce } =
-        req.body.data;
+      const {
+        teamId,
+        adminId,
+        name,
+        location1,
+        location2,
+        introduce,
+        activeTime,
+      } = req.body.data;
       await updateTeamProfile(
         {
           teamId: +teamId,
@@ -303,6 +311,7 @@ teamRouter.patch(
           location1: location1,
           location2: location2,
           introduce: introduce,
+          activeTime: activeTime,
         },
         files,
       );
